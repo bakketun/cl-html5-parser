@@ -1,9 +1,0 @@
-{"tests": [
-
-{"description":"Comment in script",
-"initialStates":["SCRIPT DATA state"],
-"lastStartTag":"plaintext",
-"input":"<!--<S",
-"output":[["Character", "<!--<S"]]}
-
-]}
