@@ -147,7 +147,7 @@
 (defun insert-doctype (token)
   (node-append-child (document*)
                      (make-doctype (document*)
-                                   (getf token :name)
+                                   (or (getf token :name) "")
                                    (getf token :public-id)
                                    (getf token :system-id))))
 
