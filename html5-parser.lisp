@@ -138,7 +138,7 @@
 
 (defun is-html-integration-point (element)
   (if (and (string= (node-name element) "annotation-xml")
-           (string= (node-namespace element) (find-namespace "mathml")))
+           (string= (node-namespace element) (find-namespace "math")))
       (and (element-attribute element "encoding")
            (member (ascii-upper-2-lower (element-attribute element "encoding"))
                    '("text/html" "application/xhtml+xml")
@@ -189,7 +189,7 @@
                                             (not (member (getf token :name) '("mglyph" "malignmark") :test #'string=)))
                                        (eql type :characters)
                                        (eql type :space-characters)))
-                              (and (equal current-node-namespace (find-namespace "mathml"))
+                              (and (equal current-node-namespace (find-namespace "math"))
                                    (equal current-node-name "annotation-xml")
                                    (eql type :start-tag)
                                    (equal (getf token :name) "svg"))
@@ -1375,7 +1375,7 @@
   (reconstruct-active-formatting-elements)
   (adjust-math-ml-attributes token)
   (adjust-foreign-attributes token)
-  (setf (getf token :namespace) (find-namespace "mathml"))
+  (setf (getf token :namespace) (find-namespace "math"))
   (insert-element token)
   ;;Need to get the parse error right for the case where the token
   ;;has a namespace not equal to the xmlns attribute
@@ -2614,7 +2614,7 @@
                    do (pop-end open-elements))
              (return token))
             (t
-             (cond ((equal (node-namespace current-node) (find-namespace "mathml"))
+             (cond ((equal (node-namespace current-node) (find-namespace "math"))
                     (adjust-math-ml-attributes token))
                    ((equal (node-namespace current-node) (find-namespace "svg"))
                     (adjust-svg-tag-names token)

@@ -31,7 +31,7 @@
 
 (defglobal +namespaces+
   '(("html" . "http://www.w3.org/1999/xhtml")
-    ("mathml" ."http://www.w3.org/1998/Math/MathML")
+    ("math" ."http://www.w3.org/1998/Math/MathML")
     ("svg" . "http://www.w3.org/2000/svg")
     ("xlink" . "http://www.w3.org/1999/xlink")
     ("xml" . "http://www.w3.org/XML/1998/namespace")
@@ -52,12 +52,12 @@
     (,(find-namespace "html") . "table")
     (,(find-namespace "html") . "td")
     (,(find-namespace "html") . "th")
-    (,(find-namespace "mathml") . "mi")
-    (,(find-namespace "mathml") . "mo")
-    (,(find-namespace "mathml") . "mn")
-    (,(find-namespace "mathml") . "ms")
-    (,(find-namespace "mathml") . "mtext")
-    (,(find-namespace "mathml") . "annotation-xml")
+    (,(find-namespace "math") . "mi")
+    (,(find-namespace "math") . "mo")
+    (,(find-namespace "math") . "mn")
+    (,(find-namespace "math") . "ms")
+    (,(find-namespace "math") . "mtext")
+    (,(find-namespace "math") . "annotation-xml")
     (,(find-namespace "svg") . "foreignObject")
     (,(find-namespace "svg") . "desc")
     (,(find-namespace "svg") . "title")))
@@ -162,17 +162,17 @@
     (,(find-namespace "svg") . "foreignObject")))
 
 (defglobal +html-integration-point-elements+
-  `((,(find-namespace "mathml") . "annotation-xml")
+  `((,(find-namespace "math") . "annotation-xml")
     (,(find-namespace "svg") . "foreignObject")
     (,(find-namespace "svg") . "desc")
     (,(find-namespace "svg") . "title")))
 
 (defglobal +mathml-text-integration-point-elements+
-  `((,(find-namespace "mathml") . "mi")
-    (,(find-namespace "mathml") . "mo")
-    (,(find-namespace "mathml") . "mn")
-    (,(find-namespace "mathml") . "ms")
-    (,(find-namespace "mathml") . "mtext")))
+  `((,(find-namespace "math") . "mi")
+    (,(find-namespace "math") . "mo")
+    (,(find-namespace "math") . "mn")
+    (,(find-namespace "math") . "ms")
+    (,(find-namespace "math") . "mtext")))
 
 (defconstant +eof+ '+eof+)
 
@@ -283,17 +283,17 @@
     "noscript"))
 
 (defglobal +html-integration-point-elements+
-  `((,(find-namespace "mathml") . "annotation-xml")
+  `((,(find-namespace "math") . "annotation-xml")
     (,(find-namespace "svg") . "foreignObject")
     (,(find-namespace "svg") . "desc")
     (,(find-namespace "svg") . "title")))
 
 (defglobal +mathml-text-integration-point-elements+
-  `((,(find-namespace "mathml") . "mi")
-    (,(find-namespace "mathml") . "mo")
-    (,(find-namespace "mathml") . "mn")
-    (,(find-namespace "mathml") . "ms")
-    (,(find-namespace "mathml") . "mtext")))
+  `((,(find-namespace "math") . "mi")
+    (,(find-namespace "math") . "mo")
+    (,(find-namespace "math") . "mn")
+    (,(find-namespace "math") . "ms")
+    (,(find-namespace "math") . "mtext")))
 
 (defun make-hash-lookup (replacements)
   (let ((rhash (make-hash-table :test #'equalp)))
