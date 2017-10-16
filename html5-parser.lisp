@@ -1531,173 +1531,187 @@
 
 (def :in-body end-tag-formatting (active-formatting-elements open-elements)
   ;; The much-feared adoption agency algorithm
-  ;; http://www.whatwg.org/specs/web-apps/current-work/#adoptionAgency
+  ;; http://svn.whatwg.org/webapps/complete.html#adoptionAgency revision 7867
   ;; XXX Better parseError messages appreciated.
-  (loop named outer
-        with name = (getf token :name)
-        with outer-loop-counter = 0
-        with formatting-element
-        with afe-index
-        with furthest-block
-        with bookmark
-        with last-node
-        with inner-loop-counter
-        with index
-        with node
-        with common-ancestor
-        with clone
-        while (< outer-loop-counter 8)
-        do
-        (incf outer-loop-counter)
 
-        ;; Step 1 paragraph 1
-        (setf formatting-element
-              (element-in-active-formatting-elements name))
-        (cond ((or (not formatting-element)
-                   (and (member formatting-element
-                                open-elements)
-                        (not (element-in-scope
-                              (node-name formatting-element)))))
-               (perror :adoption-agency-1.1 :name name)
-               (return-from outer nil))
+  (loop
+    with name = (getf token :name)
+    with formatting-element
+    with afe-index
+    with furthest-block
+    with common-ancestor
+    with bookmark
+    with last-node
+    with node
 
-              ;; Step 1 paragraph 2
-              ((not (member formatting-element
-                            open-elements))
-               (perror :adoption-agency-1.2 :name name)
-               (setf active-formatting-elements
-                     (remove formatting-element active-formatting-elements))
-               (return-from outer nil)))
+    ;; Step 1
+    with outerLoopCounter = 0
 
-        ;; Step 1 paragraph 3
-        (unless (eql formatting-element
-                     (last-open-element))
-          (perror :adoption-agency-1.3 :name name))
+    ;; Step 2
+    while (< outerLoopCounter 8)
 
+    ;; Step 3
+    do (incf outerLoopCounter)
 
-        ;; Step 2
-        ;; Start of the adoption agency algorithm proper
-        (setf afe-index (position formatting-element
-                                  open-elements))
-        (setf furthest-block nil)
-        (loop for element in (subseq open-elements
-                                     afe-index)
-              do (when (member (node-name-tuple element)
-                               +special-elements+
-                               :test #'equal)
-                   (setf furthest-block element)
-                   (return)))
-        ;; Step 3
-        (when (null furthest-block)
-          (loop for element = (pop-end open-elements)
-                until (eql formatting-element element)
-                finally (setf active-formatting-elements
-                              (remove element
-                                      active-formatting-elements)))
-          (return-from outer nil))
-        (setf common-ancestor (elt open-elements (- afe-index 1)))
+       ;; Step 4:
 
-        ;; Step 5
-        ;;if furthestBlock.parent:
-        ;;    furthestBlock.parent.removeChild(furthestBlock)
+       ;; Let the formatting element be the last element in
+       ;; the list of active formatting elements that:
+       ;; - is between the end of the list and the last scope
+       ;; marker in the list, if any, or the start of the list
+       ;; otherwise, and
+       ;; - has the same tag name as the token.
+       (setf formatting-element (element-in-active-formatting-elements name))
+       (cond ((or (not formatting-element)
+                   (and (member formatting-element open-elements)
+                        (not (element-in-scope (node-name formatting-element)))))
+              ;; If there is no such node, then abort these steps
+              ;; and instead act as described in the "any other
+              ;; end tag" entry below.
+              (end-tag-other token)
+              (return))
 
-        ;; Step 5
-        ;; The bookmark is supposed to help us
-        ;; identify where to reinsert nodes in step
-        ;; 12. We have to ensure that we reinsert
-        ;; nodes after the node before the active
-        ;; formatting element.  Note the bookmark can
-        ;; move in step 7.4
-        (setf bookmark (position formatting-element
-                                 active-formatting-elements))
+             ;; Otherwise, if there is such a node, but that node is
+             ;; not in the stack of open elements, then this is a
+             ;; parse error; remove the element from the list, and
+             ;; abort these steps.
+             ((not (member formatting-element open-elements))
+              (perror :adoption-agency-1.2 :name name)
+              (setf active-formatting-elements
+                    (remove formatting-element active-formatting-elements))
+              (return))
 
-        ;; Step 6
-        (setf node furthest-block)
-        (setf last-node node)
-        (setf inner-loop-counter 0)
+             ;; Otherwise, if there is such a node, and that node is
+             ;; also in the stack of open elements, but the element
+             ;; is not in scope, then this is a parse error; ignore
+             ;; the token, and abort these steps.
+             ((not (element-in-scope (node-name formatting-element)))
+              (perror :adoption-agency-4.4 :name name)
+              (return))
 
-        (setf index (position node open-elements))
-        (loop named inner
-              while (< inner-loop-counter 3)
-              do
-              (block continue
-                (incf inner-loop-counter)
-                ;; Node is element before node in open elements
-                (decf index)
-                (setf node (elt open-elements index))
-                (when (not (member node active-formatting-elements))
-                  (setf open-elements
-                        (remove node open-elements))
-                  (return-from continue))
-                ;; Step 6.3
-                (when (eql node formatting-element)
-                  (return-from inner))
-                ;; Step 6.4
-                (when (eql last-node furthest-block)
-                  (setf bookmark (1+ (position node
-                                               active-formatting-elements))))
-                ;; Step 6.5
-                (setf clone (node-clone* node))
+             ;; Otherwise, there is a formatting element and that
+             ;; element is in the stack and is in scope. If the
+             ;; element is not the current node, this is a parse
+             ;; error. In any case, proceed with the algorithm as
+             ;; written in the following steps.
+             (t
+              (unless (eql formatting-element (car (last open-elements)))
+                (perror :adoption-agency-1.3 :name name))))
+
+       ;; Step 5:
+
+       ;; Let the furthest block be the topmost node in the
+       ;; stack of open elements that is lower in the stack
+       ;; than the formatting element, and is an element in
+       ;; the special category. There might not be one.
+       (setf afe-index (position formatting-element
+                                 open-elements))
+       (setf furthest-block nil)
+       (loop for element in (subseq open-elements afe-index)
+             until (when (member (node-name-tuple element) +special-elements+
+                                 :test #'equal)
+                     (setf furthest-block element)))
+
+       ;; Step 6:
+
+       ;; If there is no furthest block, then the UA must
+       ;; first pop all the nodes from the bottom of the stack
+       ;; of open elements, from the current node up to and
+       ;; including the formatting element, then remove the
+       ;; formatting element from the list of active
+       ;; formatting elements, and finally abort these steps.
+       (unless furthest-block
+         (loop for element = (pop-end open-elements)
+               while (not (eql formatting-element element))
+               finally (setf active-formatting-elements
+                             (remove element active-formatting-elements)))
+         (return))
+
+       ;; Step 7
+       (setf common-ancestor (elt open-elements (- afe-index 1)))
+
+       ;; Step 8:
+       ;; The bookmark is supposed to help us identify where to reinsert
+       ;; nodes in step 15. We have to ensure that we reinsert nodes after
+       ;; the node before the active formatting element. Note the bookmark
+       ;; can move in step 9.7
+       (setf bookmark (position formatting-element
+                                active-formatting-elements))
+
+       ;; Step 9
+       (setf last-node furthest-block)
+       (setf node furthest-block)
+
+       (loop
+         named inner
+         with index = (position node open-elements)
+         with inner-loop-counter = 0
+         while (< inner-loop-counter 3)
+         do (incf inner-loop-counter)
+            ;; Node is element before node in open elements
+            (decf index)
+            (setf node (elt open-elements index))
+            (block continue
+              (unless (member node active-formatting-elements)
+                (setf open-elements (remove node open-elements))
+                (return-from continue))
+              ;; Step 9.6
+              (when (eql node formatting-element)
+                (return-from inner))
+              ;; Step 9.7
+              (when (eql last-node furthest-block)
+                (setf bookmark (1+ (position node active-formatting-elements))))
+              ;; Step 9.8
+              (let ((clone (node-clone* node)))
                 ;; Replace node with clone
                 (symbol-macrolet
                     ((af active-formatting-elements)
                      (oe open-elements))
                   (setf (elt af (position node af)) clone)
                   (setf (elt oe (position node oe)) clone))
-                (setf node clone)
+                (setf node clone))
+              ;; Step 9.9
+              ;; Remove lastNode from its parents, if any
+              (when (node-parent last-node)
+                (node-remove-child (node-parent last-node) last-node))
+              (node-append-child node last-node)
+              ;; Step 9.10
+              (setf last-node node)))
 
-                ;; Step 6.6
-                ;; Remove lastNode from its parents, if any
-                (when (node-parent last-node)
-                  (node-remove-child (node-parent last-node)
-                                     last-node))
-                (node-append-child node last-node)
+       ;; Step 10
+       ;; Foster parent lastNode if commonAncestor is a
+       ;; table, tbody, tfoot, thead, or tr we need to foster
+       ;; parent the lastNode
+       (when (node-parent last-node)
+         (node-remove-child (node-parent last-node) last-node))
 
-                ;; Step 7.7
-                (setf last-node node)
-                ;; End of inner loop
-                ))
+       (if (member (node-name common-ancestor)
+                   '("table" "tbody" "tfoot" "thead" "tr")
+                   :test #'string=)
+           (multiple-value-bind (parent insert-before)
+               (get-table-misnested-nodeposition)
+             (node-insert-before* parent last-node insert-before))
+           (node-append-child* common-ancestor last-node))
 
-        ;; Step 7
-        ;; Foster parent lastNode if commonAncestor is a
-        ;; table, tbody, tfoot, thead, or tr we need to
-        ;; foster parent the lastNode
-        (when (node-parent last-node)
-          (node-remove-child (node-parent last-node)
-                             last-node))
+       ;; Step 11
+       (let ((clone (node-clone* formatting-element)))
 
-        (if (member (node-name common-ancestor)
-                    '("table" "tbody" "tfoot" "thead" "tr")
-                    :test #'string=)
-            (multiple-value-bind (parent insert-before)
-                (get-table-misnested-nodeposition)
-              (node-insert-before* parent last-node insert-before))
-            (node-append-child* common-ancestor last-node))
+         ;; Step 12
+         (node-reparent-children furthest-block clone)
 
-        ;; Step 8
-        (setf clone (node-clone* formatting-element))
+         ;; Step 13
+         (node-append-child* furthest-block clone)
 
-        ;; Step 9
-        (node-reparent-children furthest-block clone)
+         ;; Step 14
+         (setf active-formatting-elements (remove formatting-element
+                                                  active-formatting-elements))
+         (insert-elt-at clone bookmark active-formatting-elements)
 
-        ;; Step 10
-        (node-append-child* furthest-block clone)
-
-        ;; Step 11
-        (setf active-formatting-elements
-              (remove formatting-element
-                      active-formatting-elements))
-        (insert-elt-at clone bookmark active-formatting-elements)
-
-        ;; Step 12
-        (setf open-elements
-              (remove formatting-element
-                      open-elements))
-        (insert-elt-at clone
-                       (1+ (position furthest-block
-                                     open-elements))
-                       open-elements))
-  nil)
+         ;; Step 15
+         (setf open-elements (remove formatting-element open-elements))
+         (insert-elt-at clone
+                        (1+ (position furthest-block open-elements))
+                        open-elements))))
 
 (def :in-body end-tag-applet-marquee-object (open-elements)
   (when (element-in-scope (getf token :name))
