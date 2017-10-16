@@ -87,7 +87,7 @@
 (defparameter *parser-tests-to-skip*
   ())
 
-(defun do-parser-test (&key test-name data errors new-errors document document-fragment script-off)
+(defun do-parser-test (&key test-name data errors new-errors document document-fragment script-on script-off)
   (with-simple-restart (skip "Skip test ~A ~A"
                              test-name
                              data)

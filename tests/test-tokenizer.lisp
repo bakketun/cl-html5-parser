@@ -225,22 +225,7 @@ Suppling more-keys will result in recursive application of jget with the result 
 ;; (setf *simple-errors-check* nil)
 
 (defparameter *skip-tests*
-  '(("domjs"
-     ;; unsure about this
-     "leading U+FEFF must pass through"
-     ;; test expect eof-in-cdata, but not in the standard?
-     ;; https://www.w3.org/TR/html/syntax.html#cdata-section-state
-     "CDATA content")
-    ("test1"
-     "Comment, Central dash no space"
-     "Comment, two central dashes")
-    ("test3"
-     "<!---- -->"
-     "<!----  -->"
-     "<!---- a-->"
-     "<!----!a-->"
-     "<!----!-->")
-    ("unicodeCharsProblematic"
+  '(("unicodeCharsProblematic"
      ;; Unable to run these test, flex-streams doesn't like invalid UTF-16
      :skip
      ;; Hangs on the following test, due to bug in flexi-streams
