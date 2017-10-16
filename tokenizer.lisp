@@ -1,6 +1,6 @@
 ;;;;  HTML5 parser for Common Lisp
 ;;;;
-;;;;  Copyright (C) 2012 Thomas Bakketun <thomas.bakketun@copyleft.no>
+;;;;  Copyright (C) 2017 Thomas Bakketun <thomas.bakketun@copyleft.no>
 ;;;;  Copyright (C) 2012 Asgeir Bjørlykke <asgeir@copyleft.no>
 ;;;;  Copyright (C) 2012 Mathias Hellevang
 ;;;;  Copyright (C) 2012 Stian Sletner <stian@copyleft.no>
@@ -65,6 +65,9 @@
   (with-slots (token-queue) self
     (push token token-queue)))
 
+(defun emit-parse-error (self code)
+  (push-token self `(:type :parse-error :data ,code)))
+
 (defun make-growable-string (&optional (init ""))
   "Make an adjustable string with a fill pointer.
 Given INIT, a string, return an adjustable version of it with the fill
@@ -122,7 +125,7 @@ pointer at the end."
 (defun add-to (token indicator &rest data)
   (setf (getf token indicator)
         (apply #'nconcat
-               (getf token indicator)
+               (or (getf token indicator) "")
                data)))
 
 (defun consume-number-entity (self is-hex)
@@ -145,8 +148,14 @@ pointer at the end."
       ;; don't hit an EOF.
       (setf c (html5-stream-char stream))
       (loop while (and (find c allowed) (not (eql c +eof+))) do
-           (push c char-stack)
-           (setf c (html5-stream-char stream)))
+        (push c char-stack)
+        (setf c (html5-stream-char stream)))
+
+      ;; Discard the ; if present. Otherwise, put it back on the queue and
+      ;; invoke parseError on parser.
+      (unless (eql c #\;)
+        (push-token self `(:type :parse-error :data :missing-semicolon-after-character-reference))
+        (html5-stream-unget stream c))
 
       ;; Convert the set of characters consumed to an int.
       (setf char-as-int (parse-integer (coerce (nreverse char-stack) 'string) :radix radix))
@@ -155,41 +164,32 @@ pointer at the end."
       (cond ((find char-as-int +replacement-characters+)
              (setf char (getf +replacement-characters+ char-as-int))
              (push-token self `(:type :parse-error
-                                      :data :illegal-codepoint-for-numeric-entity
-                                      :datavars '(:char-as-int ,char-as-int))))
-            ((or (<= #xD800 char-as-int #xDFFF)
-                 (> char-as-int #x10FFFF))
+                                :data ,(if (zerop char-as-int)
+                                           :null-character-reference
+                                           :control-character-reference)
+                                :datavars '(:char-as-int ,char-as-int))))
+            ((<= #xD800 char-as-int #xDFFF)
              (setf char #\uFFFD)
              (push-token self `(:type :parse-error
-                                      :data :illegal-codepoint-for-numeric-entity
-                                      :datavars '(:char-as-int ,char-as-int))))
+                                :data :surrogate-character-reference
+                                :datavars '(:char-as-int ,char-as-int))))
+            ((> char-as-int #x10FFFF)
+             (setf char #\uFFFD)
+             (push-token self `(:type :parse-error
+                                :data :character-reference-outside-unicode-range
+                                :datavars '(:char-as-int ,char-as-int))))
             (t
-             ;; Python comment: Should speed up this check somehow (e.g. move the set to a constant)
-             (when (or (<= #x0001 char-as-int #x0008)
-                       (<= #x000E char-as-int #x001F)
-                       (<= #x007F char-as-int #x009F)
-                       (<= #xFDD0 char-as-int #xFDEF)
-                       (find char-as-int
-                             #(#x000B #xFFFE #xFFFF #x1FFFE
-                               #x1FFFF #x2FFFE #x2FFFF #x3FFFE
-                               #x3FFFF #x4FFFE #x4FFFF #x5FFFE
-                               #x5FFFF #x6FFFE #x6FFFF #x7FFFE
-                               #x7FFFF #x8FFFE #x8FFFF #x9FFFE
-                               #x9FFFF #xAFFFE #xAFFFF #xBFFFE
-                               #xBFFFF #xCFFFE #xCFFFF #xDFFFE
-                               #xDFFFF #xEFFFE #xEFFFF #xFFFFE
-                               #xFFFFF #x10FFFE #x10FFFF)))
-               (push-token self `(:type :parse-error
-                                        :data :illegal-codepoint-for-numeric-entity
-                                        :datavars '(:char-as-int ,char-as-int))))
+             (cond ((control-character-p char-as-int)
+                    (push-token self `(:type :parse-error
+                                       :data :control-character-reference
+                                       :datavars '(:char-as-int ,char-as-int))))
+                   ((noncharacter-p char-as-int)
+                    (push-token self `(:type :parse-error
+                                       :data :noncharacter-character-reference
+                                       :datavars '(:char-as-int ,char-as-int)))))
+
              ;; Assume char-code-limit >= 1114112
              (setf char (code-char char-as-int))))
-
-      ;; Discard the ; if present. Otherwise, put it back on the queue and
-      ;; invoke parseError on parser.
-      (unless (eql c #\;)
-        (push-token self `(:type :parse-error :data :numeric-entity-without-semicolon))
-        (html5-stream-unget stream c))
 
       (string char))))
 
@@ -210,7 +210,7 @@ pointer at the end."
                       (html5-stream-unget stream (car stack))
                       (setf output (consume-number-entity self is-hex)))
                      (t
-                      (push-token self '(:type :parse-error :data :expected-numeric-entity))
+                      (push-token self '(:type :parse-error :data :absence-of-digits-in-numeric-character-reference))
                       (html5-stream-unget stream (pop stack))
                       (when is-hex
                         (html5-stream-unget stream (pop stack)))
@@ -231,6 +231,20 @@ pointer at the end."
                           (setf entity (second next-node))
                           (setf match-at (length stack)))
                      do (setf node (cddr next-node)))
+
+               (unless entity
+                 ;; No macth. Must check if the the characters after
+                 ;; the & consist of a sequence of one or more
+                 ;; alphanumeric ASCII characters followed by a
+                 ;; semicolon. That is parse error.
+                 (unless (eql #\; (car stack))
+                   (loop for char = (html5-stream-char stream)
+                         do (push char stack)
+                         while (ascii-alphanumeric-p char)))
+                 (when (and (eql #\; (car stack))
+                            (ascii-alphanumeric-p (cadr stack)))
+                   (emit-parse-error self :unknown-named-character-reference)))
+
                (let ((next-char))
                  ;; Unconsume those characters that are not part of the match
                  ;; This unconsumes everything if there where no match
@@ -238,21 +252,19 @@ pointer at the end."
                       (setf next-char (car stack))
                       (html5-stream-unget stream (pop stack)))
                  (cond ((not entity)
-                        ;; If no match can be made, then no characters are consumed, and nothing is returned.
-                        ;; Is this always a parse error really?
-                        (push-token self '(:type :parse-error :data :expected-named-entity)))
+                        ;; If no match can be made, then no characters are consumed,
+                        ;; and nothing is returned.
+                        )
                        ((and from-attribute
                              (not (eql #\; (car stack)))
                              (or (eql next-char #\=)
                                  (find next-char +digits+)
                                  (ascii-letter-p next-char)))
-                        ; Is this a parse error really?
-                        (push-token self '(:type :parse-error :data :bogus))
                         (setf output (concatenate 'string "&" (reverse stack))))
                        (t
                         (unless (eql #\; (car stack))
                           (push-token self '(:type :parse-error
-                                             :data :named-entity-without-semicolon)))
+                                             :data :missing-semicolon-after-character-reference)))
                         (setf output entity)))))))
 
       (cond (from-attribute
@@ -279,7 +291,7 @@ pointer at the end."
           (setf (getf token :name) (ascii-upper-2-lower (getf token :name))))
         (when (eql (getf token :type) :end-tag)
           (when (getf token :data)
-            (push-token self '(:type :parse-error :data :attributes-in-end-tag)))
+            (push-token self '(:type :parse-error :data :end-tag-with-attributes)))
           (when (getf token :self-closing)
             (push-token self '(:type :parse-error :data :self-closing-flag-on-end-tag)))))
       (push-token self token)
@@ -296,7 +308,7 @@ pointer at the end."
           ((eql data #\<)
            (setf state :tag-open-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (push-token* self :characters #\u0000))
           ((eql data +eof+)
            ;; Tokenization ends.
@@ -331,7 +343,7 @@ pointer at the end."
            ;; Tokenization ends.
            (return nil))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (push-token* self :characters #\uFFFD))
           ((find data +space-characters+)
            ;; Directly after emitting a token you switch back to the "data
@@ -358,7 +370,7 @@ pointer at the end."
     (cond ((eql data #\<)
            (setf state :rawtext-less-than-sign-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (push-token* self :characters #\uFFFD))
           ((eql data +eof+)
            ;; Tokenization ends.
@@ -373,7 +385,7 @@ pointer at the end."
     (cond ((eql data #\<)
            (setf state :script-data-less-than-sign-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (push-token* self :characters #\uFFFD))
           ((eql data +eof+)
            ;; Tokenization ends.
@@ -389,7 +401,7 @@ pointer at the end."
            ;; Tokenization ends.
            (return nil))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (push-token* self :characters #\uFFFD))
           (t
            (push-token* self :characters
@@ -415,18 +427,20 @@ pointer at the end."
           ((eql data #\>)
            ;; XXX In theory it could be something besides a tag name. But
            ;; do we really care?
-           (push-token self '(:type :parse-error :data :expected-tag-name-but-got-right-bracket))
+           (push-token self '(:type :parse-error :data :invalid-first-character-of-tag-name))
            (push-token* self :characters "<>")
            (setf state :data-state))
           ((eql data #\?)
            ;; XXX In theory it could be something besides a tag name. But
            ;; do we really care?
-           (push-token self '(:type :parse-error :data :expected-tag-name-but-got-question-mark))
+           (push-token self '(:type :parse-error :data :unexpected-question-mark-instead-of-tag-name))
            (html5-stream-unget stream data)
            (setf state :bogus-comment-state))
           (t
            ;; XXX
-           (push-token self '(:type :parse-error :data :expected-tag-name))
+           (if (eql +eof+ data)
+               (emit-parse-error self :eof-before-tag-name)
+               (push-token self '(:type :parse-error :data :invalid-first-character-of-tag-name)))
            (push-token* self :characters "<")
            (html5-stream-unget stream data)
            (setf state :data-state)))))
@@ -444,15 +458,15 @@ pointer at the end."
                                      :self-closing nil))
            (setf state :tag-name-state))
           ((eql data #\>)
-           (push-token self '(:type :parse-error :data :expected-closing-tag-but-got-right-bracket))
+           (push-token self '(:type :parse-error :data :missing-end-tag-name))
            (setf state :data-state))
           ((eql data +eof+)
-           (push-token self '(:type :parse-error :data :expected-closing-tag-but-got-eof))
+           (push-token self '(:type :parse-error :data :eof-before-tag-name))
            (push-token* self :characters "</")
            (setf state :data-state))
           (t
            ;; XXX data can be _'_...
-           (push-token self `(:type :parse-error :data :expected-closing-tag-but-got-char
+           (push-token self `(:type :parse-error :data :invalid-first-character-of-tag-name
                                     :datavars (:data ,data)))
            (html5-stream-unget stream data)
            (setf state :bogus-comment-state))))
@@ -470,7 +484,7 @@ pointer at the end."
           ((eql data #\/)
            (setf state :self-closing-start-tag-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (vector-push-extend #\uFFFD (getf current-token :name)))
           (t
            (vector-push-extend data (getf current-token :name))
@@ -669,10 +683,11 @@ pointer at the end."
           ((eql data #\<)
            (setf state :script-data-escaped-less-than-sign-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (push-token* self :characters #\uFFFD))
           ((eql data +eof+)
-           (setf state :data-state))
+           (setf state :data-state)
+           (emit-parse-error self :eof-in-script-html-comment-like-text))
           (t
            (push-token* self :characters data (html5-stream-chars-until stream '(#\< #\- #\u0000)))))))
 
@@ -684,11 +699,12 @@ pointer at the end."
           ((eql data #\<)
            (setf state :script-data-escaped-less-than-sign-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (push-token* self :characters #\uFFFD)
            (setf state :script-data-escaped-state))
           ((eql data +eof+)
-           (setf state :data-state))
+           (setf state :data-state)
+           (emit-parse-error self :eof-in-script-html-comment-like-text))
           (t
            (push-token* self :characters data (html5-stream-chars-until stream '(#\< #\- #\u0000)))
            (setf state :script-data-escaped-state)))))
@@ -703,11 +719,12 @@ pointer at the end."
            (push-token* self :characters ">")
            (setf state :script-data-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (push-token* self :characters #\uFFFD)
            (setf state :script-data-escaped-state))
           ((eql data +eof+)
-           (setf state :data-state))
+           (setf state :data-state)
+           (emit-parse-error self :eof-in-script-html-comment-like-text))
           (t
            (push-token* self :characters data (html5-stream-chars-until stream '(#\< #\- #\u0000)))
            (setf state :script-data-escaped-state)))))
@@ -794,10 +811,10 @@ pointer at the end."
            (push-token* self :characters "<")
            (setf state :script-data-double-escaped-less-than-sign-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (push-token* self :characters #\uFFFD))
           ((eql data +eof+)
-           (push-token self '(:type :parse-error :data :eof-in-script-in-script))
+           (push-token self '(:type :parse-error :data :eof-in-script-html-comment-like-text))
            (setf state :data-state))
           (t
            (push-token* self :characters data)))))
@@ -811,11 +828,11 @@ pointer at the end."
            (push-token* self :characters "<")
            (setf state :script-data-double-escaped-less-than-sign-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (push-token* self :characters #\uFFFD)
            (setf state :script-data-double-escaped-state))
           ((eql data +eof+)
-           (push-token self '(:type :parse-error :data :eof-in-script-in-script))
+           (push-token self '(:type :parse-error :data :eof-in-script-html-comment-like-text))
            (setf state :data-state))
           (t
            (push-token* self :characters data)
@@ -834,11 +851,11 @@ pointer at the end."
            (push-token* self :characters ">")
            (setf state :script-data-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (push-token* self :characters #\uFFFD)
            (setf state :script-data-double-escaped-state))
           ((eql data +eof+)
-           (push-token self '(:type :parse-error :data :eof-in-script-in-script))
+           (push-token self '(:type :parse-error :data :eof-in-script-html-comment-like-text))
            (setf state :data-state))
           (t
            (push-token* self :characters data)
@@ -885,11 +902,11 @@ pointer at the end."
            (add-attribute current-token data)
            (setf state :attribute-name-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-attribute current-token #\uFFFD)
            (setf state :attribute-name-state))
           ((eql data +eof+)
-           (push-token self '(:type :parse-error :data :expected-attribute-name-but-got-eof))
+           (push-token self '(:type :parse-error :data :eof-in-tag))
            (setf state :data-state))
           (t
            (add-attribute current-token data)
@@ -915,7 +932,7 @@ pointer at the end."
           ((eql data #\/)
            (setf state :self-closing-start-tag-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to-attr-name current-token #\uFFFD)
            (setf leaving-this-state nil))
           ((find data '(#\' #\" #\<))
@@ -957,11 +974,11 @@ pointer at the end."
           ((eql data #\/)
            (setf state :self-closing-start-tag-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-attribute current-token #\uFFFD)
            (setf state :attribute-name-state))
           ((find data '(#\' #\" #\<))
-           (push-token self '(:type :parse-error :data :invalid-character-after-attribute-name))
+           (push-token self '(:type :parse-error :data :unexpected-character-in-attribute-name))
            (add-attribute current-token data)
            (setf state :attribute-name-state))
           ((eql data +eof+)
@@ -986,11 +1003,11 @@ pointer at the end."
            (push-token self '(:type :parse-error :data :expected-attribute-value-but-got-right-bracket))
            (emit-current-token self))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to-attr-value current-token #\uFFFD)
            (setf state :attribute-value-un-quoted-state))
           ((find data '(#\= #\< #\`))
-           (push-token self '(:type :parse-error :data :equals-in-unquoted-attribute-value))
+           (push-token self '(:type :parse-error :data :unexpected-character-in-unquoted-attribute-value))
            (add-to-attr-value current-token data)
            (setf state :attribute-value-un-quoted-state))
           ((eql data +eof+)
@@ -1007,7 +1024,7 @@ pointer at the end."
           ((eql data #\&)
            (process-entity-in-attribute self :allowed-char #\"))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to-attr-value current-token #\uFFFD))
           ((eql data +eof+)
             (push-token self '(:type :parse-error :data :eof-in-attribute-value-double-quote))
@@ -1024,7 +1041,7 @@ pointer at the end."
           ((eql data #\&)
            (process-entity-in-attribute self :allowed-char #\'))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to-attr-value current-token #\uFFFD))
           ((eql data +eof+)
             (push-token self '(:type :parse-error :data :eof-in-attribute-value-single-quote))
@@ -1046,7 +1063,7 @@ pointer at the end."
            (push-token self '(:type :parse-error :data :unexpected-character-in-unquoted-attribute-value))
            (add-to-attr-value current-token data))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to-attr-value current-token #\uFFFD))
           ((eql data +eof+)
            (push-token self '(:type :parse-error :data :eof-in-attribute-value-no-quotes))
@@ -1070,7 +1087,7 @@ pointer at the end."
            (html5-stream-unget stream data)
            (setf state :data-state))
           (t
-           (push-token self '(:type :parse-error :data :unexpected-character-after-attribute-value))
+           (push-token self '(:type :parse-error :data :missing-whitespace-between-attributes))
            (html5-stream-unget stream data)
            (setf state :before-attribute-name-state)))))
 
@@ -1080,11 +1097,11 @@ pointer at the end."
            (setf (getf current-token :self-closing) t)
            (emit-current-token self))
           ((eql data +eof+)
-           (push-token self '(:type :parse-error :data :unexpected-EOF-after-solidus-in-tag))
+           (push-token self '(:type :parse-error :data :eof-in-tag))
            (html5-stream-unget stream data)
            (setf state :data-state))
           (t
-           (push-token self '(:type :parse-error :data :unexpected-character-after-soldius-in-tag))
+           (push-token self '(:type :parse-error :data :unexpected-solidus-in-tag))
            (html5-stream-unget stream data)
            (setf state :before-attribute-name-state)))))
 
@@ -1102,7 +1119,8 @@ pointer at the end."
 
 (defstate :markup-declaration-open-state (stream state current-token
                                                  cdata-switch-helper)
-  (let ((char-stack (make-array 1
+  (let ((cdata nil)
+        (char-stack (make-array 1
                                 :initial-element (html5-stream-char stream)
                                 :fill-pointer 1
                                 :adjustable t)))
@@ -1121,24 +1139,27 @@ pointer at the end."
                     (return)))
              (when matched
                (setf current-token (list :type :doctype
-                                         :name ""
+                                         :name nil
                                          :public-id nil
                                          :system-id nil
                                          :correct t))
                (setf state :doctype-state)
                (return t))))
-          ((and (eql (aref char-stack (1- (length char-stack))) #\[)
-                (funcall cdata-switch-helper))
+          ((eql (aref char-stack (1- (length char-stack))) #\[)
            (let ((matched t))
              (loop for expected across "CDATA[" do
-                  (vector-push-extend (html5-stream-char stream) char-stack)
-                  (unless (eql (aref char-stack (1- (length char-stack))) expected)
-                    (setf matched nil)
-                    (return)))
+               (vector-push-extend (html5-stream-char stream) char-stack)
+               (unless (eql (aref char-stack (1- (length char-stack))) expected)
+                 (setf matched nil)
+                 (return)))
              (when matched
-               (setf state :cdata-section-state)
-               (return t)))))
-    (push-token self '(:type :parse-error :data :expected-dashes-or-doctype))
+               (setf cdata t)
+               (when (funcall cdata-switch-helper)
+                 (setf state :cdata-section-state)
+                 (return t))))))
+    (if cdata
+        (emit-parse-error self :cdata-in-html-content)
+        (emit-parse-error self :incorrectly-opened-comment))
     (loop while (plusp (length char-stack)) do
          (html5-stream-unget stream (vector-pop char-stack)))
     (setf state :bogus-comment-state)))
@@ -1148,10 +1169,10 @@ pointer at the end."
     (cond ((eql data #\-)
            (setf state :comment-start-dash-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :data #\uFFFD))
           ((eql data #\>)
-           (push-token self '(:type :parse-error :data :incorrect-comment))
+           (push-token self '(:type :parse-error :data :abrupt-closing-of-empty-comment))
            (push-token self current-token)
            (setf state :data-state))
           ((eql data +eof+)
@@ -1167,10 +1188,10 @@ pointer at the end."
     (cond ((eql data #\-)
            (setf state :comment-end-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :data "-" #\uFFFD))
           ((eql data #\>)
-           (push-token self '(:type :parse-error :data :incorrect-comment))
+           (push-token self '(:type :parse-error :data :abrupt-closing-of-empty-comment))
            (push-token self current-token)
            (setf state :data-state))
           ((eql data +eof+)
@@ -1186,7 +1207,7 @@ pointer at the end."
     (cond ((eql data #\-)
            (setf state :comment-end-dash-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :data #\uFFFD))
           ((eql data +eof+)
            (push-token self '(:type :parse-error :data :eof-in-comment))
@@ -1201,10 +1222,10 @@ pointer at the end."
     (cond ((eql data #\-)
            (setf state :comment-end-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :data "-" #\uFFFD))
           ((eql data +eof+)
-           (push-token self '(:type :parse-error :data :eof-in-comment-end-dash))
+           (push-token self '(:type :parse-error :data :eof-in-comment))
            (push-token self current-token)
            (setf state :data-state))
           (t
@@ -1217,22 +1238,22 @@ pointer at the end."
            (push-token self current-token)
            (setf state :data-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :data "--" #\uFFFD)
            (setf state :comment-state))
           ((eql data #\!)
-           (push-token self '(:type :parse-error :data :unexpected-bang-after-double-dash-in-comment))
+           (push-token self '(:type :parse-error :data :incorrectly-closed-comment))
            (setf state :comment-end-bang-state))
           ((eql data #\-)
            (push-token self '(:type :parse-error :data :unexpected-dash-after-double-dash-in-comment))
            (add-to current-token :data data))
           ((eql data +eof+)
-           (push-token self '(:type :parse-error :data :eof-in-comment-double-dash))
+           (push-token self '(:type :parse-error :data :eof-in-comment))
            (push-token self current-token)
            (setf state :data-state))
           (t
            ;; XXX
-           (push-token self '(:type :parse-error :data :unexpected-char-in-comment))
+           (push-token self '(:type :parse-error :data :eof-in-comment))
            (add-to current-token :data "--" data)
            (setf state :comment-state)))))
 
@@ -1245,7 +1266,7 @@ pointer at the end."
            (add-to current-token :data "--!")
            (setf state :comment-end-dash-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :data "--!" #\uFFFD)
            (setf state :comment-state))
           ((eql data +eof+)
@@ -1266,7 +1287,9 @@ pointer at the end."
            (push-token self current-token)
            (setf state :data-state))
           (t
-           (push-token self '(:type :parse-error :data :need-space-after-doctype))
+           (if (eql #\> data)
+               (emit-parse-error self :missing-doctype-name)
+               (emit-parse-error self :missing-whitespace-before-doctype-name))
            (html5-stream-unget stream data)
            (setf state :before-doctype-name-state)))))
 
@@ -1276,12 +1299,12 @@ pointer at the end."
            ;; pass
            )
           ((eql data #\>)
-           (push-token self '(:type :parse-error :data :expected-doctype-name-but-got-right-bracket))
+           (emit-parse-error self :missing-doctype-name)
            (setf (getf current-token :correct) nil)
            (push-token self current-token)
            (setf state :data-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :name #\uFFFD)
            (setf state :doctype-name-state))
           ((eql data +eof+)
@@ -1303,11 +1326,11 @@ pointer at the end."
            (push-token self current-token)
            (setf state :data-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :name #\uFFFD)
            (setf state :doctype-name-state))
           ((eql data +eof+)
-           (push-token self '(:type :parse-error :data :eof-in-doctype-name))
+           (push-token self '(:type :parse-error :data :eof-in-doctype))
            (setf (getf current-token :correct) nil)
            (setf (getf current-token :name) (ascii-upper-2-lower (getf current-token :name)))
            (push-token self current-token)
@@ -1389,7 +1412,7 @@ pointer at the end."
            (setf (getf current-token :public-id) "")
            (setf state :doctype-public-identifier-single-quoted-state))
           ((eql data #\>)
-           (push-token self '(:type :parse-error :data :unexpected-end-of-doctype))
+           (push-token self '(:type :parse-error :data :abrupt-doctype-public-identifier))
            (setf (getf current-token :correct) nil)
            (push-token self current-token)
            (setf state :data-state))
@@ -1408,10 +1431,10 @@ pointer at the end."
     (cond ((eql data #\")
            (setf state :after-doctype-public-identifier-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :public-id #\uFFFD))
           ((eql data #\>)
-           (push-token self '(:type :parse-error :data :unexpected-end-of-doctype))
+           (push-token self '(:type :parse-error :data :abrupt-doctype-public-identifier))
            (setf (getf current-token :correct) nil)
            (push-token self current-token)
            (setf state :data-state))
@@ -1428,10 +1451,10 @@ pointer at the end."
     (cond ((eql data #\')
            (setf state :after-doctype-public-identifier-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :public-id #\uFFFD))
           ((eql data #\>)
-           (push-token self '(:type :parse-error :data :unexpected-end-of-doctype))
+           (push-token self '(:type :parse-error :data :abrupt-doctype-public-identifier))
            (setf (getf current-token :correct) nil)
            (push-token self current-token)
            (setf state :data-state))
@@ -1521,7 +1544,7 @@ pointer at the end."
            (setf (getf current-token :system-id) "")
            (setf state :doctype-system-identifier-single-quoted-state))
           ((eql data #\>)
-           (push-token self '(:type :parse-error :data :unexpected-end-of-doctype))
+           (push-token self '(:type :parse-error :data :abrupt-doctype-system-identifier))
            (setf (getf current-token :correct) nil)
            (push-token self current-token)
            (setf state :data-state))
@@ -1540,10 +1563,10 @@ pointer at the end."
     (cond ((eql data #\")
            (setf state :after-doctype-system-identifier-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :system-id #\uFFFD))
           ((eql data #\>)
-           (push-token self '(:type :parse-error :data :unexpected-end-of-doctype))
+           (push-token self '(:type :parse-error :data :abrupt-doctype-system-identifier))
            (setf (getf current-token :correct) nil)
            (push-token self current-token)
            (setf state :data-state))
@@ -1560,10 +1583,10 @@ pointer at the end."
     (cond ((eql data #\')
            (setf state :after-doctype-system-identifier-state))
           ((eql data #\u0000)
-           (push-token self '(:type :parse-error :data :invalid-codepoint))
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
            (add-to current-token :system-id #\uFFFD))
           ((eql data #\>)
-           (push-token self '(:type :parse-error :data :unexpected-end-of-doctype))
+           (push-token self '(:type :parse-error :data :abrupt-doctype-system-identifier))
            (setf (getf current-token :correct) nil)
            (push-token self current-token)
            (setf state :data-state))

@@ -581,10 +581,11 @@
   (destructuring-bind (&key name public-id system-id correct &allow-other-keys)
       token
 
-    (when (or (string/= name "html")
-              public-id
-              (and system-id (string/= system-id "about:legacy-compat")))
-      (parser-parse-error :unknown-doctype))
+    (when name
+      (when (or (string/= name "html")
+                public-id
+                (and system-id (string/= system-id "about:legacy-compat")))
+        (parser-parse-error :unknown-doctype)))
 
     (unless public-id
       (setf public-id ""))

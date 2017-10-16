@@ -21,8 +21,11 @@
 (in-package :html5-parser-tests)
 
 (defun run-tokenizer-test-parser (initial-state last-start-tag source encoding)
-  (let ((tokenizer (html5-parser::make-html-tokenizer source :encoding encoding))
-        (output-tokens '()))
+  (let ((tokenizer (html5-parser::make-html-tokenizer source
+                                                      :encoding encoding
+                                                      :cdata-switch-helper (lambda () ())))
+        (output-tokens '())
+        (errors '()))
     (setf (slot-value tokenizer 'html5-parser::state) initial-state)
     (when last-start-tag
       (setf (slot-value tokenizer 'html5-parser::current-token)
@@ -31,35 +34,35 @@
     (html5-parser::map-tokens
      tokenizer
      (lambda (token)
-;       (print token)
-       (push (ecase (getf token :type)
-               (:doctype
-                (list :type :doctype
-                      :name (getf token :name)
-                      :public-id (getf token :public-id)
-                      :system-id (getf token :system-id)
-                      :correct (getf token :correct)))
-               ((:start-tag :empty-tag)
-                (list :type (getf token :type)
-                      :name (getf token :name)
-                      :data (remove-duplicates (getf token :data)
-                                               :key #'car
-                                               :test #'string=
-                                               :from-end t)
-                      :self-closing (getf token :self-closing)))
-               (:end-tag
-                (list :type :end-tag
-                      :name (getf token :name)))
-               (:comment
-                (list :type :comment
-                      :data (getf token :data)))
-               ((:space-characters :characters)
-                (list :type :characters
-                      :data (getf token :data)))
-               (:parse-error
-                (list :type :parse-error)))
-             output-tokens)))
-    (nreverse output-tokens)))
+       (if (eq :parse-error (getf token :type))
+           (push (getf token :data) errors)
+           (push (ecase (getf token :type)
+                   (:doctype
+                    (list :type :doctype
+                          :name (getf token :name)
+                          :public-id (getf token :public-id)
+                          :system-id (getf token :system-id)
+                          :correct (getf token :correct)))
+                   ((:start-tag :empty-tag)
+                    (list :type (getf token :type)
+                          :name (getf token :name)
+                          :data (remove-duplicates (getf token :data)
+                                                   :key #'car
+                                                   :test #'string=
+                                                   :from-end t)
+                          :self-closing (getf token :self-closing)))
+                   (:end-tag
+                    (list :type :end-tag
+                          :name (getf token :name)))
+                   (:comment
+                    (list :type :comment
+                          :data (getf token :data)))
+                   ((:space-characters :characters)
+                    (list :type :characters
+                          :data (getf token :data))))
+                 output-tokens))))
+    (values (nreverse output-tokens)
+            (nreverse errors))))
 
 (defun concatenate-character-tokens (tokens)
   (let ((output-tokens '()))
@@ -73,42 +76,35 @@
           (push token output-tokens)))
     (nreverse output-tokens)))
 
-(defun tokens-match (expected-tokens received-tokens ignore-error-order)
-  "Test whether the test has passed or failed
-
-   If the ignoreErrorOrder flag is set to true we don't test the relative
-   positions of parse errors and non parse errors
-  "
-  (labels ((group (tokens)
-             ;; Sort the tokens into two groups; non-parse errors and parse errors
-             (cons (remove-if (lambda (x)
-                                (eql (getf x :type) :parse-error))
-                              tokens)
-                   (remove-if-not (lambda (x)
-                                    (eql (getf x :type) :parse-error))
-                                  tokens))))
-    (when ignore-error-order
-      (setf expected-tokens (group expected-tokens))
-      (setf received-tokens (group received-tokens)))
-    (equal expected-tokens received-tokens)))
-
 (defun temp-fix (data)
   (flex:octets-to-string data
                          :external-format :utf-16le))
+
+(defparameter *simple-errors-check* t)
 
 (defun run-tokenizer-test (test-name initial-state test)
   (with-simple-restart (skip "Skip test ~A ~A: ~A"
                              test-name
                              initial-state
                              (getf test :description))
-    (let* ((expected (getf test :output))
-           (tokens (run-tokenizer-test-parser initial-state
-                                              (getf test :last-start-tag)
-                                              (getf test :input)
-                                              :utf-16le))
-           (received (concatenate-character-tokens tokens)))
-      (unless (tokens-match expected received (getf test :ignore-error-order))
-        (error "Test failed ~S ~%Expected: ~S~%Received: ~S" test expected received)))))
+    (let ((expected (getf test :output))
+          (expected-errors (getf test :errors)))
+      (multiple-value-bind (tokens errors)
+          (run-tokenizer-test-parser initial-state
+                                     (getf test :last-start-tag)
+                                     (getf test :input)
+                                     :utf-16le)
+        (let ((received (concatenate-character-tokens tokens)))
+          (unless (equal expected received)
+            (error "Test failed ~S ~%Expected: ~S~%Received: ~S" test expected received))
+          (unless (if *simple-errors-check*
+                      (eq (not (not expected-errors)) (not (not errors)))
+                      (and (= (length expected-errors) (length errors))
+                           (loop for expected in expected-errors
+                                 for got in errors
+                                 always (equalp (getf expected :code) (string got)))))
+            (error "Test failed ~S ~%Expected errors: ~S~%Got errors: ~S"
+                   test expected-errors errors)))))))
 
 (defun utf16-string-to-octets (string)
   (when string
@@ -220,12 +216,33 @@ Suppling more-keys will result in recursive application of jget with the result 
                         :input (data-to-octects (jget test "input") double-escaped)
                         :output (fix-output (jget test "output" :array) double-escaped)
                         :double-escaped double-escaped
-                        :ignore-error-order (jget test "ignoreErrorOrder")))))
+                        :errors (loop for error in (jget test "errors" :array)
+                                      collect (list :code (jget error "code" :string)
+                                                    :line (jget error "line")
+                                                    :col (jget error "col")))))))
+
+;; (setf *simple-errors-check* t)
+;; (setf *simple-errors-check* nil)
 
 (defparameter *skip-tests*
   '(("domjs"
-     "--!NUL in comment ") ; to many ParseErrors. Wrong test?
+     ;; unsure about this
+     "leading U+FEFF must pass through"
+     ;; test expect eof-in-cdata, but not in the standard?
+     ;; https://www.w3.org/TR/html/syntax.html#cdata-section-state
+     "CDATA content")
+    ("test1"
+     "Comment, Central dash no space"
+     "Comment, two central dashes")
+    ("test3"
+     "<!---- -->"
+     "<!----  -->"
+     "<!---- a-->"
+     "<!----!a-->"
+     "<!----!-->")
     ("unicodeCharsProblematic"
+     ;; Unable to run these test, flex-streams doesn't like invalid UTF-16
+     :skip
      ;; Hangs on the following test, due to bug in flexi-streams
      "Invalid Unicode character U+DFFF with valid preceding character"
      ;; The valid "a" character is consumed
@@ -233,12 +250,12 @@ Suppling more-keys will result in recursive application of jget with the result 
 
 (defun test-tokenizer ()
   (loop for filename in (html5lib-test-files "tokenizer" :type "test")
-     for test-name = (pathname-name filename)
-     for tests = (load-tests filename)
-     for skip = (cdr (assoc test-name *skip-tests* :test #'string=))
-     unless (eql (first skip) :skip)
-     do
-       (dolist (test tests)
-         (unless (find (getf test :description) skip :test #'string=)
-           (dolist (initial-state (getf test :initial-states))
-             (run-tokenizer-test test-name initial-state test))))))
+        for test-name = (pathname-name filename)
+        for skip = (cdr (assoc test-name *skip-tests* :test #'string=))
+        for skip-all = (eql (first skip) :skip)
+        for tests = (unless skip-all (load-tests filename))
+        do (dolist (test tests)
+             (unless (find (getf test :description) skip :test #'string=)
+               (format t "~&~A: ~A~%" test-name (getf test :description))
+               (dolist (initial-state (getf test :initial-states))
+                 (run-tokenizer-test test-name initial-state test))))))

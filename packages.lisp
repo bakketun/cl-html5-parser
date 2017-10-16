@@ -38,6 +38,7 @@
    #:+ascii-lowercase+
    #:+ascii-uppercase+
    #:+ascii-letters+
+   #:ascii-alphanumeric-p
    #:ascii-letter-p
    #:+digits+
    #:+hex-digits+

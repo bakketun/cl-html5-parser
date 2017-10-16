@@ -215,6 +215,13 @@
       (or (<= #.(char-code #\a) code #.(char-code #\z))
           (<= #.(char-code #\A) code #.(char-code #\Z))))))
 
+(defun ascii-alphanumeric-p (c)
+  (when (characterp c)
+    (let ((code (char-code c)))
+      (or (<= #.(char-code #\a) code #.(char-code #\z))
+          (<= #.(char-code #\A) code #.(char-code #\Z))
+          (<= #.(char-code #\0) code #.(char-code #\9))))))
+
 (defun ascii-upper-2-lower (string)
   (let ((out (copy-seq string)))
     (dotimes (i (length string))

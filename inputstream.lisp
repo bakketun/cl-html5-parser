@@ -338,7 +338,30 @@
 (dolist (char *invalid-unicode*)
   (setf (gethash char *invalid-unicode-hash*) char))
 
+(defun control-character-p (code)
+  (or (<= #x0001 code #x0008)
+      (= #x000B code)
+      (<= #x000E code #x001F)
+      (<= #x007F code #x009F)))
+
+(defun noncharacter-p (code)
+  (or (<= #xFDD0 code #xFDEF)
+      (find code
+            #(#xFFFE #xFFFF #x1FFFE
+              #x1FFFF #x2FFFE #x2FFFF #x3FFFE
+              #x3FFFF #x4FFFE #x4FFFF #x5FFFE
+              #x5FFFF #x6FFFE #x6FFFF #x7FFFE
+              #x7FFFF #x8FFFE #x8FFFF #x9FFFE
+              #x9FFFF #xAFFFE #xAFFFF #xBFFFE
+              #xBFFFF #xCFFFE #xCFFFF #xDFFFE
+              #xDFFFF #xEFFFE #xEFFFF #xFFFFE
+              #xFFFFF #x10FFFE #x10FFFF))))
+
 (defun report-character-errors (stream data)
   (loop for char across data
         when (gethash char *invalid-unicode-hash*)
-          do (push :invalid-codepoint (html5-stream-errors stream))))
+          do (push (cond ((control-character-p (char-code char))
+                          :control-character-in-input-stream)
+                         ((noncharacter-p (char-code char))
+                          :noncharacter-in-input-stream))
+                   (html5-stream-errors stream))))
