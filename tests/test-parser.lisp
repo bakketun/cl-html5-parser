@@ -91,10 +91,8 @@
   (with-simple-restart (skip "Skip test ~A ~A"
                              test-name
                              data)
-    (format t "~&Test ~A: ~A~%" test-name data)
     (setf document (string-right-trim '(#\Newline) document))
     (when (member data *parser-tests-to-skip* :test #'string=)
-      (format t " skipped")
       (return-from do-parser-test))
     (multiple-value-bind (result-document got-errors)
         (if document-fragment
@@ -106,10 +104,9 @@
           (error "Input:~%~A~%Got:~%~A~%Expected:~%~A" data result document))
         (setf errors (split-sequence:split-sequence #\Newline errors
                                                     :remove-empty-subseqs t))
-        (when (and errors
-                   (/= (length errors) (length got-errors)))
-          (warn "Errors mismatch~&Input:~%~A~%Got:~%~{~&~A~}~%Expected:~%~{~&~A~}"
-                data got-errors errors)))
+        (unless (eq (not (not got-errors)) (not (not errors)))
+          (error "Errors mismatch~&Input:~%~A~%Got:~%~{~&~A~}~%Expected:~%~{~&~A~}"
+                 data got-errors errors)))
       result-document)))
 
 
@@ -119,7 +116,13 @@
       (let ((test-name (pathname-name file))
             (tests (parse-test-data file)))
         (dolist (test tests)
-          (apply #'do-parser-test :test-name test-name test))))))
+          (handler-bind ((error (lambda (e)
+                                  (format t "~&~80@{=~}~%~A: ~A~%~A~&~80@{=~}~%"
+                                          test-name
+                                          (getf test :description)
+                                          e
+                                          nil))))
+            (apply #'do-parser-test :test-name test-name test)))))))
 
 
 (in-root-suite)

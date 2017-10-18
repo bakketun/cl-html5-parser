@@ -233,6 +233,7 @@ Suppling more-keys will result in recursive application of jget with the result 
      ;; The valid "a" character is consumed
      "Invalid Unicode character U+D800 with valid following character")))
 
+
 (defun test-tokenizer ()
   (loop for filename in (html5lib-test-files "tokenizer" :type "test")
         for test-name = (pathname-name filename)
@@ -241,6 +242,13 @@ Suppling more-keys will result in recursive application of jget with the result 
         for tests = (unless skip-all (load-tests filename))
         do (dolist (test tests)
              (unless (find (getf test :description) skip :test #'string=)
-               (format t "~&~A: ~A~%" test-name (getf test :description))
+               (princ "." *debug-io*)
                (dolist (initial-state (getf test :initial-states))
-                 (run-tokenizer-test test-name initial-state test))))))
+                 (handler-bind ((error (lambda (e)
+                                         (format t "~&~80@{=~}~%~A: ~A~% initial state: ~S~%~A~&~80@{=~}~%"
+                                                 test-name
+                                                 (getf test :description)
+                                                 initial-state
+                                                 e
+                                                 nil))))
+                   (run-tokenizer-test test-name initial-state test)))))))
