@@ -24,24 +24,6 @@
 ;(defparameter *skip-all-errors* t)
 (defvar *skipped-errors*)
 
-
-(defun run-html5-parser-tests ()
-  (setf *skipped-errors* nil)
-  (handler-bind ((error (lambda (e)
-                          (declare (ignore e))
-                          (when (find-restart 'skip)
-                            (when (member (princ-to-string (find-restart 'skip))
-                                          *known-failures*
-                                          :test #'string=)
-                              (invoke-restart 'skip))
-                            (when *skip-all-errors*
-                              (pushnew (princ-to-string (find-restart 'skip)) *skipped-errors*)
-                              (invoke-restart 'skip))))))
-    (values (input-stream-tests)
-            (test-tokenizer)
-            (tree-builder-tests)
-            (test-parser))))
-
 (defparameter *known-failures*
   '(;; (test-tokenizer)
     "Skip test domjs DATA-STATE: leading U+FEFF must pass through"
@@ -275,3 +257,20 @@
     "Skip test doctype01 <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"
    \"http://www.w3.org/TR/html4/strict.dtd\">Hello"
     ))
+
+(defun run-html5-parser-tests ()
+  (setf *skipped-errors* nil)
+  (handler-bind ((error (lambda (e)
+                          (declare (ignore e))
+                          (when (find-restart 'skip)
+                            (when (member (princ-to-string (find-restart 'skip))
+                                          *known-failures*
+                                          :test #'string=)
+                              (invoke-restart 'skip))
+                            (when *skip-all-errors*
+                              (pushnew (princ-to-string (find-restart 'skip)) *skipped-errors*)
+                              (invoke-restart 'skip))))))
+    (values (input-stream-tests)
+            (test-tokenizer)
+            (tree-builder-tests)
+            (test-parser))))
