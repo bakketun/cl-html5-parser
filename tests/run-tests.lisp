@@ -26,15 +26,15 @@
 
 (defparameter *known-failures*
   '(;; (test-tokenizer)
-    "Skip test domjs DATA-STATE: leading U+FEFF must pass through"
-    "Skip test domjs CDATA-SECTION-STATE: CDATA content"
-    "Skip test test1 DATA-STATE: Comment, Central dash no space"
-    "Skip test test1 DATA-STATE: Comment, two central dashes"
-    "Skip test test3 DATA-STATE: <!---- -->"
-    "Skip test test3 DATA-STATE: <!----  -->"
-    "Skip test test3 DATA-STATE: <!---- a-->"
-    "Skip test test3 DATA-STATE: <!----!a-->"
-    "Skip test test3 DATA-STATE: <!----!-->"
+    ;; "Skip test domjs DATA-STATE: leading U+FEFF must pass through"
+    ;; "Skip test domjs CDATA-SECTION-STATE: CDATA content"
+    ;; "Skip test test1 DATA-STATE: Comment, Central dash no space"
+    ;; "Skip test test1 DATA-STATE: Comment, two central dashes"
+    ;; "Skip test test3 DATA-STATE: <!---- -->"
+    ;; "Skip test test3 DATA-STATE: <!----  -->"
+    ;; "Skip test test3 DATA-STATE: <!---- a-->"
+    ;; "Skip test test3 DATA-STATE: <!----!a-->"
+    ;; "Skip test test3 DATA-STATE: <!----!-->"
     ;; (test-parser)
     "Skip test adoption01 <b><em><foo><foob><fooc><aside></b></em>"
     "Skip test blocks <!doctype html><p>foo<dialog>bar<p>baz"
@@ -271,6 +271,7 @@
                               (pushnew (princ-to-string (find-restart 'skip)) *skipped-errors*)
                               (invoke-restart 'skip))))))
     (values (input-stream-tests)
-            (test-tokenizer)
-            (tree-builder-tests)
-            (test-parser))))
+            (html5-parser-test-tokenizer::run-tests)
+            ;;(tree-builder-tests)
+            ;;(test-parser)
+            )))
