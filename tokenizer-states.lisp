@@ -989,10 +989,10 @@ EOF)
      (switch-state :comment-end-state))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
-     (action-todo "Emit the comment token")
+     (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Append a U+002D HYPHEN-MINUS character (-) to the comment token's data")
+     (token-data-append current-token U+002D_HYPHEN-MINUS)
      (reconsume-in :comment-state))))
 
 
