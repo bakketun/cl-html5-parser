@@ -98,6 +98,9 @@
 (defmacro temporary-buffer-append (char)
   `(vector-push-extend ,char temporary-buffer))
 
+(defmacro current-attribute-name-append (char)
+  `(add-to-attr-name current-token ,char))
+
 
 (defmacro define-unicode-constant (symbol)
   (let* ((code-point (symbol-name symbol)))

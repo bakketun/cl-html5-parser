@@ -651,27 +651,27 @@
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE
-U+002F_SOLIDUS_\/
-U+003E_GREATER-THAN_SIGN_\>
-EOF)
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE
+      U+002F_SOLIDUS_\/
+      U+003E_GREATER-THAN_SIGN_\>
+      EOF)
      (reconsume-in :after-attribute-name-state))
     (U+003D_EQUALS_SIGN_\=
      (switch-state :before-attribute-value-state))
     (ASCII_upper_alpha
-     (action-todo "Append the (char-downcase current-input-character) (add 0x0020 to the character's code point) to the current attribute's name"))
+     (current-attribute-name-append (char-downcase current-input-character)))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute's name"))
+     (current-attribute-name-append U+FFFD_REPLACEMENT_CHARACTER))
     ((U+0022_QUOTATION_MARK_\"
-U+0027_APOSTROPHE_\'
-U+003C_LESS-THAN_SIGN_\<)
+      U+0027_APOSTROPHE_\'
+      U+003C_LESS-THAN_SIGN_\<)
      (this-is-a-parse-error :unexpected-character-in-attribute-name)
-     (action-todo "Treat it as per the \"anything else\" entry below"))
+     (anything_else-clause))
     (Anything_else
-     (action-todo "Append the current input character to the current attribute's name"))))
+     (current-attribute-name-append current-input-character))))
 
 
 ;; 13.2.5.34 After attribute name state
