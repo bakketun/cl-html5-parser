@@ -93,7 +93,8 @@
 
 
 (defun print-state (&key id secno dfn switch cases)
-  (format t "~&~%~%;; ~A ~A~%(define-state :~A~%" secno dfn id)
+  (format t "~&~%~%;; ~A ~A~%;; https://html.spec.whatwg.org/multipage/parsing.html#~A" secno dfn (remove #\\ id))
+  (format t "~&(define-state :~A~%" id)
   (if (equal "Consume the next input character:" switch)
       (format t "~&  (consume-next-input-character)")
       (format t "~&  (action-todo ~S)" switch))
@@ -117,5 +118,6 @@
 
 
 (defun make-tokenizer-lisp-code (html-standard-file)
+  (format t ";; -*- mode: lisp; eval: (goto-address-mode) -*-~%~%")
   (format t "(in-package #:html5-parser)")
   (mapcar (lambda (state) (apply #'print-state state)) (mapcar #'parse-state-def (tokenization-defs-html (body html-standard-file)))))

@@ -1,7 +1,10 @@
+;; -*- mode: lisp; eval: (goto-address-mode) -*-
+
 (in-package #:html5-parser)
 
 
 ;; 13.2.5.1 Data state
+;; https://html.spec.whatwg.org/multipage/parsing.html#data-state
 (define-state :data-state
   (consume-next-input-character)
   (current-character-case
@@ -20,6 +23,7 @@
 
 
 ;; 13.2.5.2 RCDATA state
+;; https://html.spec.whatwg.org/multipage/parsing.html#rcdata-state
 (define-state :rcdata-state
   (consume-next-input-character)
   (current-character-case
@@ -38,6 +42,7 @@
 
 
 ;; 13.2.5.3 RAWTEXT state
+;; https://html.spec.whatwg.org/multipage/parsing.html#rawtext-state
 (define-state :rawtext-state
   (consume-next-input-character)
   (current-character-case
@@ -53,6 +58,7 @@
 
 
 ;; 13.2.5.4 Script data state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-state
 (define-state :script-data-state
   (consume-next-input-character)
   (current-character-case
@@ -68,6 +74,7 @@
 
 
 ;; 13.2.5.5 PLAINTEXT state
+;; https://html.spec.whatwg.org/multipage/parsing.html#plaintext-state
 (define-state :plaintext-state
   (consume-next-input-character)
   (current-character-case
@@ -81,6 +88,7 @@
 
 
 ;; 13.2.5.6 Tag open state
+;; https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
 (define-state :tag-open-state
   (consume-next-input-character)
   (current-character-case
@@ -106,6 +114,7 @@
 
 
 ;; 13.2.5.7 End tag open state
+;; https://html.spec.whatwg.org/multipage/parsing.html#end-tag-open-state
 (define-state :end-tag-open-state
   (consume-next-input-character)
   (current-character-case
@@ -125,6 +134,7 @@
 
 
 ;; 13.2.5.8 Tag name state
+;; https://html.spec.whatwg.org/multipage/parsing.html#tag-name-state
 (define-state :tag-name-state
   (consume-next-input-character)
   (current-character-case
@@ -151,6 +161,7 @@
 
 
 ;; 13.2.5.9 RCDATA less-than sign state
+;; https://html.spec.whatwg.org/multipage/parsing.html#rcdata-less-than-sign-state
 (define-state :rcdata-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
@@ -163,6 +174,7 @@
 
 
 ;; 13.2.5.10 RCDATA end tag open state
+;; https://html.spec.whatwg.org/multipage/parsing.html#rcdata-end-tag-open-state
 (define-state :rcdata-end-tag-open-state
   (consume-next-input-character)
   (current-character-case
@@ -175,6 +187,7 @@
 
 
 ;; 13.2.5.11 RCDATA end tag name state
+;; https://html.spec.whatwg.org/multipage/parsing.html#rcdata-end-tag-name-state
 (define-state :rcdata-end-tag-name-state
   (consume-next-input-character)
   (current-character-case
@@ -202,6 +215,7 @@
 
 
 ;; 13.2.5.12 RAWTEXT less-than sign state
+;; https://html.spec.whatwg.org/multipage/parsing.html#rawtext-less-than-sign-state
 (define-state :rawtext-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
@@ -214,6 +228,7 @@
 
 
 ;; 13.2.5.13 RAWTEXT end tag open state
+;; https://html.spec.whatwg.org/multipage/parsing.html#rawtext-end-tag-open-state
 (define-state :rawtext-end-tag-open-state
   (consume-next-input-character)
   (current-character-case
@@ -226,6 +241,7 @@
 
 
 ;; 13.2.5.14 RAWTEXT end tag name state
+;; https://html.spec.whatwg.org/multipage/parsing.html#rawtext-end-tag-name-state
 (define-state :rawtext-end-tag-name-state
   (consume-next-input-character)
   (current-character-case
@@ -253,6 +269,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.15 Script data less-than sign state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-less-than-sign-state
 (define-state :script-data-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
@@ -268,6 +285,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.16 Script data end tag open state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-open-state
 (define-state :script-data-end-tag-open-state
   (consume-next-input-character)
   (current-character-case
@@ -280,6 +298,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.17 Script data end tag name state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-name-state
 (define-state :script-data-end-tag-name-state
   (consume-next-input-character)
   (current-character-case
@@ -307,6 +326,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.18 Script data escape start state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-escape-start-state
 (define-state :script-data-escape-start-state
   (consume-next-input-character)
   (current-character-case
@@ -318,6 +338,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.19 Script data escape start dash state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-escape-start-dash-state
 (define-state :script-data-escape-start-dash-state
   (consume-next-input-character)
   (current-character-case
@@ -329,6 +350,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.20 Script data escaped state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-state
 (define-state :script-data-escaped-state
   (consume-next-input-character)
   (current-character-case
@@ -348,6 +370,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.21 Script data escaped dash state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-dash-state
 (define-state :script-data-escaped-dash-state
   (consume-next-input-character)
   (current-character-case
@@ -369,6 +392,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.22 Script data escaped dash dash state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-dash-dash-state
 (define-state :script-data-escaped-dash-dash-state
   (consume-next-input-character)
   (current-character-case
@@ -392,6 +416,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.23 Script data escaped less-than sign state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-less-than-sign-state
 (define-state :script-data-escaped-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
@@ -408,6 +433,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.24 Script data escaped end tag open state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-open-state
 (define-state :script-data-escaped-end-tag-open-state
   (consume-next-input-character)
   (current-character-case
@@ -420,6 +446,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.25 Script data escaped end tag name state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-name-state
 (define-state :script-data-escaped-end-tag-name-state
   (consume-next-input-character)
   (current-character-case
@@ -447,6 +474,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.26 Script data double escape start state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-start-state
 (define-state :script-data-double-escape-start-state
   (consume-next-input-character)
   (current-character-case
@@ -470,6 +498,7 @@ U+003E_GREATER-THAN_SIGN_\>)
 
 
 ;; 13.2.5.27 Script data double escaped state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-state
 (define-state :script-data-double-escaped-state
   (consume-next-input-character)
   (current-character-case
@@ -490,6 +519,7 @@ U+003E_GREATER-THAN_SIGN_\>)
 
 
 ;; 13.2.5.28 Script data double escaped dash state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-dash-state
 (define-state :script-data-double-escaped-dash-state
   (consume-next-input-character)
   (current-character-case
@@ -512,6 +542,7 @@ U+003E_GREATER-THAN_SIGN_\>)
 
 
 ;; 13.2.5.29 Script data double escaped dash dash state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-dash-dash-state
 (define-state :script-data-double-escaped-dash-dash-state
   (consume-next-input-character)
   (current-character-case
@@ -536,6 +567,7 @@ U+003E_GREATER-THAN_SIGN_\>)
 
 
 ;; 13.2.5.30 Script data double escaped less-than sign state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-less-than-sign-state
 (define-state :script-data-double-escaped-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
@@ -548,6 +580,7 @@ U+003E_GREATER-THAN_SIGN_\>)
 
 
 ;; 13.2.5.31 Script data double escape end state
+;; https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-end-state
 (define-state :script-data-double-escape-end-state
   (consume-next-input-character)
   (current-character-case
@@ -571,6 +604,7 @@ U+003E_GREATER-THAN_SIGN_\>)
 
 
 ;; 13.2.5.32 Before attribute name state
+;; https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state
 (define-state :before-attribute-name-state
   (consume-next-input-character)
   (current-character-case
@@ -595,6 +629,7 @@ EOF)
 
 
 ;; 13.2.5.33 Attribute name state
+;; https://html.spec.whatwg.org/multipage/parsing.html#attribute-name-state
 (define-state :attribute-name-state
   (consume-next-input-character)
   (current-character-case
@@ -623,6 +658,7 @@ U+003C_LESS-THAN_SIGN_\<)
 
 
 ;; 13.2.5.34 After attribute name state
+;; https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-name-state
 (define-state :after-attribute-name-state
   (consume-next-input-character)
   (current-character-case
@@ -648,6 +684,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.35 Before attribute value state
+;; https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-value-state
 (define-state :before-attribute-value-state
   (consume-next-input-character)
   (current-character-case
@@ -669,6 +706,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.36 Attribute value (double-quoted) state
+;; https://html.spec.whatwg.org/multipage/parsing.html#attribute-value-(double-quoted)-state
 (define-state :attribute-value-\(double-quoted\)-state
   (consume-next-input-character)
   (current-character-case
@@ -688,6 +726,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.37 Attribute value (single-quoted) state
+;; https://html.spec.whatwg.org/multipage/parsing.html#attribute-value-(single-quoted)-state
 (define-state :attribute-value-\(single-quoted\)-state
   (consume-next-input-character)
   (current-character-case
@@ -707,6 +746,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.38 Attribute value (unquoted) state
+;; https://html.spec.whatwg.org/multipage/parsing.html#attribute-value-(unquoted)-state
 (define-state :attribute-value-\(unquoted\)-state
   (consume-next-input-character)
   (current-character-case
@@ -739,6 +779,7 @@ U+0060_GRAVE_ACCENT_\`)
 
 
 ;; 13.2.5.39 After attribute value (quoted) state
+;; https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-value-(quoted)-state
 (define-state :after-attribute-value-\(quoted\)-state
   (consume-next-input-character)
   (current-character-case
@@ -761,6 +802,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.40 Self-closing start tag state
+;; https://html.spec.whatwg.org/multipage/parsing.html#self-closing-start-tag-state
 (define-state :self-closing-start-tag-state
   (consume-next-input-character)
   (current-character-case
@@ -777,6 +819,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.41 Bogus comment state
+;; https://html.spec.whatwg.org/multipage/parsing.html#bogus-comment-state
 (define-state :bogus-comment-state
   (consume-next-input-character)
   (current-character-case
@@ -794,6 +837,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.42 Markup declaration open state
+;; https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state
 (define-state :markup-declaration-open-state
   (action-todo "If the next few characters are:")
   (current-character-case
@@ -814,6 +858,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.43 Comment start state
+;; https://html.spec.whatwg.org/multipage/parsing.html#comment-start-state
 (define-state :comment-start-state
   (consume-next-input-character)
   (current-character-case
@@ -828,6 +873,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.44 Comment start dash state
+;; https://html.spec.whatwg.org/multipage/parsing.html#comment-start-dash-state
 (define-state :comment-start-dash-state
   (consume-next-input-character)
   (current-character-case
@@ -847,6 +893,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.45 Comment state
+;; https://html.spec.whatwg.org/multipage/parsing.html#comment-state
 (define-state :comment-state
   (consume-next-input-character)
   (current-character-case
@@ -867,6 +914,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.46 Comment less-than sign state
+;; https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-state
 (define-state :comment-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
@@ -880,6 +928,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.47 Comment less-than sign bang state
+;; https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-state
 (define-state :comment-less-than-sign-bang-state
   (consume-next-input-character)
   (current-character-case
@@ -890,6 +939,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.48 Comment less-than sign bang dash state
+;; https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-dash-state
 (define-state :comment-less-than-sign-bang-dash-state
   (consume-next-input-character)
   (current-character-case
@@ -900,6 +950,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.49 Comment less-than sign bang dash dash state
+;; https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-dash-dash-state
 (define-state :comment-less-than-sign-bang-dash-dash-state
   (consume-next-input-character)
   (current-character-case
@@ -912,6 +963,7 @@ EOF)
 
 
 ;; 13.2.5.50 Comment end dash state
+;; https://html.spec.whatwg.org/multipage/parsing.html#comment-end-dash-state
 (define-state :comment-end-dash-state
   (consume-next-input-character)
   (current-character-case
@@ -927,6 +979,7 @@ EOF)
 
 
 ;; 13.2.5.51 Comment end state
+;; https://html.spec.whatwg.org/multipage/parsing.html#comment-end-state
 (define-state :comment-end-state
   (consume-next-input-character)
   (current-character-case
@@ -947,6 +1000,7 @@ EOF)
 
 
 ;; 13.2.5.52 Comment end bang state
+;; https://html.spec.whatwg.org/multipage/parsing.html#comment-end-bang-state
 (define-state :comment-end-bang-state
   (consume-next-input-character)
   (current-character-case
@@ -967,6 +1021,7 @@ EOF)
 
 
 ;; 13.2.5.53 DOCTYPE state
+;; https://html.spec.whatwg.org/multipage/parsing.html#doctype-state
 (define-state :doctype-state
   (consume-next-input-character)
   (current-character-case
@@ -989,6 +1044,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.54 Before DOCTYPE name state
+;; https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-name-state
 (define-state :before-doctype-name-state
   (consume-next-input-character)
   (current-character-case
@@ -1025,6 +1081,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.55 DOCTYPE name state
+;; https://html.spec.whatwg.org/multipage/parsing.html#doctype-name-state
 (define-state :doctype-name-state
   (consume-next-input-character)
   (current-character-case
@@ -1051,6 +1108,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.56 After DOCTYPE name state
+;; https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state
 (define-state :after-doctype-name-state
   (consume-next-input-character)
   (current-character-case
@@ -1076,6 +1134,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.57 After DOCTYPE public keyword state
+;; https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-public-keyword-state
 (define-state :after-doctype-public-keyword-state
   (consume-next-input-character)
   (current-character-case
@@ -1107,6 +1166,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.58 Before DOCTYPE public identifier state
+;; https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-public-identifier-state
 (define-state :before-doctype-public-identifier-state
   (consume-next-input-character)
   (current-character-case
@@ -1136,6 +1196,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.59 DOCTYPE public identifier (double-quoted) state
+;; https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(double-quoted)-state
 (define-state :doctype-public-identifier-\(double-quoted\)-state
   (consume-next-input-character)
   (current-character-case
@@ -1159,6 +1220,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.60 DOCTYPE public identifier (single-quoted) state
+;; https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(single-quoted)-state
 (define-state :doctype-public-identifier-\(single-quoted\)-state
   (consume-next-input-character)
   (current-character-case
@@ -1182,6 +1244,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.61 After DOCTYPE public identifier state
+;; https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-public-identifier-state
 (define-state :after-doctype-public-identifier-state
   (consume-next-input-character)
   (current-character-case
@@ -1211,6 +1274,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.62 Between DOCTYPE public and system identifiers state
+;; https://html.spec.whatwg.org/multipage/parsing.html#between-doctype-public-and-system-identifiers-state
 (define-state :between-doctype-public-and-system-identifiers-state
   (consume-next-input-character)
   (current-character-case
@@ -1238,6 +1302,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.63 After DOCTYPE system keyword state
+;; https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-system-keyword-state
 (define-state :after-doctype-system-keyword-state
   (consume-next-input-character)
   (current-character-case
@@ -1269,6 +1334,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.64 Before DOCTYPE system identifier state
+;; https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-system-identifier-state
 (define-state :before-doctype-system-identifier-state
   (consume-next-input-character)
   (current-character-case
@@ -1298,6 +1364,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.65 DOCTYPE system identifier (double-quoted) state
+;; https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(double-quoted)-state
 (define-state :doctype-system-identifier-\(double-quoted\)-state
   (consume-next-input-character)
   (current-character-case
@@ -1321,6 +1388,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.66 DOCTYPE system identifier (single-quoted) state
+;; https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(single-quoted)-state
 (define-state :doctype-system-identifier-\(single-quoted\)-state
   (consume-next-input-character)
   (current-character-case
@@ -1344,6 +1412,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.67 After DOCTYPE system identifier state
+;; https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-system-identifier-state
 (define-state :after-doctype-system-identifier-state
   (consume-next-input-character)
   (current-character-case
@@ -1368,6 +1437,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.68 Bogus DOCTYPE state
+;; https://html.spec.whatwg.org/multipage/parsing.html#bogus-doctype-state
 (define-state :bogus-doctype-state
   (consume-next-input-character)
   (current-character-case
@@ -1385,6 +1455,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.69 CDATA section state
+;; https://html.spec.whatwg.org/multipage/parsing.html#cdata-section-state
 (define-state :cdata-section-state
   (consume-next-input-character)
   (current-character-case
@@ -1398,6 +1469,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.70 CDATA section bracket state
+;; https://html.spec.whatwg.org/multipage/parsing.html#cdata-section-bracket-state
 (define-state :cdata-section-bracket-state
   (consume-next-input-character)
   (current-character-case
@@ -1409,6 +1481,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.71 CDATA section end state
+;; https://html.spec.whatwg.org/multipage/parsing.html#cdata-section-end-state
 (define-state :cdata-section-end-state
   (consume-next-input-character)
   (current-character-case
@@ -1422,6 +1495,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.72 Character reference state
+;; https://html.spec.whatwg.org/multipage/parsing.html#character-reference-state
 (define-state :character-reference-state
   (action-todo "Set the temporary buffer to the empty string. Append
    a U+0026 AMPERSAND (&) character to the temporary
@@ -1438,6 +1512,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.73 Named character reference state
+;; https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
 (define-state :named-character-reference-state
   (action-todo "Consume the maximum number of characters possible, where the consumed characters are one of the
   identifiers in the first column of the named character references table. Append each
@@ -1456,6 +1531,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.74 Ambiguous ampersand state
+;; https://html.spec.whatwg.org/multipage/parsing.html#ambiguous-ampersand-state
 (define-state :ambiguous-ampersand-state
   (consume-next-input-character)
   (current-character-case
@@ -1470,6 +1546,7 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.75 Numeric character reference state
+;; https://html.spec.whatwg.org/multipage/parsing.html#numeric-character-reference-state
 (define-state :numeric-character-reference-state
   (action-todo "Set the character reference code to
   zero (0).")
@@ -1483,6 +1560,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
 
 
 ;; 13.2.5.76 Hexadecimal character reference start state
+;; https://html.spec.whatwg.org/multipage/parsing.html#hexadecimal-character-reference-start-state
 (define-state :hexadecimal-character-reference-start-state
   (consume-next-input-character)
   (current-character-case
@@ -1495,6 +1573,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
 
 
 ;; 13.2.5.77 Decimal character reference start state
+;; https://html.spec.whatwg.org/multipage/parsing.html#decimal-character-reference-start-state
 (define-state :decimal-character-reference-start-state
   (consume-next-input-character)
   (current-character-case
@@ -1507,6 +1586,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
 
 
 ;; 13.2.5.78 Hexadecimal character reference state
+;; https://html.spec.whatwg.org/multipage/parsing.html#hexadecimal-character-reference-state
 (define-state :hexadecimal-character-reference-state
   (consume-next-input-character)
   (current-character-case
@@ -1527,6 +1607,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
 
 
 ;; 13.2.5.79 Decimal character reference state
+;; https://html.spec.whatwg.org/multipage/parsing.html#decimal-character-reference-state
 (define-state :decimal-character-reference-state
   (consume-next-input-character)
   (current-character-case
@@ -1541,6 +1622,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
 
 
 ;; 13.2.5.80 Numeric character reference end state
+;; https://html.spec.whatwg.org/multipage/parsing.html#numeric-character-reference-end-state
 (define-state :numeric-character-reference-end-state
   (action-todo "Check the character reference code:")
   (current-character-case))
