@@ -900,13 +900,13 @@ U+0020_SPACE)
     (U+003E_GREATER-THAN_SIGN_\>
      (this-is-a-parse-error :abrupt-closing-of-empty-comment)
      (switch-state :data-state)
-     (action-todo "Emit the comment token"))
+     (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
-     (action-todo "Emit the comment token")
+     (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Append a U+002D HYPHEN-MINUS character (-) to the comment token's data")
+     (token-data-append current-token U+002D_HYPHEN-MINUS)
      (reconsume-in :comment-state))))
 
 
