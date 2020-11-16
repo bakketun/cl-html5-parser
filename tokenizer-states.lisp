@@ -843,15 +843,15 @@ U+0020_SPACE)
   (current-character-case
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the comment token"))
+     (emit-token current-token))
     (EOF
-     (action-todo "Emit the comment")
+     (emit-token current-token)
      (emit-token :end-of-file))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the comment token's data"))
+     (token-data-append current-token U+FFFD_REPLACEMENT_CHARACTER))
     (Anything_else
-     (action-todo "Append the current input character to the comment token's data"))))
+     (token-data-append current-token current-input-character))))
 
 
 ;; 13.2.5.42 Markup declaration open state
