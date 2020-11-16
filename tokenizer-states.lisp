@@ -1003,17 +1003,18 @@ EOF)
   (current-character-case
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the comment token"))
+     (emit-token current-token))
     (U+0021_EXCLAMATION_MARK_\!
      (switch-state :comment-end-bang-state))
     (U+002D_HYPHEN-MINUS_\-
-     (action-todo "Append a U+002D HYPHEN-MINUS character (-) to the comment token's data"))
+     (token-data-append current-token U+002D_HYPHEN-MINUS))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
-     (action-todo "Emit the comment token")
+     (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Append two U+002D HYPHEN-MINUS characters (-) to the comment token's data")
+     (token-data-append current-token U+002D_HYPHEN-MINUS)
+     (token-data-append current-token U+002D_HYPHEN-MINUS)
      (reconsume-in :comment-state))))
 
 
