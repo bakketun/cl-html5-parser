@@ -6,7 +6,7 @@
   (consume-next-input-character)
   (current-character-case
     (U+0026_AMPERSAND_\&
-     (action-todo "Set the return state to the data state"))
+     (set-return-state :data-state))
     (U+003C_LESS-THAN_SIGN_\<
      (switch-state :tag-open-state))
     (U+0000_NULL
@@ -22,7 +22,7 @@
   (consume-next-input-character)
   (current-character-case
     (U+0026_AMPERSAND_\&
-     (action-todo "Set the return state to the RCDATA state"))
+     (set-return-state :rcdata-state))
     (U+003C_LESS-THAN_SIGN_\<
      (switch-state :RCDATA-less-than-sign-state))
     (U+0000_NULL
@@ -82,7 +82,7 @@
     (U+002F_SOLIDUS_\/
      (switch-state :end-tag-open-state))
     (ASCII_alpha
-     (action-todo "Create a new start tag token, set its tag name to the empty string"))
+     (setf current-token (make-token :start-tag)))
     (U+003F_QUESTION_MARK_\?
      (this-is-a-parse-error :unexpected-question-mark-instead-of-tag-name))
     (EOF
@@ -96,7 +96,7 @@
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (action-todo "Create a new end tag token, set its tag name to the empty string"))
+     (setf current-token (make-token :end-tag)))
     (U+003E_GREATER-THAN_SIGN_\>
      (this-is-a-parse-error :missing-end-tag-name))
     (EOF
@@ -110,22 +110,22 @@
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
      (switch-state :before-attribute-name-state))
     (U+002F_SOLIDUS_\/
      (switch-state :self-closing-start-tag-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state))
     (ASCII_upper_alpha
-     (action-todo "Append the lowercase version of the current input character (add 0x0020 to the character's code point) to the current tag token's tag name"))
+     (token-tag-name-append current-token (char-downcase current-input-character)))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
      (this-is-a-parse-error :eof-in-tag))
     (Anything_else
-     (action-todo "Append the current input character to the current tag token's tag name"))))
+     (token-tag-name-append current-token current-input-character))))
 
 
 ;; 13.2.5.9 RCDATA less-than sign state
@@ -133,9 +133,9 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_\/
-     (action-todo "Set the temporary buffer to the empty string"))
+     (setf temporary-buffer (make-growable-string)))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN))))
 
 
 ;; 13.2.5.10 RCDATA end tag open state
@@ -143,9 +143,11 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (action-todo "Create a new end tag token, set its tag name to the empty string"))
+     (setf current-token (make-token :end-tag)))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token and a U+002F SOLIDUS character token"))))
+     (emit-token :character
+                 U+003C_LESS-THAN_SIGN
+                 U+002F_SOLIDUS))))
 
 
 ;; 13.2.5.11 RCDATA end tag name state
@@ -153,9 +155,9 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
      (action-todo "If the current end tag token is an appropriate end tag token, then switch to the before attribute name state"))
     (U+002F_SOLIDUS_\/
      (action-todo "If the current end tag token is an appropriate end tag token, then switch to the self-closing start tag state"))

@@ -4,7 +4,7 @@
 (defmacro define-state (state &body body)
   (unless (member state '(:named-character-reference-state :markup-declaration-open-state))
     `(defmethod new-run-state* (self (state (eql ,state)))
-       (with-slots (return-state) self
+       (with-slots (current-token return-state temporary-buffer) self
          (let (current-input-character)
            (block nil
              ,@body
@@ -49,10 +49,10 @@
   `(push-token self '(:type :parse-error :data ,error-name)))
 
 
-(defmacro emit-token (type &optional arg)
+(defmacro emit-token (type &rest args)
   (ecase type
     (:end-of-file `(return))
-    (:character `(push-token* self :characters ,arg))))
+    (:character `(push-token* self :characters ,@args))))
 
 
 (defmacro action-todo (todo))
@@ -60,3 +60,27 @@
 
 (defmacro set-return-state (state)
   `(setf (slot-value self 'return-state) ,state))
+
+
+(defun make-token (type)
+  (ecase type
+    (:start-tag (list :type :start-tag
+                      :name (make-growable-string)
+                      :data '()
+                      :self-closing nil
+                      :self-closing-acknowledged nil))))
+
+
+(defun token-tag-name-append (token char)
+  (vector-push-extend char (getf token :name)))
+
+
+(defmacro define-unicode-constant (symbol)
+  (let* ((code-point (symbol-name symbol)))
+    (assert (eql 0 (search "U+" code-point)))
+    (let ((char (code-char (parse-integer code-point :start 2 :radix 16 :junk-allowed t))))
+      `(defconstant ,symbol ,char))))
+
+
+(define-unicode-constant U+003C_LESS-THAN_SIGN)
+(define-unicode-constant U+002F_SOLIDUS)
