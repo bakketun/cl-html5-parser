@@ -298,119 +298,73 @@ pointer at the end."
       (push-token self token)
       (setf state :data-state))))
 
-
-;; New define-state
-
-(defmacro define-state (state &body body)
-  `(defmethod run-state* (self (state (eql ,state)))
-     (block nil
-       ,@body
-       t)))
-
-(defmacro set-the-return-state-to-the (state)
-  `(setf (slot-value self 'return-state) ,state))
-
-(defmacro switch-to-the (state)
-  `(setf (slot-value self 'state) ,state))
-
-(defmacro consume-the-next-input-character (&body cases)
-  `(let ((current-input-character (html5-stream-char (slot-value self 'stream))))
-     (case current-input-character
-       ,@(loop :for (marker thing . body) :in cases
-               :collect (cons (case thing
-                                (EOF +eof+)
-                                (Anything-else 'otherwise)
-                                (otherwise (let ((code-point (symbol-name thing)))
-                                             (assert (eql 0 (search "U+" code-point)))
-                                             (code-char (parse-integer code-point :start 2 :radix 16)))))
-                              body)))))
-
-(defmacro this-is-an (name parse-error)
-  (assert (eql 'parse-error parse-error))
-  `(push-token self '(:type :parse-error :data ,name)))
-
-(defmacro Emit-the-current-input-character-as-a-character-token ()
-  `(push-token* self :characters current-input-character))
-
-(defmacro Emit-a-U+FFFD-REPLACEMENT-CHARACTER-character-token ()
-  `(push-token* self :characters #\uFFFD))
-
-(defmacro emit-an-end-of-file-token ()
-  `(return nil))
-
 ;;;
 ;;; Below are the various tokenizer states worked out.
 ;;;
 
+(defstate :data-state (stream state)
+  (let ((data (html5-stream-char stream)))
+    (cond ((eql data #\&)
+           (setf state :entity-data-state))
+          ((eql data #\<)
+           (setf state :tag-open-state))
+          ((eql data #\u0000)
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
+           (push-token* self :characters #\u0000))
+          ((eql data +eof+)
+           ;; Tokenization ends.
+           (return nil))
+          ((find data +space-characters+)
+           ;; Directly after emitting a token you switch back to the "data
+           ;; state". At that point spaceCharacters are important so they are
+           ;; emitted separately.
+           (push-token* self :space-characters
+                        data
+                        (html5-stream-chars-until stream +space-characters+ t))
+           ;; No need to update lastFourChars here, since the first space will
+           ;; have already been appended to lastFourChars and will have broken
+           ;; any <!-- or --> sequences
+           )
+          (t
+           (push-token* self :characters
+                        data
+                        (html5-stream-chars-until stream '(#\& #\< #\u0000)))))))
 
-(define-state :data-state
-  (consume-the-next-input-character
-    (↪ ("U+0026 AMPERSAND (&)"
-        "U+000A LINE FEED (LF)"
-        "U+000C FORM FEED (FF)")
-       (Set-the-return-state-to-the :data-state)
-       (Switch-to-the :character-reference-state))
-    (↪ "U+003C LESS-THAN SIGN (<)"
-       (Switch-to-the :tag-open-state))
-    (↪ "U+0000 NULL"
-       (This-is-an :unexpected-null-character parse-error) (Emit-the-current-input-character-as-a-character-token))
-    (↪ "EOF"
-       (Emit-an-end-of-file-token))
-    (↪ "Anything else"
-       (Emit-the-current-input-character-as-a-character-token))))
-
-
-(define-state :data-state
-  (consume-the-next-input-character)
-  (case current-input-character
-    ((U+0026_AMPERSAND_&
-      U+000A_LINE_FEED_LF
-      U+000C_FORM_FEED_FF)
-     (Set-the-return-state-to-the :data-state)
-     (Switch-to-the :character-reference-state))
-    ("U+003C LESS-THAN SIGN (<)"
-     (Switch-to-the :tag-open-state))
-    ("U+0000 NULL"
-     (This-is-an :unexpected-null-character parse-error) (Emit-the-current-input-character-as-a-character-token))
-    ("EOF"
-     (Emit-an-end-of-file-token))
-    ("Anything else"
-     (Emit-the-current-input-character-as-a-character-token))))
-
-(define-state :data-state
-  (consume-the-next-input-character)
-  (current-input-character-case
-   (("U+0026 AMPERSAND (&)"
-     "U+000A LINE FEED (LF)"
-     "U+000C FORM FEED (FF)")
-    (Set-the-return-state-to-the :data-state)
-    (Switch-to-the :character-reference-state))
-   ("U+003C LESS-THAN SIGN (<)"
-    (Switch-to-the :tag-open-state))
-   ("U+0000 NULL"
-    (This-is-an :unexpected-null-character parse-error) (Emit-the-current-input-character-as-a-character-token))
-   ("EOF"
-    (Emit-an-end-of-file-token))
-   ("Anything else"
-    (Emit-the-current-input-character-as-a-character-token))))
-
-(define-state :RCDATA-state
-  (Consume-the-next-input-character
-    (↪ U+0026 ;; AMPERSAND (&)
-       (Set-the-return-state-to-the :rcdata-state)  (Switch-to-the :character-reference-state))
-    (↪ U+003C ;; LESS-THAN SIGN (<)
-       (Switch-to-the :rcdata-less-than-sign-state))
-    (↪ U+0000 ;; NULL
-       (This-is-an :unexpected-null-character parse-error) (Emit-a-U+FFFD-REPLACEMENT-CHARACTER-character-token))
-    (↪ EOF
-       (Emit-an-end-of-file-token))
-    (↪ Anything-else
-       (Emit-the-current-input-character-as-a-character-token))))
-
-;; 13.2.5.72 Character reference state
-(defstate :character-reference-state (state return-state)
+(defstate :entity-data-state (state)
   (consume-entity self)
-  (setf state return-state))
+  (setf state :data-state))
+
+(defstate :rcdata-state (stream state)
+  (let ((data (html5-stream-char stream)))
+    (cond ((eql data #\&)
+           (setf state :character-reference-in-rcdata))
+          ((eql data #\<)
+           (setf state :rcdata-less-than-sign-state))
+          ((eql data +eof+)
+           ;; Tokenization ends.
+           (return nil))
+          ((eql data #\u0000)
+           (push-token self '(:type :parse-error :data :unexpected-null-character))
+           (push-token* self :characters #\uFFFD))
+          ((find data +space-characters+)
+           ;; Directly after emitting a token you switch back to the "data
+           ;; state". At that point spaceCharacters are important so they are
+           ;; emitted separately.
+           (push-token* self :space-characters
+                        data
+                        (html5-stream-chars-until stream +space-characters+ t))
+           ;; No need to update lastFourChars here, since the first space will
+           ;; have already been appended to lastFourChars and will have broken
+           ;; any <!-- or --> sequences
+           )
+          (t
+           (push-token* self :characters
+                        data
+                        (html5-stream-chars-until stream '(#\& #\<)))))))
+
+(defstate :character-reference-in-rcdata (state)
+  (consume-entity self)
+  (setf state :rcdata-state))
 
 (defstate :rawtext-state (stream state)
   (let ((data (html5-stream-char stream)))
