@@ -203,9 +203,11 @@
     "thead"
     "tr"))
 
+;; TODO: Use the terms in the standard https://infra.spec.whatwg.org/#ascii-digit
 (defglobal +ascii-lowercase+ "abcdefghijklmnopqrstuvwxyz")
 (defglobal +ascii-uppercase+ "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 (defglobal +ascii-letters+ "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+(defglobal +ascii-alphanumeric+ "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 (defglobal +digits+ "0123456789")
 (defglobal +hex-digits+ "0123456789abcdefABCDEF")
 

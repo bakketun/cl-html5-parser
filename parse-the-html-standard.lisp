@@ -26,7 +26,6 @@
   (with-output-to-string (out)
     (walk-nodes (lambda (node) (when (stringp node) (princ node out))) node)))
 
-
 (defun tokenization-defs-html (body)
   (loop :with content := (remove-if #'stringp (cddr body))
         :while content
@@ -61,7 +60,11 @@
     (cl-ppcre:register-groups-bind (error) ("This is an? ([^ ]+) parse error" string)
       (return (cons :parse-error error)))
     (cl-ppcre:register-groups-bind (state) ("Switch to the (.*)" string)
-      (return (cons :switch-state (substitute #\- #\Space state))))
+      (return (cons :switch-state (escape-state-id (substitute #\- #\Space state)))))
+    (when (equal "Emit an end-of-file token" string)
+      (return (cons :emit-eof-token nil)))
+    (when (equal "Emit the current input character as a character token" string)
+      (return (cons :emit-current-char nil)))
     (cons :todo string)))
 
 
@@ -86,10 +89,10 @@
 
 
 (defun print-state (&key id secno dfn switch cases)
-  (format t "~&~%~%;; ~A ~A~%(define-state :~A~%" secno dfn (escape-state-id id))
+  (format t "~&~%~%;; ~A ~A~%(define-state :~A~%" secno dfn id)
   (if (equal "Consume the next input character:" switch)
       (format t "~&  (consume-next-input-character)")
-      (format t "~&  (todo ~S)" switch))
+      (format t "~&  (action-todo ~S)" switch))
   (format t "~&  (current-character-case")
   (loop :for (dts . dd) :in cases :do
     (format t "~&    (~{~#[~;~A~:;(~@{~A~^~&~})~]~}" dts)
@@ -99,7 +102,9 @@
       (ecase action
         (:todo (format t "(action-todo ~S)" arg))
         (:parse-error (format t "(this-is-a-parse-error :~A)" arg))
-        (:switch-state (format t "(switch-to :~A)" arg))))
+        (:switch-state (format t "(switch-state :~A)" arg))
+        (:emit-eof-token (princ "(emit-token :end-of-file)"))
+        (:emit-current-char (princ "(emit-token :character current-input-character)"))))
     (format t ")"))
   (format t ")")
   (format t ")~%"))

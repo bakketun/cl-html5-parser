@@ -8,13 +8,13 @@
     (U+0026_AMPERSAND_\&
      (action-todo "Set the return state to the data state"))
     (U+003C_LESS-THAN_SIGN_\<
-     (switch-to :tag-open-state))
+     (switch-state :tag-open-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
-     (action-todo "Emit an end-of-file token"))
+     (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Emit the current input character as a character token"))))
+     (emit-token :character current-input-character))))
 
 
 ;; 13.2.5.2 RCDATA state
@@ -24,13 +24,13 @@
     (U+0026_AMPERSAND_\&
      (action-todo "Set the return state to the RCDATA state"))
     (U+003C_LESS-THAN_SIGN_\<
-     (switch-to :RCDATA-less-than-sign-state))
+     (switch-state :RCDATA-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
-     (action-todo "Emit an end-of-file token"))
+     (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Emit the current input character as a character token"))))
+     (emit-token :character current-input-character))))
 
 
 ;; 13.2.5.3 RAWTEXT state
@@ -38,13 +38,13 @@
   (consume-next-input-character)
   (current-character-case
     (U+003C_LESS-THAN_SIGN_\<
-     (switch-to :RAWTEXT-less-than-sign-state))
+     (switch-state :RAWTEXT-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
-     (action-todo "Emit an end-of-file token"))
+     (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Emit the current input character as a character token"))))
+     (emit-token :character current-input-character))))
 
 
 ;; 13.2.5.4 Script data state
@@ -52,13 +52,13 @@
   (consume-next-input-character)
   (current-character-case
     (U+003C_LESS-THAN_SIGN_\<
-     (switch-to :script-data-less-than-sign-state))
+     (switch-state :script-data-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
-     (action-todo "Emit an end-of-file token"))
+     (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Emit the current input character as a character token"))))
+     (emit-token :character current-input-character))))
 
 
 ;; 13.2.5.5 PLAINTEXT state
@@ -68,9 +68,9 @@
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
-     (action-todo "Emit an end-of-file token"))
+     (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Emit the current input character as a character token"))))
+     (emit-token :character current-input-character))))
 
 
 ;; 13.2.5.6 Tag open state
@@ -78,9 +78,9 @@
   (consume-next-input-character)
   (current-character-case
     (U+0021_EXCLAMATION_MARK_\!
-     (switch-to :markup-declaration-open-state))
+     (switch-state :markup-declaration-open-state))
     (U+002F_SOLIDUS_\/
-     (switch-to :end-tag-open-state))
+     (switch-state :end-tag-open-state))
     (ASCII_alpha
      (action-todo "Create a new start tag token, set its tag name to the empty string"))
     (U+003F_QUESTION_MARK_\?
@@ -113,11 +113,11 @@
 U+000A_LINE_FEED_\LF
 U+000C_FORM_FEED_\FF
 U+0020_SPACE)
-     (switch-to :before-attribute-name-state))
+     (switch-state :before-attribute-name-state))
     (U+002F_SOLIDUS_\/
-     (switch-to :self-closing-start-tag-state))
+     (switch-state :self-closing-start-tag-state))
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (ASCII_upper_alpha
      (action-todo "Append the lowercase version of the current input character (add 0x0020 to the character's code point) to the current tag token's tag name"))
     (U+0000_NULL
@@ -217,7 +217,7 @@ U+0020_SPACE)
     (U+002F_SOLIDUS_\/
      (action-todo "Set the temporary buffer to the empty string"))
     (U+0021_EXCLAMATION_MARK_\!
-     (switch-to :script-data-escape-start-state))
+     (switch-state :script-data-escape-start-state))
     (Anything_else
      (action-todo "Emit a U+003C LESS-THAN SIGN character token"))))
 
@@ -258,7 +258,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :script-data-escape-start-dash-state))
+     (switch-state :script-data-escape-start-dash-state))
     (Anything_else
      (action-todo "Reconsume in the script data state"))))
 
@@ -268,7 +268,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :script-data-escaped-dash-dash-state))
+     (switch-state :script-data-escaped-dash-dash-state))
     (Anything_else
      (action-todo "Reconsume in the script data state"))))
 
@@ -278,15 +278,15 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :script-data-escaped-dash-state))
+     (switch-state :script-data-escaped-dash-state))
     (U+003C_LESS-THAN_SIGN_\<
-     (switch-to :script-data-escaped-less-than-sign-state))
+     (switch-state :script-data-escaped-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text))
     (Anything_else
-     (action-todo "Emit the current input character as a character token"))))
+     (emit-token :character current-input-character))))
 
 
 ;; 13.2.5.21 Script data escaped dash state
@@ -294,15 +294,15 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :script-data-escaped-dash-dash-state))
+     (switch-state :script-data-escaped-dash-dash-state))
     (U+003C_LESS-THAN_SIGN_\<
-     (switch-to :script-data-escaped-less-than-sign-state))
+     (switch-state :script-data-escaped-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text))
     (Anything_else
-     (switch-to :script-data-escaped-state))))
+     (switch-state :script-data-escaped-state))))
 
 
 ;; 13.2.5.22 Script data escaped dash dash state
@@ -312,15 +312,15 @@ U+0020_SPACE)
     (U+002D_HYPHEN-MINUS_\-
      (action-todo "Emit a U+002D HYPHEN-MINUS character token"))
     (U+003C_LESS-THAN_SIGN_\<
-     (switch-to :script-data-escaped-less-than-sign-state))
+     (switch-state :script-data-escaped-less-than-sign-state))
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :script-data-state))
+     (switch-state :script-data-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text))
     (Anything_else
-     (switch-to :script-data-escaped-state))))
+     (switch-state :script-data-escaped-state))))
 
 
 ;; 13.2.5.23 Script data escaped less-than sign state
@@ -390,15 +390,15 @@ U+003E_GREATER-THAN_SIGN_\>)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :script-data-double-escaped-dash-state))
+     (switch-state :script-data-double-escaped-dash-state))
     (U+003C_LESS-THAN_SIGN_\<
-     (switch-to :script-data-double-escaped-less-than-sign-state))
+     (switch-state :script-data-double-escaped-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text))
     (Anything_else
-     (action-todo "Emit the current input character as a character token"))))
+     (emit-token :character current-input-character))))
 
 
 ;; 13.2.5.28 Script data double escaped dash state
@@ -406,15 +406,15 @@ U+003E_GREATER-THAN_SIGN_\>)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :script-data-double-escaped-dash-dash-state))
+     (switch-state :script-data-double-escaped-dash-dash-state))
     (U+003C_LESS-THAN_SIGN_\<
-     (switch-to :script-data-double-escaped-less-than-sign-state))
+     (switch-state :script-data-double-escaped-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text))
     (Anything_else
-     (switch-to :script-data-double-escaped-state))))
+     (switch-state :script-data-double-escaped-state))))
 
 
 ;; 13.2.5.29 Script data double escaped dash dash state
@@ -424,15 +424,15 @@ U+003E_GREATER-THAN_SIGN_\>)
     (U+002D_HYPHEN-MINUS_\-
      (action-todo "Emit a U+002D HYPHEN-MINUS character token"))
     (U+003C_LESS-THAN_SIGN_\<
-     (switch-to :script-data-double-escaped-less-than-sign-state))
+     (switch-state :script-data-double-escaped-less-than-sign-state))
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :script-data-state))
+     (switch-state :script-data-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text))
     (Anything_else
-     (switch-to :script-data-double-escaped-state))))
+     (switch-state :script-data-double-escaped-state))))
 
 
 ;; 13.2.5.30 Script data double escaped less-than sign state
@@ -496,7 +496,7 @@ U+003E_GREATER-THAN_SIGN_\>
 EOF)
      (action-todo "Reconsume in the after attribute name state"))
     (U+003D_EQUALS_SIGN_\=
-     (switch-to :before-attribute-value-state))
+     (switch-state :before-attribute-value-state))
     (ASCII_upper_alpha
      (action-todo "Append the lowercase version of the current input character (add 0x0020 to the character's code point) to the current attribute's name"))
     (U+0000_NULL
@@ -519,11 +519,11 @@ U+000C_FORM_FEED_\FF
 U+0020_SPACE)
      (action-todo "Ignore the character"))
     (U+002F_SOLIDUS_\/
-     (switch-to :self-closing-start-tag-state))
+     (switch-state :self-closing-start-tag-state))
     (U+003D_EQUALS_SIGN_\=
-     (switch-to :before-attribute-value-state))
+     (switch-state :before-attribute-value-state))
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (EOF
      (this-is-a-parse-error :eof-in-tag))
     (Anything_else
@@ -540,9 +540,9 @@ U+000C_FORM_FEED_\FF
 U+0020_SPACE)
      (action-todo "Ignore the character"))
     (U+0022_QUOTATION_MARK_\"
-     (switch-to :attribute-value-(double-quoted)-state))
+     (switch-state :attribute-value-\(double-quoted\)-state))
     (U+0027_APOSTROPHE_\'
-     (switch-to :attribute-value-(single-quoted)-state))
+     (switch-state :attribute-value-\(single-quoted\)-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (this-is-a-parse-error :missing-attribute-value))
     (Anything_else
@@ -550,11 +550,11 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.36 Attribute value (double-quoted) state
-(define-state :attribute-value-\\(double-quoted\\)-state
+(define-state :attribute-value-\(double-quoted\)-state
   (consume-next-input-character)
   (current-character-case
     (U+0022_QUOTATION_MARK_\"
-     (switch-to :after-attribute-value-(quoted)-state))
+     (switch-state :after-attribute-value-\(quoted\)-state))
     (U+0026_AMPERSAND_\&
      (action-todo "Set the return state to the attribute value (double-quoted) state"))
     (U+0000_NULL
@@ -566,11 +566,11 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.37 Attribute value (single-quoted) state
-(define-state :attribute-value-\\(single-quoted\\)-state
+(define-state :attribute-value-\(single-quoted\)-state
   (consume-next-input-character)
   (current-character-case
     (U+0027_APOSTROPHE_\'
-     (switch-to :after-attribute-value-(quoted)-state))
+     (switch-state :after-attribute-value-\(quoted\)-state))
     (U+0026_AMPERSAND_\&
      (action-todo "Set the return state to the attribute value (single-quoted) state"))
     (U+0000_NULL
@@ -582,18 +582,18 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.38 Attribute value (unquoted) state
-(define-state :attribute-value-\\(unquoted\\)-state
+(define-state :attribute-value-\(unquoted\)-state
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
 U+000A_LINE_FEED_\LF
 U+000C_FORM_FEED_\FF
 U+0020_SPACE)
-     (switch-to :before-attribute-name-state))
+     (switch-state :before-attribute-name-state))
     (U+0026_AMPERSAND_\&
      (action-todo "Set the return state to the attribute value (unquoted) state"))
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     ((U+0022_QUOTATION_MARK_\"
@@ -609,18 +609,18 @@ U+0060_GRAVE_ACCENT_\`)
 
 
 ;; 13.2.5.39 After attribute value (quoted) state
-(define-state :after-attribute-value-\\(quoted\\)-state
+(define-state :after-attribute-value-\(quoted\)-state
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
 U+000A_LINE_FEED_\LF
 U+000C_FORM_FEED_\FF
 U+0020_SPACE)
-     (switch-to :before-attribute-name-state))
+     (switch-state :before-attribute-name-state))
     (U+002F_SOLIDUS_\/
-     (switch-to :self-closing-start-tag-state))
+     (switch-state :self-closing-start-tag-state))
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (EOF
      (this-is-a-parse-error :eof-in-tag))
     (Anything_else
@@ -644,7 +644,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (EOF
      (action-todo "Emit the comment"))
     (U+0000_NULL
@@ -655,7 +655,7 @@ U+0020_SPACE)
 
 ;; 13.2.5.42 Markup declaration open state
 (define-state :markup-declaration-open-state
-  (todo "If the next few characters are:")
+  (action-todo "If the next few characters are:")
   (current-character-case
     (Two_U+002D_HYPHEN-MINUS_characters_\-
      (action-todo "Consume those two characters, create a comment token whose data is the empty string, and switch to the comment start state"))
@@ -672,7 +672,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :comment-start-dash-state))
+     (switch-state :comment-start-dash-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (this-is-a-parse-error :abrupt-closing-of-empty-comment))
     (Anything_else
@@ -684,7 +684,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :comment-end-state))
+     (switch-state :comment-end-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (this-is-a-parse-error :abrupt-closing-of-empty-comment))
     (EOF
@@ -700,7 +700,7 @@ U+0020_SPACE)
     (U+003C_LESS-THAN_SIGN_\<
      (action-todo "Append the current input character to the comment token's data"))
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :comment-end-dash-state))
+     (switch-state :comment-end-dash-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
@@ -726,7 +726,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :comment-less-than-sign-bang-dash-state))
+     (switch-state :comment-less-than-sign-bang-dash-state))
     (Anything_else
      (action-todo "Reconsume in the comment state"))))
 
@@ -736,7 +736,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :comment-less-than-sign-bang-dash-dash-state))
+     (switch-state :comment-less-than-sign-bang-dash-dash-state))
     (Anything_else
      (action-todo "Reconsume in the comment end dash state"))))
 
@@ -757,7 +757,7 @@ EOF)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (switch-to :comment-end-state))
+     (switch-state :comment-end-state))
     (EOF
      (this-is-a-parse-error :eof-in-comment))
     (Anything_else
@@ -769,9 +769,9 @@ EOF)
   (consume-next-input-character)
   (current-character-case
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (U+0021_EXCLAMATION_MARK_\!
-     (switch-to :comment-end-bang-state))
+     (switch-state :comment-end-bang-state))
     (U+002D_HYPHEN-MINUS_\-
      (action-todo "Append a U+002D HYPHEN-MINUS character (-) to the comment token's data"))
     (EOF
@@ -802,7 +802,7 @@ EOF)
 U+000A_LINE_FEED_\LF
 U+000C_FORM_FEED_\FF
 U+0020_SPACE)
-     (switch-to :before-DOCTYPE-name-state))
+     (switch-state :before-DOCTYPE-name-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (action-todo "Reconsume in the before DOCTYPE name state"))
     (EOF
@@ -840,9 +840,9 @@ U+0020_SPACE)
 U+000A_LINE_FEED_\LF
 U+000C_FORM_FEED_\FF
 U+0020_SPACE)
-     (switch-to :after-DOCTYPE-name-state))
+     (switch-state :after-DOCTYPE-name-state))
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (ASCII_upper_alpha
      (action-todo "Append the lowercase version of the current input character (add 0x0020 to the character's code point) to the current DOCTYPE token's name"))
     (U+0000_NULL
@@ -863,7 +863,7 @@ U+000C_FORM_FEED_\FF
 U+0020_SPACE)
      (action-todo "Ignore the character"))
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (EOF
      (this-is-a-parse-error :eof-in-doctype))
     (Anything_else
@@ -878,7 +878,7 @@ U+0020_SPACE)
 U+000A_LINE_FEED_\LF
 U+000C_FORM_FEED_\FF
 U+0020_SPACE)
-     (switch-to :before-DOCTYPE-public-identifier-state))
+     (switch-state :before-DOCTYPE-public-identifier-state))
     (U+0022_QUOTATION_MARK_\"
      (this-is-a-parse-error :missing-whitespace-after-doctype-public-keyword))
     (U+0027_APOSTROPHE_\'
@@ -913,11 +913,11 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.59 DOCTYPE public identifier (double-quoted) state
-(define-state :doctype-public-identifier-\\(double-quoted\\)-state
+(define-state :doctype-public-identifier-\(double-quoted\)-state
   (consume-next-input-character)
   (current-character-case
     (U+0022_QUOTATION_MARK_\"
-     (switch-to :after-DOCTYPE-public-identifier-state))
+     (switch-state :after-DOCTYPE-public-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (U+003E_GREATER-THAN_SIGN_\>
@@ -929,11 +929,11 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.60 DOCTYPE public identifier (single-quoted) state
-(define-state :doctype-public-identifier-\\(single-quoted\\)-state
+(define-state :doctype-public-identifier-\(single-quoted\)-state
   (consume-next-input-character)
   (current-character-case
     (U+0027_APOSTROPHE_\'
-     (switch-to :after-DOCTYPE-public-identifier-state))
+     (switch-state :after-DOCTYPE-public-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (U+003E_GREATER-THAN_SIGN_\>
@@ -952,9 +952,9 @@ U+0020_SPACE)
 U+000A_LINE_FEED_\LF
 U+000C_FORM_FEED_\FF
 U+0020_SPACE)
-     (switch-to :between-DOCTYPE-public-and-system-identifiers-state))
+     (switch-state :between-DOCTYPE-public-and-system-identifiers-state))
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (U+0022_QUOTATION_MARK_\"
      (this-is-a-parse-error :missing-whitespace-between-doctype-public-and-system-identifiers))
     (U+0027_APOSTROPHE_\'
@@ -975,7 +975,7 @@ U+000C_FORM_FEED_\FF
 U+0020_SPACE)
      (action-todo "Ignore the character"))
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (U+0022_QUOTATION_MARK_\"
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (double-quoted) state"))
     (U+0027_APOSTROPHE_\'
@@ -994,7 +994,7 @@ U+0020_SPACE)
 U+000A_LINE_FEED_\LF
 U+000C_FORM_FEED_\FF
 U+0020_SPACE)
-     (switch-to :before-DOCTYPE-system-identifier-state))
+     (switch-state :before-DOCTYPE-system-identifier-state))
     (U+0022_QUOTATION_MARK_\"
      (this-is-a-parse-error :missing-whitespace-after-doctype-system-keyword))
     (U+0027_APOSTROPHE_\'
@@ -1029,11 +1029,11 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.65 DOCTYPE system identifier (double-quoted) state
-(define-state :doctype-system-identifier-\\(double-quoted\\)-state
+(define-state :doctype-system-identifier-\(double-quoted\)-state
   (consume-next-input-character)
   (current-character-case
     (U+0022_QUOTATION_MARK_\"
-     (switch-to :after-DOCTYPE-system-identifier-state))
+     (switch-state :after-DOCTYPE-system-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (U+003E_GREATER-THAN_SIGN_\>
@@ -1045,11 +1045,11 @@ U+0020_SPACE)
 
 
 ;; 13.2.5.66 DOCTYPE system identifier (single-quoted) state
-(define-state :doctype-system-identifier-\\(single-quoted\\)-state
+(define-state :doctype-system-identifier-\(single-quoted\)-state
   (consume-next-input-character)
   (current-character-case
     (U+0027_APOSTROPHE_\'
-     (switch-to :after-DOCTYPE-system-identifier-state))
+     (switch-state :after-DOCTYPE-system-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (U+003E_GREATER-THAN_SIGN_\>
@@ -1070,7 +1070,7 @@ U+000C_FORM_FEED_\FF
 U+0020_SPACE)
      (action-todo "Ignore the character"))
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (EOF
      (this-is-a-parse-error :eof-in-doctype))
     (Anything_else
@@ -1082,7 +1082,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+003E_GREATER-THAN_SIGN_\>
-     (switch-to :data-state))
+     (switch-state :data-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character))
     (EOF
@@ -1096,11 +1096,11 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+005D_RIGHT_SQUARE_BRACKET_\]
-     (switch-to :CDATA-section-bracket-state))
+     (switch-state :CDATA-section-bracket-state))
     (EOF
      (this-is-a-parse-error :eof-in-cdata))
     (Anything_else
-     (action-todo "Emit the current input character as a character token"))))
+     (emit-token :character current-input-character))))
 
 
 ;; 13.2.5.70 CDATA section bracket state
@@ -1108,7 +1108,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+005D_RIGHT_SQUARE_BRACKET_\]
-     (switch-to :CDATA-section-end-state))
+     (switch-state :CDATA-section-end-state))
     (Anything_else
      (action-todo "Emit a U+005D RIGHT SQUARE BRACKET character token"))))
 
@@ -1120,14 +1120,14 @@ U+0020_SPACE)
     (U+005D_RIGHT_SQUARE_BRACKET_\]
      (action-todo "Emit a U+005D RIGHT SQUARE BRACKET character token"))
     (U+003E_GREATER-THAN_SIGN_character
-     (switch-to :data-state))
+     (switch-state :data-state))
     (Anything_else
      (action-todo "Emit two U+005D RIGHT SQUARE BRACKET character tokens"))))
 
 
 ;; 13.2.5.72 Character reference state
 (define-state :character-reference-state
-  (todo "Set the temporary buffer to the empty string. Append
+  (action-todo "Set the temporary buffer to the empty string. Append
    a U+0026 AMPERSAND (&) character to the temporary
    buffer. Consume the next input character:")
   (current-character-case
@@ -1141,7 +1141,7 @@ U+0020_SPACE)
 
 ;; 13.2.5.73 Named character reference state
 (define-state :named-character-reference-state
-  (todo "Consume the maximum number of characters possible, where the consumed characters are one of the
+  (action-todo "Consume the maximum number of characters possible, where the consumed characters are one of the
   identifiers in the first column of the named character references table. Append each
   character to the temporary buffer when it's consumed.")
   (current-character-case
@@ -1165,7 +1165,7 @@ U+0020_SPACE)
 
 ;; 13.2.5.75 Numeric character reference state
 (define-state :numeric-character-reference-state
-  (todo "Set the character reference code to
+  (action-todo "Set the character reference code to
   zero (0).")
   (current-character-case
     ((U+0078_LATIN_SMALL_LETTER_X
@@ -1206,7 +1206,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
     (ASCII_lower_hex_digit
      (action-todo "Multiply the character reference code by 16"))
     (U+003B_SEMICOLON
-     (switch-to :numeric-character-reference-end-state))
+     (switch-state :numeric-character-reference-end-state))
     (Anything_else
      (this-is-a-parse-error :missing-semicolon-after-character-reference))))
 
@@ -1218,12 +1218,12 @@ U+0058_LATIN_CAPITAL_LETTER_X)
     (ASCII_digit
      (action-todo "Multiply the character reference code by 10"))
     (U+003B_SEMICOLON
-     (switch-to :numeric-character-reference-end-state))
+     (switch-state :numeric-character-reference-end-state))
     (Anything_else
      (this-is-a-parse-error :missing-semicolon-after-character-reference))))
 
 
 ;; 13.2.5.80 Numeric character reference end state
 (define-state :numeric-character-reference-end-state
-  (todo "Check the character reference code:")
+  (action-todo "Check the character reference code:")
   (current-character-case))
