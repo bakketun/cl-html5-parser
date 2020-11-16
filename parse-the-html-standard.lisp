@@ -84,7 +84,7 @@
   (loop :while cases
         :for dts := (loop :while (eql :dt (caar cases))
                           :collect (parse-dt (cadr (pop cases))))
-        :for dd := (convert-action (cadr (pop cases)))
+        :for dd := (mapcar #'convert-action (cdr (pop cases)))
         :collect (cons dts dd)))
 
 
@@ -94,17 +94,17 @@
       (format t "~&  (consume-next-input-character)")
       (format t "~&  (action-todo ~S)" switch))
   (format t "~&  (current-character-case")
-  (loop :for (dts . dd) :in cases :do
+  (loop :for (dts . dds) :in cases :do
     (format t "~&    (~{~#[~;~A~:;(~@{~A~^~&~})~]~}" dts)
-    (format t "~&     ")
-    ;(format t "~&         ~S" dd)
-    (destructuring-bind (action . arg) dd
-      (ecase action
-        (:todo (format t "(action-todo ~S)" arg))
-        (:parse-error (format t "(this-is-a-parse-error :~A)" arg))
-        (:switch-state (format t "(switch-state :~A)" arg))
-        (:emit-eof-token (princ "(emit-token :end-of-file)"))
-        (:emit-current-char (princ "(emit-token :character current-input-character)"))))
+    (dolist (dd dds)
+      (format t "~&     ")
+      (destructuring-bind (action . arg) dd
+        (ecase action
+          (:todo (format t "(action-todo ~S)" arg))
+          (:parse-error (format t "(this-is-a-parse-error :~A)" arg))
+          (:switch-state (format t "(switch-state :~A)" arg))
+          (:emit-eof-token (princ "(emit-token :end-of-file)"))
+          (:emit-current-char (princ "(emit-token :character current-input-character)")))))
     (format t ")"))
   (format t ")")
   (format t ")~%"))
