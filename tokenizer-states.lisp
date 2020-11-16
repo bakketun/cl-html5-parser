@@ -769,31 +769,31 @@
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
      (switch-state :before-attribute-name-state))
     (U+0026_AMPERSAND_\&
-     (action-todo "Set the return state to the attribute value (unquoted) state")
+     (set-return-state :attribute-value-\(unquoted\)-state)
      (switch-state :character-reference-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
      (emit-token current-token))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute's value"))
+     (current-attribute-value-append U+FFFD_REPLACEMENT_CHARACTER))
     ((U+0022_QUOTATION_MARK_\"
-U+0027_APOSTROPHE_\'
-U+003C_LESS-THAN_SIGN_\<
-U+003D_EQUALS_SIGN_\=
-U+0060_GRAVE_ACCENT_\`)
+      U+0027_APOSTROPHE_\'
+      U+003C_LESS-THAN_SIGN_\<
+      U+003D_EQUALS_SIGN_\=
+      U+0060_GRAVE_ACCENT_\`)
      (this-is-a-parse-error :unexpected-character-in-unquoted-attribute-value)
-     (action-todo "Treat it as per the \"anything else\" entry below"))
+     (anything_else-clause))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
      (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Append the current input character to the current attribute's value"))))
+     (current-attribute-value-append current-input-character))))
 
 
 ;; 13.2.5.39 After attribute value (quoted) state
