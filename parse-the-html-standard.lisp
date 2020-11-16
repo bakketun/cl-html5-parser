@@ -88,17 +88,17 @@
 (defun print-state (&key id secno dfn switch cases)
   (format t "~&~%~%;; ~A ~A~%(define-state :~A~%" secno dfn (escape-state-id id))
   (if (equal "Consume the next input character:" switch)
-      (format t "~&   (consume-next-input-character)")
-      (format t "~&   (todo ~S)" switch))
-  (format t "~&   (current-character-case")
+      (format t "~&  (consume-next-input-character)")
+      (format t "~&  (todo ~S)" switch))
+  (format t "~&  (current-character-case")
   (loop :for (dts . dd) :in cases :do
-    (format t "~&      (~{~#[~;~A~:;(~@{~A~^~&~})~]~}" dts)
-    (format t "~&         ")
+    (format t "~&    (~{~#[~;~A~:;(~@{~A~^~&~})~]~}" dts)
+    (format t "~&     ")
     ;(format t "~&         ~S" dd)
     (destructuring-bind (action . arg) dd
       (ecase action
-        (:todo (format t "~S" dd))
-        (:parse-error (format t "(parse-error :~A)" arg))
+        (:todo (format t "(action-todo ~S)" arg))
+        (:parse-error (format t "(this-is-a-parse-error :~A)" arg))
         (:switch-state (format t "(switch-to :~A)" arg))))
     (format t ")"))
   (format t ")")
@@ -106,4 +106,5 @@
 
 
 (defun make-tokenizer-lisp-code (html-standard-file)
+  (format t "(in-package #:html5-parser)")
   (mapcar (lambda (state) (apply #'print-state state)) (mapcar #'parse-state-def (tokenization-defs-html (body html-standard-file)))))
