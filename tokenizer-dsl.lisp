@@ -93,10 +93,10 @@
 
 
 (defmacro token-tag-name-append (token char)
-  `(vector-push-extend char (getf token :name)))
+  `(vector-push-extend ,char (getf ,token :name)))
 
 (defmacro token-data-append (token char)
-  `(vector-push-extend char (getf token :data)))
+  `(vector-push-extend ,char (getf ,token :data)))
 
 (defmacro temporary-buffer-append (char)
   `(vector-push-extend ,char temporary-buffer))
@@ -118,6 +118,7 @@
       `(defconstant ,symbol ,char))))
 
 
+(define-unicode-constant U+0021_EXCLAMATION_MARK)
 (define-unicode-constant U+002D_HYPHEN-MINUS)
 (define-unicode-constant U+002F_SOLIDUS)
 (define-unicode-constant U+003C_LESS-THAN_SIGN)
