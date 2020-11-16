@@ -1072,10 +1072,11 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
-     (action-todo "Ignore the character"))
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
+     ;; Ignoring the character
+     )
     (ASCII_upper_alpha
      (action-todo "Create a new DOCTYPE token")
      (action-todo "Set the token's name to the (char-downcase current-input-character) (add 0x0020 to the character's code point)")
@@ -1136,10 +1137,11 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
-     (action-todo "Ignore the character"))
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
+     ;; Ignoring the character
+     )
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
      (emit-token current-token))
@@ -1194,10 +1196,11 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
-     (action-todo "Ignore the character"))
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
+     ;; Ignoring the character
+     )
     (U+0022_QUOTATION_MARK_\"
      (action-todo "Set the DOCTYPE token's public identifier to the empty string (not missing), then switch to the DOCTYPE public identifier (double-quoted) state"))
     (U+0027_APOSTROPHE_\'
@@ -1302,10 +1305,11 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
-     (action-todo "Ignore the character"))
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
+     ;; Ignoring the character
+     )
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
      (emit-token current-token))
@@ -1362,10 +1366,11 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
-     (action-todo "Ignore the character"))
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
+     ;; Ignoring the character
+     )
     (U+0022_QUOTATION_MARK_\"
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (double-quoted) state"))
     (U+0027_APOSTROPHE_\'
@@ -1440,10 +1445,11 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
-     (action-todo "Ignore the character"))
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
+     ;; Ignoring the character
+     )
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
      (emit-token current-token))
@@ -1469,12 +1475,14 @@ U+0020_SPACE)
      (emit-token current-token))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Ignore the character"))
+     ;; Ignoring the character
+     )
     (EOF
      (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Ignore the character"))))
+     ;; Ignoring the character
+     )))
 
 
 ;; 13.2.5.69 CDATA section state
