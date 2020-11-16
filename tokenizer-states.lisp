@@ -825,7 +825,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+003E_GREATER-THAN_SIGN_\>
-     (action-todo "Set the self-closing flag of the current tag token")
+     (setf (self-closing-flag current-token) t)
      (switch-state :data-state)
      (emit-token current-token))
     (EOF

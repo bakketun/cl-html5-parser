@@ -104,6 +104,9 @@
 (defmacro current-attribute-value-append (char)
   `(add-to-attr-value current-token ,char))
 
+(defmacro self-closing-flag (token)
+  `(getf ,token :self-closing))
+
 
 (defmacro define-unicode-constant (symbol)
   (let* ((code-point (symbol-name symbol)))
