@@ -1115,7 +1115,7 @@ U+0020_SPACE)
      (switch-state :after-DOCTYPE-name-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the current DOCTYPE token"))
+     (emit-token current-token))
     (ASCII_upper_alpha
      (action-todo "Append the (char-downcase current-input-character) (add 0x0020 to the character's code point) to the current DOCTYPE token's name"))
     (U+0000_NULL
@@ -1142,7 +1142,7 @@ U+0020_SPACE)
      (action-todo "Ignore the character"))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the current DOCTYPE token"))
+     (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
@@ -1278,7 +1278,7 @@ U+0020_SPACE)
      (switch-state :between-DOCTYPE-public-and-system-identifiers-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the current DOCTYPE token"))
+     (emit-token current-token))
     (U+0022_QUOTATION_MARK_\"
      (this-is-a-parse-error :missing-whitespace-between-doctype-public-and-system-identifiers)
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (double-quoted) state"))
@@ -1308,7 +1308,7 @@ U+0020_SPACE)
      (action-todo "Ignore the character"))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the current DOCTYPE token"))
+     (emit-token current-token))
     (U+0022_QUOTATION_MARK_\"
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (double-quoted) state"))
     (U+0027_APOSTROPHE_\'
@@ -1446,7 +1446,7 @@ U+0020_SPACE)
      (action-todo "Ignore the character"))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the current DOCTYPE token"))
+     (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
@@ -1466,12 +1466,12 @@ U+0020_SPACE)
   (current-character-case
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the DOCTYPE token"))
+     (emit-token current-token))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (action-todo "Ignore the character"))
     (EOF
-     (action-todo "Emit the DOCTYPE token")
+     (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
      (action-todo "Ignore the character"))))
