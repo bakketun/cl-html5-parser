@@ -627,22 +627,21 @@
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
-     (action-todo "Ignore the character"))
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
+     ;; Ignoring the character
+     )
     ((U+002F_SOLIDUS_\/
-U+003E_GREATER-THAN_SIGN_\>
-EOF)
+      U+003E_GREATER-THAN_SIGN_\>
+      EOF)
      (reconsume-in :after-attribute-name-state))
     (U+003D_EQUALS_SIGN_\=
      (this-is-a-parse-error :unexpected-equals-sign-before-attribute-name)
-     (action-todo "Start a new attribute in the current tag token")
-     (action-todo "Set that attribute's name to the current input character, and its value to the empty string")
+     (add-attribute current-token current-input-character)
      (switch-state :attribute-name-state))
     (Anything_else
-     (action-todo "Start a new attribute in the current tag token")
-     (action-todo "Set that attribute name and value to the empty string")
+     (add-attribute current-token "")
      (reconsume-in :attribute-name-state))))
 
 
