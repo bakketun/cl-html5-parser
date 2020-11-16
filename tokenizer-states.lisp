@@ -751,16 +751,16 @@
     (U+0027_APOSTROPHE_\'
      (switch-state :after-attribute-value-\(quoted\)-state))
     (U+0026_AMPERSAND_\&
-     (action-todo "Set the return state to the attribute value (single-quoted) state")
+     (set-return-state :attribute-value-\(single-quoted\)-state)
      (switch-state :character-reference-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute's value"))
+     (current-attribute-value-append U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
      (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Append the current input character to the current attribute's value"))))
+     (current-attribute-value-append current-input-character))))
 
 
 ;; 13.2.5.38 Attribute value (unquoted) state
