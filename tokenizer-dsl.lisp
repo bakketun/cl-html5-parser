@@ -38,11 +38,18 @@
 
 
 (defmacro consume-next-input-character ()
-  `(setf current-input-character (html5-stream-char (slot-value self 'stream))))
+  `(setf current-input-character (or (slot-value self 'char-to-reconsume)
+                                     (html5-stream-char (slot-value self 'stream)))))
 
 
 (defmacro switch-state (new-state)
-  `(setf (slot-value self 'state) ,new-state))
+  `(setf (slot-value self 'char-to-reconsume) nil
+         (slot-value self 'state) ,new-state))
+
+
+(defmacro reconsume-in (new-state)
+  `(setf (slot-value self 'char-to-reconsume) current-input-character
+         (slot-value self 'state) ,new-state))
 
 
 (defmacro this-is-a-parse-error (error-name)
@@ -84,3 +91,4 @@
 
 (define-unicode-constant U+003C_LESS-THAN_SIGN)
 (define-unicode-constant U+002F_SOLIDUS)
+(define-unicode-constant U+FFFD_REPLACEMENT_CHARACTER)

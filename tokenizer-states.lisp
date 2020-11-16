@@ -6,8 +6,7 @@
   (consume-next-input-character)
   (current-character-case
     (U+0026_AMPERSAND_\&
-     (action-todo "Set the return state to the data state")
-     (set-return-state :data-state))
+     (set-return-state :data-state)
      (switch-state :character-reference-state))
     (U+003C_LESS-THAN_SIGN_\<
      (switch-state :tag-open-state))
@@ -25,14 +24,13 @@
   (consume-next-input-character)
   (current-character-case
     (U+0026_AMPERSAND_\&
-     (set-return-state :rcdata-state))
-     (action-todo "Set the return state to the RCDATA state")
+     (set-return-state :rcdata-state)
      (switch-state :character-reference-state))
     (U+003C_LESS-THAN_SIGN_\<
      (switch-state :RCDATA-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Emit a U+FFFD REPLACEMENT CHARACTER character token"))
+     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (emit-token :end-of-file))
     (Anything_else
@@ -47,7 +45,7 @@
      (switch-state :RAWTEXT-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Emit a U+FFFD REPLACEMENT CHARACTER character token"))
+     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (emit-token :end-of-file))
     (Anything_else
@@ -62,7 +60,7 @@
      (switch-state :script-data-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Emit a U+FFFD REPLACEMENT CHARACTER character token"))
+     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (emit-token :end-of-file))
     (Anything_else
@@ -75,7 +73,7 @@
   (current-character-case
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Emit a U+FFFD REPLACEMENT CHARACTER character token"))
+     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (emit-token :end-of-file))
     (Anything_else
@@ -91,20 +89,20 @@
     (U+002F_SOLIDUS_\/
      (switch-state :end-tag-open-state))
     (ASCII_alpha
-     (setf current-token (make-token :start-tag)))
-     (action-todo "Create a new start tag token, set its tag name to the empty string")
-     (action-todo "Reconsume in the tag name state"))
+     (setf current-token (make-token :start-tag))
+     (reconsume-in :name-state))
     (U+003F_QUESTION_MARK_\?
      (this-is-a-parse-error :unexpected-question-mark-instead-of-tag-name)
-     (action-todo "Create a comment token whose data is the empty string")
-     (action-todo "Reconsume in the bogus comment state"))
+     (setf current-token (make-token :comment))
+     (reconsume-in :bogus-comment-state))
     (EOF
      (this-is-a-parse-error :eof-before-tag-name)
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token and an end-of-file token"))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :end-of-file))
     (Anything_else
      (this-is-a-parse-error :invalid-first-character-of-tag-name)
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token")
-     (action-todo "Reconsume in the data state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :data-state))))
 
 
 ;; 13.2.5.7 End tag open state
@@ -112,7 +110,7 @@
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (setf current-token (make-token :end-tag)))
+     (setf current-token (make-token :end-tag))
      (action-todo "Create a new end tag token, set its tag name to the empty string")
      (action-todo "Reconsume in the tag name state"))
     (U+003E_GREATER-THAN_SIGN_\>
@@ -132,9 +130,9 @@
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
      (switch-state :before-attribute-name-state))
     (U+002F_SOLIDUS_\/
      (switch-state :self-closing-start-tag-state))
@@ -142,7 +140,7 @@ U+0020_SPACE)
      (switch-state :data-state)
      (action-todo "Emit the current tag token"))
     (ASCII_upper_alpha
-     (token-tag-name-append current-token (char-downcase current-input-character)))
+     (token-tag-name-append current-token (char-downcase current-input-character))
      (action-todo "Append the lowercase version of the current input character (add 0x0020 to the character's code point) to the current tag token's tag name"))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -151,7 +149,7 @@ U+0020_SPACE)
      (this-is-a-parse-error :eof-in-tag)
      (emit-token :end-of-file))
     (Anything_else
-     (token-tag-name-append current-token current-input-character))))
+     (token-tag-name-append current-token current-input-character)
      (action-todo "Append the current input character to the current tag token's tag name"))))
 
 
@@ -160,11 +158,11 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_\/
-     (setf temporary-buffer (make-growable-string)))
+     (setf temporary-buffer (make-growable-string))
      (action-todo "Set the temporary buffer to the empty string")
      (switch-state :RCDATA-end-tag-open-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
      (action-todo "Emit a U+003C LESS-THAN SIGN character token")
      (action-todo "Reconsume in the RCDATA state"))))
 
@@ -174,13 +172,13 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (setf current-token (make-token :end-tag)))
+     (setf current-token (make-token :end-tag))
      (action-todo "Create a new end tag token, set its tag name to the empty string")
      (action-todo "Reconsume in the RCDATA end tag name state"))
     (Anything_else
      (emit-token :character
                  U+003C_LESS-THAN_SIGN
-                 U+002F_SOLIDUS))))
+                 U+002F_SOLIDUS)
      (action-todo "Emit a U+003C LESS-THAN SIGN character token and a U+002F SOLIDUS character token")
      (action-todo "Reconsume in the RCDATA state"))))
 
@@ -350,7 +348,7 @@ U+0020_SPACE)
      (switch-state :script-data-escaped-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Emit a U+FFFD REPLACEMENT CHARACTER character token"))
+     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
      (emit-token :end-of-file))
@@ -370,7 +368,7 @@ U+0020_SPACE)
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-escaped-state)
-     (action-todo "Emit a U+FFFD REPLACEMENT CHARACTER character token"))
+     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
      (emit-token :end-of-file))
@@ -393,7 +391,7 @@ U+0020_SPACE)
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-escaped-state)
-     (action-todo "Emit a U+FFFD REPLACEMENT CHARACTER character token"))
+     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
      (emit-token :end-of-file))
@@ -492,7 +490,7 @@ U+003E_GREATER-THAN_SIGN_\>)
      (action-todo "Emit a U+003C LESS-THAN SIGN character token"))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Emit a U+FFFD REPLACEMENT CHARACTER character token"))
+     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
      (emit-token :end-of-file))
@@ -513,7 +511,7 @@ U+003E_GREATER-THAN_SIGN_\>)
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-double-escaped-state)
-     (action-todo "Emit a U+FFFD REPLACEMENT CHARACTER character token"))
+     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
      (emit-token :end-of-file))
@@ -537,7 +535,7 @@ U+003E_GREATER-THAN_SIGN_\>)
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-double-escaped-state)
-     (action-todo "Emit a U+FFFD REPLACEMENT CHARACTER character token"))
+     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
      (emit-token :end-of-file))
