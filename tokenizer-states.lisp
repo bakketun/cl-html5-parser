@@ -916,19 +916,19 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+003C_LESS-THAN_SIGN_\<
-     (action-todo "Append the current input character to the comment token's data")
+     (token-data-append current-token current-input-character)
      (switch-state :comment-less-than-sign-state))
     (U+002D_HYPHEN-MINUS_\-
      (switch-state :comment-end-dash-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the comment token's data"))
+     (token-data-append current-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
-     (action-todo "Emit the comment token")
+     (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Append the current input character to the comment token's data"))))
+     (token-data-append current-token current-input-character))))
 
 
 ;; 13.2.5.46 Comment less-than sign state
