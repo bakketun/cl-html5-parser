@@ -885,7 +885,7 @@ U+0020_SPACE)
     (U+003E_GREATER-THAN_SIGN_\>
      (this-is-a-parse-error :abrupt-closing-of-empty-comment)
      (switch-state :data-state)
-     (action-todo "Emit the comment token"))
+     (emit-token current-token))
     (Anything_else
      (reconsume-in :comment-state))))
 
