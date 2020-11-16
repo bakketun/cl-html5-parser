@@ -937,10 +937,10 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+0021_EXCLAMATION_MARK_\!
-     (action-todo "Append the current input character to the comment token's data")
+     (token-data-append current-token current-input-character)
      (switch-state :comment-less-than-sign-bang-state))
     (U+003C_LESS-THAN_SIGN_\<
-     (action-todo "Append the current input character to the comment token's data"))
+     (token-data-append current-token current-input-character))
     (Anything_else
      (reconsume-in :comment-state))))
 
