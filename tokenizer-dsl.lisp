@@ -58,9 +58,9 @@
 
 (defmacro emit-token (type &rest args)
   (ecase type
+    (current-token `(emit-current-token self))
     (:end-of-file `(return))
     (:character `(push-token* self :characters ,@args))))
-
 
 (defmacro action-todo (todo))
 

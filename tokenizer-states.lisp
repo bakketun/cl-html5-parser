@@ -111,7 +111,6 @@
   (current-character-case
     (ASCII_alpha
      (setf current-token (make-token :end-tag))
-     (action-todo "Create a new end tag token, set its tag name to the empty string")
      (reconsume-in :tag-name-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (this-is-a-parse-error :missing-end-tag-name)
@@ -121,7 +120,7 @@
      (emit-token :character U+003C_LESS-THAN_SIGN))
     (Anything_else
      (this-is-a-parse-error :invalid-first-character-of-tag-name)
-     (action-todo "Create a comment token whose data is the empty string")
+     (setf current-token (make-token :comment))
      (reconsume-in :bogus-comment-state))))
 
 
@@ -138,19 +137,17 @@
      (switch-state :self-closing-start-tag-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the current tag token"))
+     (emit-token current-token))
     (ASCII_upper_alpha
-     (token-tag-name-append current-token (char-downcase current-input-character))
-     (action-todo "Append the lowercase version of the current input character (add 0x0020 to the character's code point) to the current tag token's tag name"))
+     (token-tag-name-append current-token (char-downcase current-input-character)))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the current tag token's tag name"))
+     (token-tag-name-append current-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
      (emit-token :end-of-file))
     (Anything_else
-     (token-tag-name-append current-token current-input-character)
-     (action-todo "Append the current input character to the current tag token's tag name"))))
+     (token-tag-name-append current-token current-input-character))))
 
 
 ;; 13.2.5.9 RCDATA less-than sign state
@@ -159,7 +156,6 @@
   (current-character-case
     (U+002F_SOLIDUS_\/
      (setf temporary-buffer (make-growable-string))
-     (action-todo "Set the temporary buffer to the empty string")
      (switch-state :RCDATA-end-tag-open-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN)
@@ -171,7 +167,7 @@
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (action-todo "Create a new end tag token, set its tag name to the empty string")
+     (setf current-token (make-token :end-tag))
      (reconsume-in :RCDATA-end-tag-name-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN)
@@ -183,9 +179,9 @@
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
      (action-todo "If the current end tag token is an appropriate end tag token, then switch to the before attribute name state")
      (action-todo "Otherwise, treat it as per the \"anything else\" entry below"))
     (U+002F_SOLIDUS_\/
@@ -210,7 +206,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_\/
-     (action-todo "Set the temporary buffer to the empty string")
+     (setf temporary-buffer (make-growable-string))
      (switch-state :RAWTEXT-end-tag-open-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN)
@@ -222,7 +218,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (action-todo "Create a new end tag token, set its tag name to the empty string")
+     (setf current-token (make-token :end-tag))
      (reconsume-in :RAWTEXT-end-tag-name-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN)
@@ -261,7 +257,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_\/
-     (action-todo "Set the temporary buffer to the empty string")
+     (setf temporary-buffer (make-growable-string))
      (switch-state :script-data-end-tag-open-state))
     (U+0021_EXCLAMATION_MARK_\!
      (switch-state :script-data-escape-start-state)
@@ -276,7 +272,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (action-todo "Create a new end tag token, set its tag name to the empty string")
+     (setf current-token (make-token :end-tag))
      (reconsume-in :script-data-end-tag-name-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN)
@@ -400,10 +396,10 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_\/
-     (action-todo "Set the temporary buffer to the empty string")
+     (setf temporary-buffer (make-growable-string))
      (switch-state :script-data-escaped-end-tag-open-state))
     (ASCII_alpha
-     (action-todo "Set the temporary buffer to the empty string")
+     (setf temporary-buffer (make-growable-string))
      (emit-token :character U+003C_LESS-THAN_SIGN)
      (reconsume-in :script-data-double-escape-start-state))
     (Anything_else
@@ -416,7 +412,7 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (action-todo "Create a new end tag token, set its tag name to the empty string")
+     (setf current-token (make-token :end-tag))
      (reconsume-in :script-data-escaped-end-tag-name-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN)
@@ -544,7 +540,7 @@ U+003E_GREATER-THAN_SIGN_\>)
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_\/
-     (action-todo "Set the temporary buffer to the empty string")
+     (setf temporary-buffer (make-growable-string))
      (switch-state :script-data-double-escape-end-state)
      (emit-token :character U+002F_SOLIDUS))
     (Anything_else
@@ -641,7 +637,7 @@ U+0020_SPACE)
      (switch-state :before-attribute-value-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the current tag token"))
+     (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
      (emit-token :end-of-file))
@@ -667,7 +663,7 @@ U+0020_SPACE)
     (U+003E_GREATER-THAN_SIGN_\>
      (this-is-a-parse-error :missing-attribute-value)
      (switch-state :data-state)
-     (action-todo "Emit the current tag token"))
+     (emit-token current-token))
     (Anything_else
      (reconsume-in :attribute-value-\(unquoted\)-state))))
 
@@ -724,7 +720,7 @@ U+0020_SPACE)
      (switch-state :character-reference-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the current tag token"))
+     (emit-token current-token))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the current attribute's value"))
@@ -755,7 +751,7 @@ U+0020_SPACE)
      (switch-state :self-closing-start-tag-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :data-state)
-     (action-todo "Emit the current tag token"))
+     (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
      (emit-token :end-of-file))
@@ -771,7 +767,7 @@ U+0020_SPACE)
     (U+003E_GREATER-THAN_SIGN_\>
      (action-todo "Set the self-closing flag of the current tag token")
      (switch-state :data-state)
-     (action-todo "Emit the current tag token"))
+     (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
      (emit-token :end-of-file))
@@ -1450,7 +1446,7 @@ U+0020_SPACE)
     (If_there_is_a_match
      (action-todo " If the character reference was consumed as part of an attribute, and the last character matched is not a U+003B SEMICOLON character (;), and the next input character is either a U+003D EQUALS SIGN character (=) or an ASCII alphanumeric, then, for historical reasons, flush code points consumed as a character reference and switch to the return state")
      (action-todo "Otherwise: If the last character matched is not a U+003B SEMICOLON character (;), then this is a missing-semicolon-after-character-reference parse error")
-     (action-todo "Set the temporary buffer to the empty string")
+     (setf temporary-buffer (make-growable-string))
      (action-todo "Append one or two characters corresponding to the character reference name (as given by the second column of the named character references table) to the temporary buffer")
      (action-todo "Flush code points consumed as a character reference")
      (switch-state :return-state))
