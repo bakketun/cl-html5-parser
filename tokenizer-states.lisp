@@ -680,10 +680,11 @@
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
-     (action-todo "Ignore the character"))
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
+     ;; Ignoring the character
+     )
     (U+002F_SOLIDUS_\/
      (switch-state :self-closing-start-tag-state))
     (U+003D_EQUALS_SIGN_\=
@@ -695,8 +696,7 @@ U+0020_SPACE)
      (this-is-a-parse-error :eof-in-tag)
      (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Start a new attribute in the current tag token")
-     (action-todo "Set that attribute name and value to the empty string")
+     (add-attribute current-token "")
      (reconsume-in :attribute-name-state))))
 
 
