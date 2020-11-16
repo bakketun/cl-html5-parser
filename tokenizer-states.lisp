@@ -706,10 +706,11 @@
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE)
-     (action-todo "Ignore the character"))
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE)
+     ;; Ignoring the character
+     )
     (U+0022_QUOTATION_MARK_\"
      (switch-state :attribute-value-\(double-quoted\)-state))
     (U+0027_APOSTROPHE_\'
