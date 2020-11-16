@@ -195,20 +195,24 @@
       U+000A_LINE_FEED_\LF
       U+000C_FORM_FEED_\FF
       U+0020_SPACE)
-     (action-todo "If the current end tag token is an appropriate end tag token, then switch to the before attribute name state")
-     (action-todo "Otherwise, treat it as per the \"anything else\" entry below"))
+     (if (appropriate-end-tag-token-p current-token)
+         (switch-state :before-attribute-name-state)
+         (anything_else-clause)))
     (U+002F_SOLIDUS_\/
-     (action-todo "If the current end tag token is an appropriate end tag token, then switch to the self-closing start tag state")
-     (action-todo "Otherwise, treat it as per the \"anything else\" entry below"))
+     (if (appropriate-end-tag-token-p current-token)
+         (switch-state :self-closing-start-tag-state)
+         (anything_else-clause)))
     (U+003E_GREATER-THAN_SIGN_\>
-     (action-todo "If the current end tag token is an appropriate end tag token, then switch to the data state and emit the current tag token")
-     (action-todo "Otherwise, treat it as per the \"anything else\" entry below"))
+     (if (appropriate-end-tag-token-p current-token)
+         (progn (switch-state :data-state)
+                (emit-token current-token))
+         (anything_else-clause)))
     (ASCII_upper_alpha
-     (action-todo "Append the lowercase version of the current input character (add 0x0020 to the character's code point) to the current tag token's tag name")
-     (action-todo "Append the current input character to the temporary buffer"))
+     (token-tag-name-append current-token (char-downcase current-input-character))
+     (temporary-buffer-append current-input-character))
     (ASCII_lower_alpha
-     (action-todo "Append the current input character to the current tag token's tag name")
-     (action-todo "Append the current input character to the temporary buffer"))
+     (token-tag-name-append current-token current-input-character)
+     (temporary-buffer-append current-input-character))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN)
      (reconsume-in :RCDATA-state))))
