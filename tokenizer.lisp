@@ -34,7 +34,8 @@
    (escape :initform nil)
    (current-token :initform nil)
    (token-queue :initform nil)
-   (temporary-buffer :initform nil)))
+   (temporary-buffer :initform nil)
+   (last-start-tag :initform nil)))
 
 (defun make-html-tokenizer (source &key encoding cdata-switch-helper)
   (make-instance 'html-tokenizer
@@ -285,7 +286,9 @@ pointer at the end."
    the state to :data because that's what's needed after a token has been
    emitted.
   "
-  (with-slots (current-token state lowercase-element-name) self
+  (with-slots (current-token state lowercase-element-name last-start-tag) self
+    (when (eql :start-tag (getf current-token :type))
+      (setf last-start-tag current-token))
     (let ((token current-token))
       ;; Add token to the queue to be yielded
       (when (find (getf token :type) +tag-token-types+)

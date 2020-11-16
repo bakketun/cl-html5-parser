@@ -12,29 +12,34 @@
 
 
 (defmacro current-character-case (&body cases)
-  (flet ((parse-unicode-symbol (symbol)
-           (case symbol
-             (EOF +eof+)
-             (otherwise
-              (let ((code-point (symbol-name symbol)))
-                (assert (eql 0 (search "U+" code-point)))
-                (code-char (parse-integer code-point :start 2 :radix 16 :junk-allowed t)))))))
-    `(case current-input-character
-       ,@(loop :for (keys . forms) :in cases
-               :collect (cons (case keys
-                                (Anything_else 'otherwise)
-                                (ASCII_digit (coerce "0123456789" 'list))
-                                (ASCII_upper_hex_digit (coerce "ABCDEF" 'list))
-                                (ASCII_lower_hex_digit (coerce "abcdef" 'list))
-                                (ASCII_hex_digit (coerce +hex-digits+ 'list))
-                                (ASCII_upper_alpha (coerce +ascii-uppercase+ 'list))
-                                (ASCII_lower_alpha (coerce +ascii-lowercase+ 'list))
-                                (ASCII_alpha (coerce +ascii-letters+ 'list))
-                                (ASCII_alphanumeric (coerce +ascii-alphanumeric+ 'list))
-                                (otherwise (if (listp keys)
-                                               (mapcar #'parse-unicode-symbol keys)
-                                               (parse-unicode-symbol keys))))
-                              forms)))))
+  (let ((anything-else-progn `(progn ,@(cdr (assoc 'Anything_else cases)))))
+    (flet ((parse-unicode-symbol (symbol)
+             (case symbol
+               (EOF +eof+)
+               (otherwise
+                (let ((code-point (symbol-name symbol)))
+                  (assert (eql 0 (search "U+" code-point)))
+                  (code-char (parse-integer code-point :start 2 :radix 16 :junk-allowed t)))))))
+      `(macrolet ((anything_else-clause ()
+                    ',anything-else-progn))
+         (case current-input-character
+           ,@(loop :for (keys . forms) :in cases
+                   :collect (cons (case keys
+                                    (Anything_else 'otherwise)
+                                    (ASCII_digit (coerce "0123456789" 'list))
+                                    (ASCII_upper_hex_digit (coerce "ABCDEF" 'list))
+                                    (ASCII_lower_hex_digit (coerce "abcdef" 'list))
+                                    (ASCII_hex_digit (coerce +hex-digits+ 'list))
+                                    (ASCII_upper_alpha (coerce +ascii-uppercase+ 'list))
+                                    (ASCII_lower_alpha (coerce +ascii-lowercase+ 'list))
+                                    (ASCII_alpha (coerce +ascii-letters+ 'list))
+                                    (ASCII_alphanumeric (coerce +ascii-alphanumeric+ 'list))
+                                    (otherwise (if (listp keys)
+                                                   (mapcar #'parse-unicode-symbol keys)
+                                                   (parse-unicode-symbol keys))))
+                                  (if (eql 'Anything_else keys)
+                                      '((anything_else-clause))
+                                      forms))))))))
 
 
 (defmacro consume-next-input-character ()
@@ -78,8 +83,20 @@
                       :self-closing-acknowledged nil))))
 
 
-(defun token-tag-name-append (token char)
-  (vector-push-extend char (getf token :name)))
+(defun tag-name-match-p (name1 name2)
+  "todo: how to match tagnames correctly?"
+  (string-equal name1 name2))
+
+
+(defmacro appropriate-end-tag-token-p (token)
+  `(tag-name-match-p (getf ,token :name) (getf (slot-value self 'last-start-tag) :name)))
+
+
+(defmacro token-tag-name-append (token char)
+  `(vector-push-extend char (getf token :name)))
+
+(defmacro temporary-buffer-append (char)
+  `(vector-push-extend ,char temporary-buffer))
 
 
 (defmacro define-unicode-constant (symbol)
