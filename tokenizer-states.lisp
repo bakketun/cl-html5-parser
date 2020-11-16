@@ -495,19 +495,20 @@
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
-U+0020_SPACE
-U+002F_SOLIDUS_\/
-U+003E_GREATER-THAN_SIGN_\>)
-     (action-todo "If the temporary buffer is the string \"script\", then switch to the script data double escaped state")
-     (action-todo "Otherwise, switch to the script data escaped state")
+      U+000A_LINE_FEED_\LF
+      U+000C_FORM_FEED_\FF
+      U+0020_SPACE
+      U+002F_SOLIDUS_\/
+      U+003E_GREATER-THAN_SIGN_\>)
+     (if (string= temporary-buffer "script")
+         (switch-state :script-data-double-escaped-state)
+         (switch-state :script-data-escaped-state))
      (emit-token :character current-input-character))
     (ASCII_upper_alpha
-     (action-todo "Append the lowercase version of the current input character (add 0x0020 to the character's code point) to the temporary buffer")
+     (temporary-buffer-append (char-downcase current-input-character))
      (emit-token :character current-input-character))
     (ASCII_lower_alpha
-     (action-todo "Append the current input character to the temporary buffer")
+     (temporary-buffer-append current-input-character)
      (emit-token :character current-input-character))
     (Anything_else
      (reconsume-in :script-data-escaped-state))))
