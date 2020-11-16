@@ -89,6 +89,9 @@
       `(defconstant ,symbol ,char))))
 
 
-(define-unicode-constant U+003C_LESS-THAN_SIGN)
+(define-unicode-constant U+002D_HYPHEN-MINUS)
 (define-unicode-constant U+002F_SOLIDUS)
+(define-unicode-constant U+003C_LESS-THAN_SIGN)
+(define-unicode-constant U+003E_GREATER-THAN_SIGN)
+(define-unicode-constant U+005D_RIGHT_SQUARE_BRACKET)
 (define-unicode-constant U+FFFD_REPLACEMENT_CHARACTER)

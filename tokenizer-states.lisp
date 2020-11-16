@@ -112,17 +112,17 @@
     (ASCII_alpha
      (setf current-token (make-token :end-tag))
      (action-todo "Create a new end tag token, set its tag name to the empty string")
-     (action-todo "Reconsume in the tag name state"))
+     (reconsume-in :tag-name-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (this-is-a-parse-error :missing-end-tag-name)
      (switch-state :data-state))
     (EOF
      (this-is-a-parse-error :eof-before-tag-name)
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token, a U+002F SOLIDUS character token and an end-of-file token"))
+     (emit-token :character U+003C_LESS-THAN_SIGN))
     (Anything_else
      (this-is-a-parse-error :invalid-first-character-of-tag-name)
      (action-todo "Create a comment token whose data is the empty string")
-     (action-todo "Reconsume in the bogus comment state"))))
+     (reconsume-in :bogus-comment-state))))
 
 
 ;; 13.2.5.8 Tag name state
@@ -163,8 +163,7 @@
      (switch-state :RCDATA-end-tag-open-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN)
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token")
-     (action-todo "Reconsume in the RCDATA state"))))
+     (reconsume-in :RCDATA-state))))
 
 
 ;; 13.2.5.10 RCDATA end tag open state
@@ -172,15 +171,11 @@
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (setf current-token (make-token :end-tag))
      (action-todo "Create a new end tag token, set its tag name to the empty string")
-     (action-todo "Reconsume in the RCDATA end tag name state"))
+     (reconsume-in :RCDATA-end-tag-name-state))
     (Anything_else
-     (emit-token :character
-                 U+003C_LESS-THAN_SIGN
-                 U+002F_SOLIDUS)
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token and a U+002F SOLIDUS character token")
-     (action-todo "Reconsume in the RCDATA state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :RCDATA-state))))
 
 
 ;; 13.2.5.11 RCDATA end tag name state
@@ -206,8 +201,8 @@ U+0020_SPACE)
      (action-todo "Append the current input character to the current tag token's tag name")
      (action-todo "Append the current input character to the temporary buffer"))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token, a U+002F SOLIDUS character token, and a character token for each of the characters in the temporary buffer (in the order they were added to the buffer)")
-     (action-todo "Reconsume in the RCDATA state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :RCDATA-state))))
 
 
 ;; 13.2.5.12 RAWTEXT less-than sign state
@@ -218,8 +213,8 @@ U+0020_SPACE)
      (action-todo "Set the temporary buffer to the empty string")
      (switch-state :RAWTEXT-end-tag-open-state))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token")
-     (action-todo "Reconsume in the RAWTEXT state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :RAWTEXT-state))))
 
 
 ;; 13.2.5.13 RAWTEXT end tag open state
@@ -228,10 +223,10 @@ U+0020_SPACE)
   (current-character-case
     (ASCII_alpha
      (action-todo "Create a new end tag token, set its tag name to the empty string")
-     (action-todo "Reconsume in the RAWTEXT end tag name state"))
+     (reconsume-in :RAWTEXT-end-tag-name-state))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token and a U+002F SOLIDUS character token")
-     (action-todo "Reconsume in the RAWTEXT state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :RAWTEXT-state))))
 
 
 ;; 13.2.5.14 RAWTEXT end tag name state
@@ -257,8 +252,8 @@ U+0020_SPACE)
      (action-todo "Append the current input character to the current tag token's tag name")
      (action-todo "Append the current input character to the temporary buffer"))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token, a U+002F SOLIDUS character token, and a character token for each of the characters in the temporary buffer (in the order they were added to the buffer)")
-     (action-todo "Reconsume in the RAWTEXT state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :RAWTEXT-state))))
 
 
 ;; 13.2.5.15 Script data less-than sign state
@@ -270,10 +265,10 @@ U+0020_SPACE)
      (switch-state :script-data-end-tag-open-state))
     (U+0021_EXCLAMATION_MARK_\!
      (switch-state :script-data-escape-start-state)
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token and a U+0021 EXCLAMATION MARK character token"))
+     (emit-token :character U+003C_LESS-THAN_SIGN))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token")
-     (action-todo "Reconsume in the script data state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :script-data-state))))
 
 
 ;; 13.2.5.16 Script data end tag open state
@@ -282,10 +277,10 @@ U+0020_SPACE)
   (current-character-case
     (ASCII_alpha
      (action-todo "Create a new end tag token, set its tag name to the empty string")
-     (action-todo "Reconsume in the script data end tag name state"))
+     (reconsume-in :script-data-end-tag-name-state))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token and a U+002F SOLIDUS character token")
-     (action-todo "Reconsume in the script data state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :script-data-state))))
 
 
 ;; 13.2.5.17 Script data end tag name state
@@ -311,8 +306,8 @@ U+0020_SPACE)
      (action-todo "Append the current input character to the current tag token's tag name")
      (action-todo "Append the current input character to the temporary buffer"))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token, a U+002F SOLIDUS character token, and a character token for each of the characters in the temporary buffer (in the order they were added to the buffer)")
-     (action-todo "Reconsume in the script data state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :script-data-state))))
 
 
 ;; 13.2.5.18 Script data escape start state
@@ -321,9 +316,9 @@ U+0020_SPACE)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
      (switch-state :script-data-escape-start-dash-state)
-     (action-todo "Emit a U+002D HYPHEN-MINUS character token"))
+     (emit-token :character U+002D_HYPHEN-MINUS))
     (Anything_else
-     (action-todo "Reconsume in the script data state"))))
+     (reconsume-in :script-data-state))))
 
 
 ;; 13.2.5.19 Script data escape start dash state
@@ -332,9 +327,9 @@ U+0020_SPACE)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
      (switch-state :script-data-escaped-dash-dash-state)
-     (action-todo "Emit a U+002D HYPHEN-MINUS character token"))
+     (emit-token :character U+002D_HYPHEN-MINUS))
     (Anything_else
-     (action-todo "Reconsume in the script data state"))))
+     (reconsume-in :script-data-state))))
 
 
 ;; 13.2.5.20 Script data escaped state
@@ -343,7 +338,7 @@ U+0020_SPACE)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
      (switch-state :script-data-escaped-dash-state)
-     (action-todo "Emit a U+002D HYPHEN-MINUS character token"))
+     (emit-token :character U+002D_HYPHEN-MINUS))
     (U+003C_LESS-THAN_SIGN_\<
      (switch-state :script-data-escaped-less-than-sign-state))
     (U+0000_NULL
@@ -362,7 +357,7 @@ U+0020_SPACE)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
      (switch-state :script-data-escaped-dash-dash-state)
-     (action-todo "Emit a U+002D HYPHEN-MINUS character token"))
+     (emit-token :character U+002D_HYPHEN-MINUS))
     (U+003C_LESS-THAN_SIGN_\<
      (switch-state :script-data-escaped-less-than-sign-state))
     (U+0000_NULL
@@ -382,12 +377,12 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (action-todo "Emit a U+002D HYPHEN-MINUS character token"))
+     (emit-token :character U+002D_HYPHEN-MINUS))
     (U+003C_LESS-THAN_SIGN_\<
      (switch-state :script-data-escaped-less-than-sign-state))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :script-data-state)
-     (action-todo "Emit a U+003E GREATER-THAN SIGN character token"))
+     (emit-token :character U+003E_GREATER-THAN_SIGN))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-escaped-state)
@@ -409,11 +404,11 @@ U+0020_SPACE)
      (switch-state :script-data-escaped-end-tag-open-state))
     (ASCII_alpha
      (action-todo "Set the temporary buffer to the empty string")
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token")
-     (action-todo "Reconsume in the script data double escape start state"))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :script-data-double-escape-start-state))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token")
-     (action-todo "Reconsume in the script data escaped state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :script-data-escaped-state))))
 
 
 ;; 13.2.5.24 Script data escaped end tag open state
@@ -422,10 +417,10 @@ U+0020_SPACE)
   (current-character-case
     (ASCII_alpha
      (action-todo "Create a new end tag token, set its tag name to the empty string")
-     (action-todo "Reconsume in the script data escaped end tag name state"))
+     (reconsume-in :script-data-escaped-end-tag-name-state))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token and a U+002F SOLIDUS character token")
-     (action-todo "Reconsume in the script data escaped state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :script-data-escaped-state))))
 
 
 ;; 13.2.5.25 Script data escaped end tag name state
@@ -451,8 +446,8 @@ U+0020_SPACE)
      (action-todo "Append the current input character to the current tag token's tag name")
      (action-todo "Append the current input character to the temporary buffer"))
     (Anything_else
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token, a U+002F SOLIDUS character token, and a character token for each of the characters in the temporary buffer (in the order they were added to the buffer)")
-     (action-todo "Reconsume in the script data escaped state"))))
+     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (reconsume-in :script-data-escaped-state))))
 
 
 ;; 13.2.5.26 Script data double escape start state
@@ -475,7 +470,7 @@ U+003E_GREATER-THAN_SIGN_\>)
      (action-todo "Append the current input character to the temporary buffer")
      (emit-token :character current-input-character))
     (Anything_else
-     (action-todo "Reconsume in the script data escaped state"))))
+     (reconsume-in :script-data-escaped-state))))
 
 
 ;; 13.2.5.27 Script data double escaped state
@@ -484,10 +479,10 @@ U+003E_GREATER-THAN_SIGN_\>)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
      (switch-state :script-data-double-escaped-dash-state)
-     (action-todo "Emit a U+002D HYPHEN-MINUS character token"))
+     (emit-token :character U+002D_HYPHEN-MINUS))
     (U+003C_LESS-THAN_SIGN_\<
      (switch-state :script-data-double-escaped-less-than-sign-state)
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token"))
+     (emit-token :character U+003C_LESS-THAN_SIGN))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
@@ -504,10 +499,10 @@ U+003E_GREATER-THAN_SIGN_\>)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
      (switch-state :script-data-double-escaped-dash-dash-state)
-     (action-todo "Emit a U+002D HYPHEN-MINUS character token"))
+     (emit-token :character U+002D_HYPHEN-MINUS))
     (U+003C_LESS-THAN_SIGN_\<
      (switch-state :script-data-double-escaped-less-than-sign-state)
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token"))
+     (emit-token :character U+003C_LESS-THAN_SIGN))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-double-escaped-state)
@@ -525,13 +520,13 @@ U+003E_GREATER-THAN_SIGN_\>)
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_\-
-     (action-todo "Emit a U+002D HYPHEN-MINUS character token"))
+     (emit-token :character U+002D_HYPHEN-MINUS))
     (U+003C_LESS-THAN_SIGN_\<
      (switch-state :script-data-double-escaped-less-than-sign-state)
-     (action-todo "Emit a U+003C LESS-THAN SIGN character token"))
+     (emit-token :character U+003C_LESS-THAN_SIGN))
     (U+003E_GREATER-THAN_SIGN_\>
      (switch-state :script-data-state)
-     (action-todo "Emit a U+003E GREATER-THAN SIGN character token"))
+     (emit-token :character U+003E_GREATER-THAN_SIGN))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-double-escaped-state)
@@ -551,9 +546,9 @@ U+003E_GREATER-THAN_SIGN_\>)
     (U+002F_SOLIDUS_\/
      (action-todo "Set the temporary buffer to the empty string")
      (switch-state :script-data-double-escape-end-state)
-     (action-todo "Emit a U+002F SOLIDUS character token"))
+     (emit-token :character U+002F_SOLIDUS))
     (Anything_else
-     (action-todo "Reconsume in the script data double escaped state"))))
+     (reconsume-in :script-data-double-escaped-state))))
 
 
 ;; 13.2.5.31 Script data double escape end state
@@ -576,7 +571,7 @@ U+003E_GREATER-THAN_SIGN_\>)
      (action-todo "Append the current input character to the temporary buffer")
      (emit-token :character current-input-character))
     (Anything_else
-     (action-todo "Reconsume in the script data double escaped state"))))
+     (reconsume-in :script-data-double-escaped-state))))
 
 
 ;; 13.2.5.32 Before attribute name state
@@ -591,7 +586,7 @@ U+0020_SPACE)
     ((U+002F_SOLIDUS_\/
 U+003E_GREATER-THAN_SIGN_\>
 EOF)
-     (action-todo "Reconsume in the after attribute name state"))
+     (reconsume-in :after-attribute-name-state))
     (U+003D_EQUALS_SIGN_\=
      (this-is-a-parse-error :unexpected-equals-sign-before-attribute-name)
      (action-todo "Start a new attribute in the current tag token")
@@ -600,7 +595,7 @@ EOF)
     (Anything_else
      (action-todo "Start a new attribute in the current tag token")
      (action-todo "Set that attribute name and value to the empty string")
-     (action-todo "Reconsume in the attribute name state"))))
+     (reconsume-in :attribute-name-state))))
 
 
 ;; 13.2.5.33 Attribute name state
@@ -614,7 +609,7 @@ U+0020_SPACE
 U+002F_SOLIDUS_\/
 U+003E_GREATER-THAN_SIGN_\>
 EOF)
-     (action-todo "Reconsume in the after attribute name state"))
+     (reconsume-in :after-attribute-name-state))
     (U+003D_EQUALS_SIGN_\=
      (switch-state :before-attribute-value-state))
     (ASCII_upper_alpha
@@ -653,7 +648,7 @@ U+0020_SPACE)
     (Anything_else
      (action-todo "Start a new attribute in the current tag token")
      (action-todo "Set that attribute name and value to the empty string")
-     (action-todo "Reconsume in the attribute name state"))))
+     (reconsume-in :attribute-name-state))))
 
 
 ;; 13.2.5.35 Before attribute value state
@@ -674,7 +669,7 @@ U+0020_SPACE)
      (switch-state :data-state)
      (action-todo "Emit the current tag token"))
     (Anything_else
-     (action-todo "Reconsume in the attribute value (unquoted) state"))))
+     (reconsume-in :attribute-value-\(unquoted\)-state))))
 
 
 ;; 13.2.5.36 Attribute value (double-quoted) state
@@ -766,7 +761,7 @@ U+0020_SPACE)
      (emit-token :end-of-file))
     (Anything_else
      (this-is-a-parse-error :missing-whitespace-between-attributes)
-     (action-todo "Reconsume in the before attribute name state"))))
+     (reconsume-in :before-attribute-name-state))))
 
 
 ;; 13.2.5.40 Self-closing start tag state
@@ -782,7 +777,7 @@ U+0020_SPACE)
      (emit-token :end-of-file))
     (Anything_else
      (this-is-a-parse-error :unexpected-solidus-in-tag)
-     (action-todo "Reconsume in the before attribute name state"))))
+     (reconsume-in :before-attribute-name-state))))
 
 
 ;; 13.2.5.41 Bogus comment state
@@ -833,7 +828,7 @@ U+0020_SPACE)
      (switch-state :data-state)
      (action-todo "Emit the comment token"))
     (Anything_else
-     (action-todo "Reconsume in the comment state"))))
+     (reconsume-in :comment-state))))
 
 
 ;; 13.2.5.44 Comment start dash state
@@ -852,7 +847,7 @@ U+0020_SPACE)
      (emit-token :end-of-file))
     (Anything_else
      (action-todo "Append a U+002D HYPHEN-MINUS character (-) to the comment token's data")
-     (action-todo "Reconsume in the comment state"))))
+     (reconsume-in :comment-state))))
 
 
 ;; 13.2.5.45 Comment state
@@ -885,7 +880,7 @@ U+0020_SPACE)
     (U+003C_LESS-THAN_SIGN_\<
      (action-todo "Append the current input character to the comment token's data"))
     (Anything_else
-     (action-todo "Reconsume in the comment state"))))
+     (reconsume-in :comment-state))))
 
 
 ;; 13.2.5.47 Comment less-than sign bang state
@@ -895,7 +890,7 @@ U+0020_SPACE)
     (U+002D_HYPHEN-MINUS_\-
      (switch-state :comment-less-than-sign-bang-dash-state))
     (Anything_else
-     (action-todo "Reconsume in the comment state"))))
+     (reconsume-in :comment-state))))
 
 
 ;; 13.2.5.48 Comment less-than sign bang dash state
@@ -905,7 +900,7 @@ U+0020_SPACE)
     (U+002D_HYPHEN-MINUS_\-
      (switch-state :comment-less-than-sign-bang-dash-dash-state))
     (Anything_else
-     (action-todo "Reconsume in the comment end dash state"))))
+     (reconsume-in :comment-end-dash-state))))
 
 
 ;; 13.2.5.49 Comment less-than sign bang dash dash state
@@ -914,10 +909,10 @@ U+0020_SPACE)
   (current-character-case
     ((U+003E_GREATER-THAN_SIGN_\>
 EOF)
-     (action-todo "Reconsume in the comment end state"))
+     (reconsume-in :comment-end-state))
     (Anything_else
      (this-is-a-parse-error :nested-comment)
-     (action-todo "Reconsume in the comment end state"))))
+     (reconsume-in :comment-end-state))))
 
 
 ;; 13.2.5.50 Comment end dash state
@@ -932,7 +927,7 @@ EOF)
      (emit-token :end-of-file))
     (Anything_else
      (action-todo "Append a U+002D HYPHEN-MINUS character (-) to the comment token's data")
-     (action-todo "Reconsume in the comment state"))))
+     (reconsume-in :comment-state))))
 
 
 ;; 13.2.5.51 Comment end state
@@ -952,7 +947,7 @@ EOF)
      (emit-token :end-of-file))
     (Anything_else
      (action-todo "Append two U+002D HYPHEN-MINUS characters (-) to the comment token's data")
-     (action-todo "Reconsume in the comment state"))))
+     (reconsume-in :comment-state))))
 
 
 ;; 13.2.5.52 Comment end bang state
@@ -972,7 +967,7 @@ EOF)
      (emit-token :end-of-file))
     (Anything_else
      (action-todo "Append two U+002D HYPHEN-MINUS characters (-) and a U+0021 EXCLAMATION MARK character (!) to the comment token's data")
-     (action-todo "Reconsume in the comment state"))))
+     (reconsume-in :comment-state))))
 
 
 ;; 13.2.5.53 DOCTYPE state
@@ -985,7 +980,7 @@ U+000C_FORM_FEED_\FF
 U+0020_SPACE)
      (switch-state :before-DOCTYPE-name-state))
     (U+003E_GREATER-THAN_SIGN_\>
-     (action-todo "Reconsume in the before DOCTYPE name state"))
+     (reconsume-in :before-DOCTYPE-name-state))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (action-todo "Create a new DOCTYPE token")
@@ -994,7 +989,7 @@ U+0020_SPACE)
      (emit-token :end-of-file))
     (Anything_else
      (this-is-a-parse-error :missing-whitespace-before-doctype-name)
-     (action-todo "Reconsume in the before DOCTYPE name state"))))
+     (reconsume-in :before-DOCTYPE-name-state))))
 
 
 ;; 13.2.5.54 Before DOCTYPE name state
@@ -1081,7 +1076,7 @@ U+0020_SPACE)
      (action-todo "Otherwise, if the six characters starting from the current input character are an ASCII case-insensitive match for the word \"SYSTEM\", then consume those characters and switch to the after DOCTYPE system keyword state")
      (action-todo "Otherwise, this is an invalid-character-sequence-after-doctype-name parse error")
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Reconsume in the bogus DOCTYPE state"))))
+     (reconsume-in :bogus-DOCTYPE-state))))
 
 
 ;; 13.2.5.57 After DOCTYPE public keyword state
@@ -1112,7 +1107,7 @@ U+0020_SPACE)
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-public-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Reconsume in the bogus DOCTYPE state"))))
+     (reconsume-in :bogus-DOCTYPE-state))))
 
 
 ;; 13.2.5.58 Before DOCTYPE public identifier state
@@ -1141,7 +1136,7 @@ U+0020_SPACE)
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-public-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Reconsume in the bogus DOCTYPE state"))))
+     (reconsume-in :bogus-DOCTYPE-state))))
 
 
 ;; 13.2.5.59 DOCTYPE public identifier (double-quoted) state
@@ -1216,7 +1211,7 @@ U+0020_SPACE)
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Reconsume in the bogus DOCTYPE state"))))
+     (reconsume-in :bogus-DOCTYPE-state))))
 
 
 ;; 13.2.5.62 Between DOCTYPE public and system identifiers state
@@ -1243,7 +1238,7 @@ U+0020_SPACE)
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Reconsume in the bogus DOCTYPE state"))))
+     (reconsume-in :bogus-DOCTYPE-state))))
 
 
 ;; 13.2.5.63 After DOCTYPE system keyword state
@@ -1274,7 +1269,7 @@ U+0020_SPACE)
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Reconsume in the bogus DOCTYPE state"))))
+     (reconsume-in :bogus-DOCTYPE-state))))
 
 
 ;; 13.2.5.64 Before DOCTYPE system identifier state
@@ -1303,7 +1298,7 @@ U+0020_SPACE)
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Reconsume in the bogus DOCTYPE state"))))
+     (reconsume-in :bogus-DOCTYPE-state))))
 
 
 ;; 13.2.5.65 DOCTYPE system identifier (double-quoted) state
@@ -1371,7 +1366,7 @@ U+0020_SPACE)
      (emit-token :end-of-file))
     (Anything_else
      (this-is-a-parse-error :unexpected-character-after-doctype-system-identifier)
-     (action-todo "Reconsume in the bogus DOCTYPE state")
+     (reconsume-in :bogus-DOCTYPE-state)
      (action-todo "(This does not set the DOCTYPE token's force-quirks flag to on")
      (action-todo ")"))))
 
@@ -1413,8 +1408,8 @@ U+0020_SPACE)
     (U+005D_RIGHT_SQUARE_BRACKET_\]
      (switch-state :CDATA-section-end-state))
     (Anything_else
-     (action-todo "Emit a U+005D RIGHT SQUARE BRACKET character token")
-     (action-todo "Reconsume in the CDATA section state"))))
+     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET)
+     (reconsume-in :CDATA-section-state))))
 
 
 ;; 13.2.5.71 CDATA section end state
@@ -1422,12 +1417,12 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+005D_RIGHT_SQUARE_BRACKET_\]
-     (action-todo "Emit a U+005D RIGHT SQUARE BRACKET character token"))
+     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET))
     (U+003E_GREATER-THAN_SIGN_character
      (switch-state :data-state))
     (Anything_else
      (action-todo "Emit two U+005D RIGHT SQUARE BRACKET character tokens")
-     (action-todo "Reconsume in the CDATA section state"))))
+     (reconsume-in :CDATA-section-state))))
 
 
 ;; 13.2.5.72 Character reference state
@@ -1437,13 +1432,13 @@ U+0020_SPACE)
    buffer. Consume the next input character:")
   (current-character-case
     (ASCII_alphanumeric
-     (action-todo "Reconsume in the named character reference state"))
+     (reconsume-in :named-character-reference-state))
     (U+0023_NUMBER_SIGN_\#
      (action-todo "Append the current input character to the temporary buffer")
      (switch-state :numeric-character-reference-state))
     (Anything_else
      (action-todo "Flush code points consumed as a character reference")
-     (action-todo "Reconsume in the return state"))))
+     (reconsume-in :return-state))))
 
 
 ;; 13.2.5.73 Named character reference state
@@ -1473,9 +1468,9 @@ U+0020_SPACE)
      (action-todo "Otherwise, emit the current input character as a character token"))
     (U+003B_SEMICOLON_\;
      (this-is-a-parse-error :unknown-named-character-reference)
-     (action-todo "Reconsume in the return state"))
+     (reconsume-in :return-state))
     (Anything_else
-     (action-todo "Reconsume in the return state"))))
+     (reconsume-in :return-state))))
 
 
 ;; 13.2.5.75 Numeric character reference state
@@ -1488,7 +1483,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
      (action-todo "Append the current input character to the temporary buffer")
      (switch-state :hexadecimal-character-reference-start-state))
     (Anything_else
-     (action-todo "Reconsume in the decimal character reference start state"))))
+     (reconsume-in :decimal-character-reference-start-state))))
 
 
 ;; 13.2.5.76 Hexadecimal character reference start state
@@ -1496,11 +1491,11 @@ U+0058_LATIN_CAPITAL_LETTER_X)
   (consume-next-input-character)
   (current-character-case
     (ASCII_hex_digit
-     (action-todo "Reconsume in the hexadecimal character reference state"))
+     (reconsume-in :hexadecimal-character-reference-state))
     (Anything_else
      (this-is-a-parse-error :absence-of-digits-in-numeric-character-reference)
      (action-todo "Flush code points consumed as a character reference")
-     (action-todo "Reconsume in the return state"))))
+     (reconsume-in :return-state))))
 
 
 ;; 13.2.5.77 Decimal character reference start state
@@ -1508,11 +1503,11 @@ U+0058_LATIN_CAPITAL_LETTER_X)
   (consume-next-input-character)
   (current-character-case
     (ASCII_digit
-     (action-todo "Reconsume in the decimal character reference state"))
+     (reconsume-in :decimal-character-reference-state))
     (Anything_else
      (this-is-a-parse-error :absence-of-digits-in-numeric-character-reference)
      (action-todo "Flush code points consumed as a character reference")
-     (action-todo "Reconsume in the return state"))))
+     (reconsume-in :return-state))))
 
 
 ;; 13.2.5.78 Hexadecimal character reference state
@@ -1532,7 +1527,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
      (switch-state :numeric-character-reference-end-state))
     (Anything_else
      (this-is-a-parse-error :missing-semicolon-after-character-reference)
-     (action-todo "Reconsume in the numeric character reference end state"))))
+     (reconsume-in :numeric-character-reference-end-state))))
 
 
 ;; 13.2.5.79 Decimal character reference state
@@ -1546,7 +1541,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
      (switch-state :numeric-character-reference-end-state))
     (Anything_else
      (this-is-a-parse-error :missing-semicolon-after-character-reference)
-     (action-todo "Reconsume in the numeric character reference end state"))))
+     (reconsume-in :numeric-character-reference-end-state))))
 
 
 ;; 13.2.5.80 Numeric character reference end state
