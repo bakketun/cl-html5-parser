@@ -10,36 +10,33 @@
              ,@body
              t))))))
 
+(defconstant EOF '+eof+)
 
 (defmacro current-character-case (&body cases)
   (let ((anything-else-progn `(progn ,@(cdr (assoc 'Anything_else cases)))))
-    (flet ((parse-unicode-symbol (symbol)
-             (case symbol
-               (EOF +eof+)
-               (otherwise
-                (let ((code-point (symbol-name symbol)))
-                  (assert (eql 0 (search "U+" code-point)))
-                  (code-char (parse-integer code-point :start 2 :radix 16 :junk-allowed t)))))))
-      `(macrolet ((anything_else-clause ()
-                    ',anything-else-progn))
-         (case current-input-character
-           ,@(loop :for (keys . forms) :in cases
-                   :collect (cons (case keys
-                                    (Anything_else 'otherwise)
-                                    (ASCII_digit (coerce "0123456789" 'list))
-                                    (ASCII_upper_hex_digit (coerce "ABCDEF" 'list))
-                                    (ASCII_lower_hex_digit (coerce "abcdef" 'list))
-                                    (ASCII_hex_digit (coerce +hex-digits+ 'list))
-                                    (ASCII_upper_alpha (coerce +ascii-uppercase+ 'list))
-                                    (ASCII_lower_alpha (coerce +ascii-lowercase+ 'list))
-                                    (ASCII_alpha (coerce +ascii-letters+ 'list))
-                                    (ASCII_alphanumeric (coerce +ascii-alphanumeric+ 'list))
-                                    (otherwise (if (listp keys)
-                                                   (mapcar #'parse-unicode-symbol keys)
-                                                   (parse-unicode-symbol keys))))
-                                  (if (eql 'Anything_else keys)
-                                      '((anything_else-clause))
-                                      forms))))))))
+    `(macrolet ((anything_else-clause ()
+                  ',anything-else-progn))
+       (case current-input-character
+         ,@(loop :for (keys . forms) :in cases
+                 :collect (cons (case keys
+                                  (Anything_else 'otherwise)
+                                  (ASCII_digit (coerce "0123456789" 'list))
+                                  (ASCII_upper_hex_digit (coerce "ABCDEF" 'list))
+                                  (ASCII_lower_hex_digit (coerce "abcdef" 'list))
+                                  (ASCII_hex_digit (coerce +hex-digits+ 'list))
+                                  (ASCII_upper_alpha (coerce +ascii-uppercase+ 'list))
+                                  (ASCII_lower_alpha (coerce +ascii-lowercase+ 'list))
+                                  (ASCII_alpha (coerce +ascii-letters+ 'list))
+                                  (ASCII_alphanumeric (coerce +ascii-alphanumeric+ 'list))
+                                  (otherwise
+                                   ;; Verify that characters are defined
+                                   (if (listp keys)
+                                       (mapcar #'eval keys)
+                                       (eval keys))
+                                   keys))
+                                (if (eql 'Anything_else keys)
+                                    '((anything_else-clause))
+                                    forms)))))))
 
 
 (defmacro consume-next-input-character ()
@@ -118,10 +115,25 @@
       `(defconstant ,symbol ,char))))
 
 
-(define-unicode-constant U+0021_EXCLAMATION_MARK)
-(define-unicode-constant U+002D_HYPHEN-MINUS)
-(define-unicode-constant U+002F_SOLIDUS)
-(define-unicode-constant U+003C_LESS-THAN_SIGN)
-(define-unicode-constant U+003E_GREATER-THAN_SIGN)
-(define-unicode-constant U+005D_RIGHT_SQUARE_BRACKET)
+(define-unicode-constant U+0000_NULL)
+(define-unicode-constant U+0009_CHARACTER_TABULATION)
+(define-unicode-constant U+000A_LINE_FEED)
+(define-unicode-constant U+000C_FORM_FEED)
+(define-unicode-constant U+0020_SPACE)
+(define-unicode-constant U+0021_EXCLAMATION_MARK_|!|)
+(define-unicode-constant U+0022_QUOTATION_MARK_|"|)
+(define-unicode-constant U+0023_NUMBER_SIGN_|#|)
+(define-unicode-constant U+0026_AMPERSAND_|&|)
+(define-unicode-constant U+0027_APOSTROPHE_|'|)
+(define-unicode-constant U+002D_HYPHEN-MINUS_|-|)
+(define-unicode-constant U+002F_SOLIDUS_|/|)
+(define-unicode-constant U+003B_SEMICOLON_|;|)
+(define-unicode-constant U+003C_LESS-THAN_SIGN_|<|)
+(define-unicode-constant U+003D_EQUALS_SIGN_|=|)
+(define-unicode-constant U+003E_GREATER-THAN_SIGN_|>|)
+(define-unicode-constant U+003F_QUESTION_MARK_|?|)
+(define-unicode-constant U+0058_LATIN_CAPITAL_LETTER_X)
+(define-unicode-constant U+005D_RIGHT_SQUARE_BRACKET_|]|)
+(define-unicode-constant U+0060_GRAVE_ACCENT_|`|)
+(define-unicode-constant U+0078_LATIN_SMALL_LETTER_X)
 (define-unicode-constant U+FFFD_REPLACEMENT_CHARACTER)

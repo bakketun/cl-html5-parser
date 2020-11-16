@@ -8,10 +8,10 @@
 (define-state :data-state
   (consume-next-input-character)
   (current-character-case
-    (U+0026_AMPERSAND_\&
+    (U+0026_AMPERSAND_|&|
      (set-return-state :data-state)
      (switch-state :character-reference-state))
-    (U+003C_LESS-THAN_SIGN_\<
+    (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :tag-open-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -27,10 +27,10 @@
 (define-state :rcdata-state
   (consume-next-input-character)
   (current-character-case
-    (U+0026_AMPERSAND_\&
+    (U+0026_AMPERSAND_|&|
      (set-return-state :rcdata-state)
      (switch-state :character-reference-state))
-    (U+003C_LESS-THAN_SIGN_\<
+    (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :RCDATA-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -46,7 +46,7 @@
 (define-state :rawtext-state
   (consume-next-input-character)
   (current-character-case
-    (U+003C_LESS-THAN_SIGN_\<
+    (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :RAWTEXT-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -62,7 +62,7 @@
 (define-state :script-data-state
   (consume-next-input-character)
   (current-character-case
-    (U+003C_LESS-THAN_SIGN_\<
+    (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -92,24 +92,24 @@
 (define-state :tag-open-state
   (consume-next-input-character)
   (current-character-case
-    (U+0021_EXCLAMATION_MARK_\!
+    (U+0021_EXCLAMATION_MARK_|!|
      (switch-state :markup-declaration-open-state))
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (switch-state :end-tag-open-state))
     (ASCII_alpha
      (setf current-token (make-token :start-tag))
      (reconsume-in :name-state))
-    (U+003F_QUESTION_MARK_\?
+    (U+003F_QUESTION_MARK_|?|
      (this-is-a-parse-error :unexpected-question-mark-instead-of-tag-name)
      (setf current-token (make-token :comment))
      (reconsume-in :bogus-comment-state))
     (EOF
      (this-is-a-parse-error :eof-before-tag-name)
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (emit-token :end-of-file))
     (Anything_else
      (this-is-a-parse-error :invalid-first-character-of-tag-name)
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :data-state))))
 
 
@@ -121,12 +121,12 @@
     (ASCII_alpha
      (setf current-token (make-token :end-tag))
      (reconsume-in :tag-name-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-end-tag-name)
      (switch-state :data-state))
     (EOF
      (this-is-a-parse-error :eof-before-tag-name)
-     (emit-token :character U+003C_LESS-THAN_SIGN))
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|))
     (Anything_else
      (this-is-a-parse-error :invalid-first-character-of-tag-name)
      (setf current-token (make-token :comment))
@@ -138,14 +138,14 @@
 (define-state :tag-name-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      (switch-state :before-attribute-name-state))
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (switch-state :self-closing-start-tag-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
     (ASCII_upper_alpha
@@ -165,11 +165,11 @@
 (define-state :rcdata-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (setf temporary-buffer (make-growable-string))
      (switch-state :RCDATA-end-tag-open-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RCDATA-state))))
 
 
@@ -182,7 +182,7 @@
      (setf current-token (make-token :end-tag))
      (reconsume-in :RCDATA-end-tag-name-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RCDATA-state))))
 
 
@@ -191,18 +191,18 @@
 (define-state :rcdata-end-tag-name-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      (if (appropriate-end-tag-token-p current-token)
          (switch-state :before-attribute-name-state)
          (anything_else-clause)))
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (if (appropriate-end-tag-token-p current-token)
          (switch-state :self-closing-start-tag-state)
          (anything_else-clause)))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (if (appropriate-end-tag-token-p current-token)
          (progn (switch-state :data-state)
                 (emit-token current-token))
@@ -214,7 +214,7 @@
      (token-tag-name-append current-token current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RCDATA-state))))
 
 
@@ -223,11 +223,11 @@
 (define-state :rawtext-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (setf temporary-buffer (make-growable-string))
      (switch-state :RAWTEXT-end-tag-open-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RAWTEXT-state))))
 
 
@@ -240,7 +240,7 @@
      (setf current-token (make-token :end-tag))
      (reconsume-in :RAWTEXT-end-tag-name-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RAWTEXT-state))))
 
 
@@ -249,18 +249,18 @@
 (define-state :rawtext-end-tag-name-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      (if (appropriate-end-tag-token-p current-token)
          (switch-state :before-attribute-name-state)
          (anything_else-clause)))
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (if (appropriate-end-tag-token-p current-token)
          (switch-state :self-closing-start-tag-state)
          (anything_else-clause)))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (if (appropriate-end-tag-token-p current-token)
          (progn (switch-state :data-state)
                 (emit-token current-token))
@@ -272,7 +272,7 @@
      (token-tag-name-append current-token current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RAWTEXT-state))))
 
 
@@ -281,14 +281,14 @@
 (define-state :script-data-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (setf temporary-buffer (make-growable-string))
      (switch-state :script-data-end-tag-open-state))
-    (U+0021_EXCLAMATION_MARK_\!
+    (U+0021_EXCLAMATION_MARK_|!|
      (switch-state :script-data-escape-start-state)
-     (emit-token :character U+003C_LESS-THAN_SIGN))
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-state))))
 
 
@@ -301,7 +301,7 @@
      (setf current-token (make-token :end-tag))
      (reconsume-in :script-data-end-tag-name-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-state))))
 
 
@@ -310,18 +310,18 @@
 (define-state :script-data-end-tag-name-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      (if (appropriate-end-tag-token-p current-token)
          (switch-state :before-attribute-name-state)
          (anything_else-clause)))
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (if (appropriate-end-tag-token-p current-token)
          (switch-state :self-closing-start-tag-state)
          (anything_else-clause)))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (if (appropriate-end-tag-token-p current-token)
          (progn (switch-state :data-state)
                 (emit-token current-token))
@@ -333,7 +333,7 @@
      (token-tag-name-append current-token current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-state))))
 
 
@@ -342,9 +342,9 @@
 (define-state :script-data-escape-start-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-escape-start-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS))
+     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
     (Anything_else
      (reconsume-in :script-data-state))))
 
@@ -354,9 +354,9 @@
 (define-state :script-data-escape-start-dash-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-escaped-dash-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS))
+     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
     (Anything_else
      (reconsume-in :script-data-state))))
 
@@ -366,10 +366,10 @@
 (define-state :script-data-escaped-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-escaped-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS))
-    (U+003C_LESS-THAN_SIGN_\<
+     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+    (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-escaped-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -386,10 +386,10 @@
 (define-state :script-data-escaped-dash-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-escaped-dash-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS))
-    (U+003C_LESS-THAN_SIGN_\<
+     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+    (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-escaped-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -408,13 +408,13 @@
 (define-state :script-data-escaped-dash-dash-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
-     (emit-token :character U+002D_HYPHEN-MINUS))
-    (U+003C_LESS-THAN_SIGN_\<
+    (U+002D_HYPHEN-MINUS_|-|
+     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+    (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-escaped-less-than-sign-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :script-data-state)
-     (emit-token :character U+003E_GREATER-THAN_SIGN))
+     (emit-token :character U+003E_GREATER-THAN_SIGN_|>|))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-escaped-state)
@@ -432,15 +432,15 @@
 (define-state :script-data-escaped-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (setf temporary-buffer (make-growable-string))
      (switch-state :script-data-escaped-end-tag-open-state))
     (ASCII_alpha
      (setf temporary-buffer (make-growable-string))
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-double-escape-start-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-escaped-state))))
 
 
@@ -453,7 +453,7 @@
      (setf current-token (make-token :end-tag))
      (reconsume-in :script-data-escaped-end-tag-name-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-escaped-state))))
 
 
@@ -462,18 +462,18 @@
 (define-state :script-data-escaped-end-tag-name-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      (if (appropriate-end-tag-token-p current-token)
          (switch-state :before-attribute-name-state)
          (anything_else-clause)))
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (if (appropriate-end-tag-token-p current-token)
          (switch-state :self-closing-start-tag-state)
          (anything_else-clause)))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (if (appropriate-end-tag-token-p current-token)
          (progn (switch-state :data-state)
                 (emit-token current-token))
@@ -485,7 +485,7 @@
      (token-tag-name-append current-token current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN)
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-escaped-state))))
 
 
@@ -494,12 +494,12 @@
 (define-state :script-data-double-escape-start-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE
-      U+002F_SOLIDUS_\/
-      U+003E_GREATER-THAN_SIGN_\>)
+      U+002F_SOLIDUS_|/|
+      U+003E_GREATER-THAN_SIGN_|>|)
      (if (string= temporary-buffer "script")
          (switch-state :script-data-double-escaped-state)
          (switch-state :script-data-escaped-state))
@@ -519,12 +519,12 @@
 (define-state :script-data-double-escaped-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-double-escaped-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS))
-    (U+003C_LESS-THAN_SIGN_\<
+     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+    (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-double-escaped-less-than-sign-state)
-     (emit-token :character U+003C_LESS-THAN_SIGN))
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
@@ -540,12 +540,12 @@
 (define-state :script-data-double-escaped-dash-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-double-escaped-dash-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS))
-    (U+003C_LESS-THAN_SIGN_\<
+     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+    (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-double-escaped-less-than-sign-state)
-     (emit-token :character U+003C_LESS-THAN_SIGN))
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-double-escaped-state)
@@ -563,14 +563,14 @@
 (define-state :script-data-double-escaped-dash-dash-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
-     (emit-token :character U+002D_HYPHEN-MINUS))
-    (U+003C_LESS-THAN_SIGN_\<
+    (U+002D_HYPHEN-MINUS_|-|
+     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+    (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-double-escaped-less-than-sign-state)
-     (emit-token :character U+003C_LESS-THAN_SIGN))
-    (U+003E_GREATER-THAN_SIGN_\>
+     (emit-token :character U+003C_LESS-THAN_SIGN_|<|))
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :script-data-state)
-     (emit-token :character U+003E_GREATER-THAN_SIGN))
+     (emit-token :character U+003E_GREATER-THAN_SIGN_|>|))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-double-escaped-state)
@@ -588,10 +588,10 @@
 (define-state :script-data-double-escaped-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (setf temporary-buffer (make-growable-string))
      (switch-state :script-data-double-escape-end-state)
-     (emit-token :character U+002F_SOLIDUS))
+     (emit-token :character U+002F_SOLIDUS_|/|))
     (Anything_else
      (reconsume-in :script-data-double-escaped-state))))
 
@@ -601,12 +601,12 @@
 (define-state :script-data-double-escape-end-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE
-      U+002F_SOLIDUS_\/
-      U+003E_GREATER-THAN_SIGN_\>)
+      U+002F_SOLIDUS_|/|
+      U+003E_GREATER-THAN_SIGN_|>|)
      (if (string= temporary-buffer "script")
          (switch-state :script-data-escaped-state)
          (switch-state :script-data-double-escaped-state))
@@ -626,17 +626,17 @@
 (define-state :before-attribute-name-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    ((U+002F_SOLIDUS_\/
-      U+003E_GREATER-THAN_SIGN_\>
+    ((U+002F_SOLIDUS_|/|
+      U+003E_GREATER-THAN_SIGN_|>|
       EOF)
      (reconsume-in :after-attribute-name-state))
-    (U+003D_EQUALS_SIGN_\=
+    (U+003D_EQUALS_SIGN_|=|
      (this-is-a-parse-error :unexpected-equals-sign-before-attribute-name)
      (add-attribute current-token current-input-character)
      (switch-state :attribute-name-state))
@@ -650,24 +650,24 @@
 (define-state :attribute-name-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE
-      U+002F_SOLIDUS_\/
-      U+003E_GREATER-THAN_SIGN_\>
+      U+002F_SOLIDUS_|/|
+      U+003E_GREATER-THAN_SIGN_|>|
       EOF)
      (reconsume-in :after-attribute-name-state))
-    (U+003D_EQUALS_SIGN_\=
+    (U+003D_EQUALS_SIGN_|=|
      (switch-state :before-attribute-value-state))
     (ASCII_upper_alpha
      (current-attribute-name-append (char-downcase current-input-character)))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-attribute-name-append U+FFFD_REPLACEMENT_CHARACTER))
-    ((U+0022_QUOTATION_MARK_\"
-      U+0027_APOSTROPHE_\'
-      U+003C_LESS-THAN_SIGN_\<)
+    ((U+0022_QUOTATION_MARK_|"|
+      U+0027_APOSTROPHE_|'|
+      U+003C_LESS-THAN_SIGN_|<|)
      (this-is-a-parse-error :unexpected-character-in-attribute-name)
      (anything_else-clause))
     (Anything_else
@@ -679,17 +679,17 @@
 (define-state :after-attribute-name-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (switch-state :self-closing-start-tag-state))
-    (U+003D_EQUALS_SIGN_\=
+    (U+003D_EQUALS_SIGN_|=|
      (switch-state :before-attribute-value-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
     (EOF
@@ -705,17 +705,17 @@
 (define-state :before-attribute-value-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+0022_QUOTATION_MARK_\"
+    (U+0022_QUOTATION_MARK_|"|
      (switch-state :attribute-value-\(double-quoted\)-state))
-    (U+0027_APOSTROPHE_\'
+    (U+0027_APOSTROPHE_|'|
      (switch-state :attribute-value-\(single-quoted\)-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-attribute-value)
      (switch-state :data-state)
      (emit-token current-token))
@@ -728,9 +728,9 @@
 (define-state :attribute-value-\(double-quoted\)-state
   (consume-next-input-character)
   (current-character-case
-    (U+0022_QUOTATION_MARK_\"
+    (U+0022_QUOTATION_MARK_|"|
      (switch-state :after-attribute-value-\(quoted\)-state))
-    (U+0026_AMPERSAND_\&
+    (U+0026_AMPERSAND_|&|
      (set-return-state :attribute-value-\(double-quoted\)-state)
      (switch-state :character-reference-state))
     (U+0000_NULL
@@ -748,9 +748,9 @@
 (define-state :attribute-value-\(single-quoted\)-state
   (consume-next-input-character)
   (current-character-case
-    (U+0027_APOSTROPHE_\'
+    (U+0027_APOSTROPHE_|'|
      (switch-state :after-attribute-value-\(quoted\)-state))
-    (U+0026_AMPERSAND_\&
+    (U+0026_AMPERSAND_|&|
      (set-return-state :attribute-value-\(single-quoted\)-state)
      (switch-state :character-reference-state))
     (U+0000_NULL
@@ -768,25 +768,25 @@
 (define-state :attribute-value-\(unquoted\)-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      (switch-state :before-attribute-name-state))
-    (U+0026_AMPERSAND_\&
+    (U+0026_AMPERSAND_|&|
      (set-return-state :attribute-value-\(unquoted\)-state)
      (switch-state :character-reference-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-attribute-value-append U+FFFD_REPLACEMENT_CHARACTER))
-    ((U+0022_QUOTATION_MARK_\"
-      U+0027_APOSTROPHE_\'
-      U+003C_LESS-THAN_SIGN_\<
-      U+003D_EQUALS_SIGN_\=
-      U+0060_GRAVE_ACCENT_\`)
+    ((U+0022_QUOTATION_MARK_|"|
+      U+0027_APOSTROPHE_|'|
+      U+003C_LESS-THAN_SIGN_|<|
+      U+003D_EQUALS_SIGN_|=|
+      U+0060_GRAVE_ACCENT_|`|)
      (this-is-a-parse-error :unexpected-character-in-unquoted-attribute-value)
      (anything_else-clause))
     (EOF
@@ -801,14 +801,14 @@
 (define-state :after-attribute-value-\(quoted\)-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+U+000A_LINE_FEED
+U+000C_FORM_FEED
 U+0020_SPACE)
      (switch-state :before-attribute-name-state))
-    (U+002F_SOLIDUS_\/
+    (U+002F_SOLIDUS_|/|
      (switch-state :self-closing-start-tag-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
     (EOF
@@ -824,7 +824,7 @@ U+0020_SPACE)
 (define-state :self-closing-start-tag-state
   (consume-next-input-character)
   (current-character-case
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (setf (self-closing-flag current-token) t)
      (switch-state :data-state)
      (emit-token current-token))
@@ -841,7 +841,7 @@ U+0020_SPACE)
 (define-state :bogus-comment-state
   (consume-next-input-character)
   (current-character-case
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
     (EOF
@@ -859,11 +859,11 @@ U+0020_SPACE)
 (define-state :markup-declaration-open-state
   (action-todo "If the next few characters are:")
   (current-character-case
-    (Two_U+002D_HYPHEN-MINUS_characters_\-
+    (Two_U+002D_HYPHEN-MINUS_characters_|-|
      (action-todo "Consume those two characters, create a comment token whose data is the empty string, and switch to the comment start state"))
     (ASCII_case-insensitive_match_for_the_word_"DOCTYPE"
      (action-todo "Consume those characters and switch to the DOCTYPE state"))
-    (The_string_"[CDATA["_\the_five_uppercase_letters_"CDATA"_with_a_U+005B_LEFT_SQUARE_BRACKET_character_before_and_after
+    (The_string_"[CDATA["_|t|he_five_uppercase_letters_"CDATA"_with_a_U+005B_LEFT_SQUARE_BRACKET_character_before_and_after
      (action-todo "Consume those characters")
      (action-todo "If there is an adjusted current node and it is not an element in the HTML namespace, then switch to the CDATA section state")
      (action-todo "Otherwise, this is a cdata-in-html-content parse error")
@@ -880,9 +880,9 @@ U+0020_SPACE)
 (define-state :comment-start-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :comment-start-dash-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :abrupt-closing-of-empty-comment)
      (switch-state :data-state)
      (emit-token current-token))
@@ -895,9 +895,9 @@ U+0020_SPACE)
 (define-state :comment-start-dash-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :comment-end-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :abrupt-closing-of-empty-comment)
      (switch-state :data-state)
      (emit-token current-token))
@@ -906,7 +906,7 @@ U+0020_SPACE)
      (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
-     (token-data-append current-token U+002D_HYPHEN-MINUS)
+     (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
      (reconsume-in :comment-state))))
 
 
@@ -915,10 +915,10 @@ U+0020_SPACE)
 (define-state :comment-state
   (consume-next-input-character)
   (current-character-case
-    (U+003C_LESS-THAN_SIGN_\<
+    (U+003C_LESS-THAN_SIGN_|<|
      (token-data-append current-token current-input-character)
      (switch-state :comment-less-than-sign-state))
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :comment-end-dash-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -936,10 +936,10 @@ U+0020_SPACE)
 (define-state :comment-less-than-sign-state
   (consume-next-input-character)
   (current-character-case
-    (U+0021_EXCLAMATION_MARK_\!
+    (U+0021_EXCLAMATION_MARK_|!|
      (token-data-append current-token current-input-character)
      (switch-state :comment-less-than-sign-bang-state))
-    (U+003C_LESS-THAN_SIGN_\<
+    (U+003C_LESS-THAN_SIGN_|<|
      (token-data-append current-token current-input-character))
     (Anything_else
      (reconsume-in :comment-state))))
@@ -950,7 +950,7 @@ U+0020_SPACE)
 (define-state :comment-less-than-sign-bang-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :comment-less-than-sign-bang-dash-state))
     (Anything_else
      (reconsume-in :comment-state))))
@@ -961,7 +961,7 @@ U+0020_SPACE)
 (define-state :comment-less-than-sign-bang-dash-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :comment-less-than-sign-bang-dash-dash-state))
     (Anything_else
      (reconsume-in :comment-end-dash-state))))
@@ -972,7 +972,7 @@ U+0020_SPACE)
 (define-state :comment-less-than-sign-bang-dash-dash-state
   (consume-next-input-character)
   (current-character-case
-    ((U+003E_GREATER-THAN_SIGN_\>
+    ((U+003E_GREATER-THAN_SIGN_|>|
 EOF)
      (reconsume-in :comment-end-state))
     (Anything_else
@@ -985,14 +985,14 @@ EOF)
 (define-state :comment-end-dash-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
+    (U+002D_HYPHEN-MINUS_|-|
      (switch-state :comment-end-state))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
      (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
-     (token-data-append current-token U+002D_HYPHEN-MINUS)
+     (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
      (reconsume-in :comment-state))))
 
 
@@ -1001,20 +1001,20 @@ EOF)
 (define-state :comment-end-state
   (consume-next-input-character)
   (current-character-case
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
-    (U+0021_EXCLAMATION_MARK_\!
+    (U+0021_EXCLAMATION_MARK_|!|
      (switch-state :comment-end-bang-state))
-    (U+002D_HYPHEN-MINUS_\-
-     (token-data-append current-token U+002D_HYPHEN-MINUS))
+    (U+002D_HYPHEN-MINUS_|-|
+     (token-data-append current-token U+002D_HYPHEN-MINUS_|-|))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
      (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
-     (token-data-append current-token U+002D_HYPHEN-MINUS)
-     (token-data-append current-token U+002D_HYPHEN-MINUS)
+     (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
+     (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
      (reconsume-in :comment-state))))
 
 
@@ -1023,12 +1023,12 @@ EOF)
 (define-state :comment-end-bang-state
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_\-
-     (token-data-append current-token U+002D_HYPHEN-MINUS)
-     (token-data-append current-token U+002D_HYPHEN-MINUS)
-     (token-data-append current-token U+0021_EXCLAMATION_MARK)
+    (U+002D_HYPHEN-MINUS_|-|
+     (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
+     (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
+     (token-data-append current-token U+0021_EXCLAMATION_MARK_|!|)
      (switch-state :comment-end-dash-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :incorrectly-closed-comment)
      (switch-state :data-state)
      (emit-token current-token))
@@ -1037,9 +1037,9 @@ EOF)
      (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
-     (token-data-append current-token U+002D_HYPHEN-MINUS)
-     (token-data-append current-token U+002D_HYPHEN-MINUS)
-     (token-data-append current-token U+0021_EXCLAMATION_MARK)
+     (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
+     (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
+     (token-data-append current-token U+0021_EXCLAMATION_MARK_|!|)
      (reconsume-in :comment-state))))
 
 
@@ -1048,12 +1048,12 @@ EOF)
 (define-state :doctype-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+U+000A_LINE_FEED
+U+000C_FORM_FEED
 U+0020_SPACE)
      (switch-state :before-DOCTYPE-name-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (reconsume-in :before-DOCTYPE-name-state))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
@@ -1071,9 +1071,9 @@ U+0020_SPACE)
 (define-state :before-doctype-name-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      ;; Ignoring the character
      )
@@ -1086,7 +1086,7 @@ U+0020_SPACE)
      (action-todo "Create a new DOCTYPE token")
      (action-todo "Set the token's name to a U+FFFD REPLACEMENT CHARACTER character")
      (switch-state :DOCTYPE-name-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-doctype-name)
      (action-todo "Create a new DOCTYPE token")
      (action-todo "Set its force-quirks flag to on")
@@ -1109,12 +1109,12 @@ U+0020_SPACE)
 (define-state :doctype-name-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+U+000A_LINE_FEED
+U+000C_FORM_FEED
 U+0020_SPACE)
      (switch-state :after-DOCTYPE-name-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
     (ASCII_upper_alpha
@@ -1136,13 +1136,13 @@ U+0020_SPACE)
 (define-state :after-doctype-name-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
     (EOF
@@ -1163,18 +1163,18 @@ U+0020_SPACE)
 (define-state :after-doctype-public-keyword-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+U+000A_LINE_FEED
+U+000C_FORM_FEED
 U+0020_SPACE)
      (switch-state :before-DOCTYPE-public-identifier-state))
-    (U+0022_QUOTATION_MARK_\"
+    (U+0022_QUOTATION_MARK_|"|
      (this-is-a-parse-error :missing-whitespace-after-doctype-public-keyword)
      (action-todo "Set the DOCTYPE token's public identifier to the empty string (not missing), then switch to the DOCTYPE public identifier (double-quoted) state"))
-    (U+0027_APOSTROPHE_\'
+    (U+0027_APOSTROPHE_|'|
      (this-is-a-parse-error :missing-whitespace-after-doctype-public-keyword)
      (action-todo "Set the DOCTYPE token's public identifier to the empty string (not missing), then switch to the DOCTYPE public identifier (single-quoted) state"))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-doctype-public-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
      (switch-state :data-state)
@@ -1195,17 +1195,17 @@ U+0020_SPACE)
 (define-state :before-doctype-public-identifier-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+0022_QUOTATION_MARK_\"
+    (U+0022_QUOTATION_MARK_|"|
      (action-todo "Set the DOCTYPE token's public identifier to the empty string (not missing), then switch to the DOCTYPE public identifier (double-quoted) state"))
-    (U+0027_APOSTROPHE_\'
+    (U+0027_APOSTROPHE_|'|
      (action-todo "Set the DOCTYPE token's public identifier to the empty string (not missing), then switch to the DOCTYPE public identifier (single-quoted) state"))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-doctype-public-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
      (switch-state :data-state)
@@ -1226,12 +1226,12 @@ U+0020_SPACE)
 (define-state :doctype-public-identifier-\(double-quoted\)-state
   (consume-next-input-character)
   (current-character-case
-    (U+0022_QUOTATION_MARK_\"
+    (U+0022_QUOTATION_MARK_|"|
      (switch-state :after-DOCTYPE-public-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the current DOCTYPE token's public identifier"))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :abrupt-doctype-public-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
      (switch-state :data-state)
@@ -1250,12 +1250,12 @@ U+0020_SPACE)
 (define-state :doctype-public-identifier-\(single-quoted\)-state
   (consume-next-input-character)
   (current-character-case
-    (U+0027_APOSTROPHE_\'
+    (U+0027_APOSTROPHE_|'|
      (switch-state :after-DOCTYPE-public-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the current DOCTYPE token's public identifier"))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :abrupt-doctype-public-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
      (switch-state :data-state)
@@ -1274,18 +1274,18 @@ U+0020_SPACE)
 (define-state :after-doctype-public-identifier-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+U+000A_LINE_FEED
+U+000C_FORM_FEED
 U+0020_SPACE)
      (switch-state :between-DOCTYPE-public-and-system-identifiers-state))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
-    (U+0022_QUOTATION_MARK_\"
+    (U+0022_QUOTATION_MARK_|"|
      (this-is-a-parse-error :missing-whitespace-between-doctype-public-and-system-identifiers)
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (double-quoted) state"))
-    (U+0027_APOSTROPHE_\'
+    (U+0027_APOSTROPHE_|'|
      (this-is-a-parse-error :missing-whitespace-between-doctype-public-and-system-identifiers)
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (single-quoted) state"))
     (EOF
@@ -1304,18 +1304,18 @@ U+0020_SPACE)
 (define-state :between-doctype-public-and-system-identifiers-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
-    (U+0022_QUOTATION_MARK_\"
+    (U+0022_QUOTATION_MARK_|"|
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (double-quoted) state"))
-    (U+0027_APOSTROPHE_\'
+    (U+0027_APOSTROPHE_|'|
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (single-quoted) state"))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
@@ -1333,18 +1333,18 @@ U+0020_SPACE)
 (define-state :after-doctype-system-keyword-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-U+000A_LINE_FEED_\LF
-U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+U+000A_LINE_FEED
+U+000C_FORM_FEED
 U+0020_SPACE)
      (switch-state :before-DOCTYPE-system-identifier-state))
-    (U+0022_QUOTATION_MARK_\"
+    (U+0022_QUOTATION_MARK_|"|
      (this-is-a-parse-error :missing-whitespace-after-doctype-system-keyword)
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (double-quoted) state"))
-    (U+0027_APOSTROPHE_\'
+    (U+0027_APOSTROPHE_|'|
      (this-is-a-parse-error :missing-whitespace-after-doctype-system-keyword)
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (single-quoted) state"))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-doctype-system-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
      (switch-state :data-state)
@@ -1365,17 +1365,17 @@ U+0020_SPACE)
 (define-state :before-doctype-system-identifier-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+0022_QUOTATION_MARK_\"
+    (U+0022_QUOTATION_MARK_|"|
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (double-quoted) state"))
-    (U+0027_APOSTROPHE_\'
+    (U+0027_APOSTROPHE_|'|
      (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (single-quoted) state"))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-doctype-system-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
      (switch-state :data-state)
@@ -1396,12 +1396,12 @@ U+0020_SPACE)
 (define-state :doctype-system-identifier-\(double-quoted\)-state
   (consume-next-input-character)
   (current-character-case
-    (U+0022_QUOTATION_MARK_\"
+    (U+0022_QUOTATION_MARK_|"|
      (switch-state :after-DOCTYPE-system-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the current DOCTYPE token's system identifier"))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :abrupt-doctype-system-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
      (switch-state :data-state)
@@ -1420,12 +1420,12 @@ U+0020_SPACE)
 (define-state :doctype-system-identifier-\(single-quoted\)-state
   (consume-next-input-character)
   (current-character-case
-    (U+0027_APOSTROPHE_\'
+    (U+0027_APOSTROPHE_|'|
      (switch-state :after-DOCTYPE-system-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the current DOCTYPE token's system identifier"))
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :abrupt-doctype-system-identifier)
      (action-todo "Set the DOCTYPE token's force-quirks flag to on")
      (switch-state :data-state)
@@ -1444,13 +1444,13 @@ U+0020_SPACE)
 (define-state :after-doctype-system-identifier-state
   (consume-next-input-character)
   (current-character-case
-    ((U+0009_CHARACTER_TABULATION_\tab
-      U+000A_LINE_FEED_\LF
-      U+000C_FORM_FEED_\FF
+    ((U+0009_CHARACTER_TABULATION
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
     (EOF
@@ -1470,7 +1470,7 @@ U+0020_SPACE)
 (define-state :bogus-doctype-state
   (consume-next-input-character)
   (current-character-case
-    (U+003E_GREATER-THAN_SIGN_\>
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
     (U+0000_NULL
@@ -1490,7 +1490,7 @@ U+0020_SPACE)
 (define-state :cdata-section-state
   (consume-next-input-character)
   (current-character-case
-    (U+005D_RIGHT_SQUARE_BRACKET_\]
+    (U+005D_RIGHT_SQUARE_BRACKET_|]|
      (switch-state :CDATA-section-bracket-state))
     (EOF
      (this-is-a-parse-error :eof-in-cdata)
@@ -1504,10 +1504,10 @@ U+0020_SPACE)
 (define-state :cdata-section-bracket-state
   (consume-next-input-character)
   (current-character-case
-    (U+005D_RIGHT_SQUARE_BRACKET_\]
+    (U+005D_RIGHT_SQUARE_BRACKET_|]|
      (switch-state :CDATA-section-end-state))
     (Anything_else
-     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET)
+     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET_|]|)
      (reconsume-in :CDATA-section-state))))
 
 
@@ -1516,9 +1516,9 @@ U+0020_SPACE)
 (define-state :cdata-section-end-state
   (consume-next-input-character)
   (current-character-case
-    (U+005D_RIGHT_SQUARE_BRACKET_\]
-     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET))
-    (U+003E_GREATER-THAN_SIGN_character
+    (U+005D_RIGHT_SQUARE_BRACKET_|]|
+     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET_|]|))
+    (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state))
     (Anything_else
      (action-todo "Emit two U+005D RIGHT SQUARE BRACKET character tokens")
@@ -1534,7 +1534,7 @@ U+0020_SPACE)
   (current-character-case
     (ASCII_alphanumeric
      (reconsume-in :named-character-reference-state))
-    (U+0023_NUMBER_SIGN_\#
+    (U+0023_NUMBER_SIGN_|#|
      (action-todo "Append the current input character to the temporary buffer")
      (switch-state :numeric-character-reference-state))
     (Anything_else
@@ -1569,7 +1569,7 @@ U+0020_SPACE)
     (ASCII_alphanumeric
      (action-todo "If the character reference was consumed as part of an attribute, then append the current input character to the current attribute's value")
      (action-todo "Otherwise, emit the current input character as a character token"))
-    (U+003B_SEMICOLON_\;
+    (U+003B_SEMICOLON_|;|
      (this-is-a-parse-error :unknown-named-character-reference)
      (reconsume-in :return-state))
     (Anything_else
@@ -1630,7 +1630,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
     (ASCII_lower_hex_digit
      (action-todo "Multiply the character reference code by 16")
      (action-todo "Add a numeric version of the current input character as a hexadecimal digit (subtract 0x0057 from the character's code point) to the character reference code"))
-    (U+003B_SEMICOLON
+    (U+003B_SEMICOLON_|;|
      (switch-state :numeric-character-reference-end-state))
     (Anything_else
      (this-is-a-parse-error :missing-semicolon-after-character-reference)
@@ -1645,7 +1645,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
     (ASCII_digit
      (action-todo "Multiply the character reference code by 10")
      (action-todo "Add a numeric version of the current input character (subtract 0x0030 from the character's code point) to the character reference code"))
-    (U+003B_SEMICOLON
+    (U+003B_SEMICOLON_|;|
      (switch-state :numeric-character-reference-end-state))
     (Anything_else
      (this-is-a-parse-error :missing-semicolon-after-character-reference)
