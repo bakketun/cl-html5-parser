@@ -98,6 +98,9 @@
 (defmacro token-data-append (token char)
   `(vector-push-extend ,char (getf ,token :data)))
 
+(defmacro current-token-public-id-append (char)
+  `(vector-push-extend ,char (getf current-token :public-id)))
+
 (defmacro temporary-buffer-append (char)
   `(vector-push-extend ,char temporary-buffer))
 
