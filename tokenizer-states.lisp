@@ -1633,14 +1633,14 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (ASCII_digit
-     (action-todo "Multiply the character reference code by 16")
-     (action-todo "Add a numeric version of the current input character (subtract 0x0030 from the character's code point) to the character reference code"))
+     (setf character-reference-code (* 16 character-reference-code))
+     (incf character-reference-code (- (char-code current-input-character) #x0030)))
     (ASCII_upper_hex_digit
-     (action-todo "Multiply the character reference code by 16")
-     (action-todo "Add a numeric version of the current input character as a hexadecimal digit (subtract 0x0037 from the character's code point) to the character reference code"))
+     (setf character-reference-code (* 16 character-reference-code))
+     (incf character-reference-code (- (char-code current-input-character) #x0037)))
     (ASCII_lower_hex_digit
-     (action-todo "Multiply the character reference code by 16")
-     (action-todo "Add a numeric version of the current input character as a hexadecimal digit (subtract 0x0057 from the character's code point) to the character reference code"))
+     (setf character-reference-code (* 16 character-reference-code))
+     (incf character-reference-code (- (char-code current-input-character) #x0057)))
     (U+003B_SEMICOLON_|;|
      (switch-state :numeric-character-reference-end-state))
     (Anything_else
