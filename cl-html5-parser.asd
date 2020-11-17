@@ -26,6 +26,7 @@
   :depends-on (:cl-ppcre :flexi-streams :string-case)
   :serial t
   :components ((:file "packages")
+               (:file "infra")
                (:file "constants")
                (:file "entities")
                (:file "inputstream")

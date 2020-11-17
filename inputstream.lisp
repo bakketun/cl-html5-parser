@@ -344,19 +344,6 @@
       (<= #x000E code #x001F)
       (<= #x007F code #x009F)))
 
-(defun noncharacter-p (code)
-  (or (<= #xFDD0 code #xFDEF)
-      (find code
-            #(#xFFFE #xFFFF #x1FFFE
-              #x1FFFF #x2FFFE #x2FFFF #x3FFFE
-              #x3FFFF #x4FFFE #x4FFFF #x5FFFE
-              #x5FFFF #x6FFFE #x6FFFF #x7FFFE
-              #x7FFFF #x8FFFE #x8FFFF #x9FFFE
-              #x9FFFF #xAFFFE #xAFFFF #xBFFFE
-              #xBFFFF #xCFFFE #xCFFFF #xDFFFE
-              #xDFFFF #xEFFFE #xEFFFF #xFFFFE
-              #xFFFFF #x10FFFE #x10FFFF))))
-
 (defun report-character-errors (stream data)
   (loop for char across data
         when (gethash char *invalid-unicode-hash*)
