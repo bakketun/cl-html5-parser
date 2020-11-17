@@ -1550,7 +1550,7 @@ U+0020_SPACE)
      (temporary-buffer-append current-input-character)
      (switch-state :numeric-character-reference-state))
     (Anything_else
-     (action-todo "Flush code points consumed as a character reference")
+     (flush-code-points-consumed-as-a-character-reference)
      (reconsume-in :return-state))))
 
 
@@ -1566,10 +1566,10 @@ U+0020_SPACE)
      (action-todo "Otherwise: If the last character matched is not a U+003B SEMICOLON character (;), then this is a missing-semicolon-after-character-reference parse error")
      (setf temporary-buffer (make-growable-string))
      (action-todo "Append one or two characters corresponding to the character reference name (as given by the second column of the named character references table) to the temporary buffer")
-     (action-todo "Flush code points consumed as a character reference")
+     (flush-code-points-consumed-as-a-character-reference)
      (switch-state :return-state))
     (Otherwise
-     (action-todo "Flush code points consumed as a character reference")
+     (flush-code-points-consumed-as-a-character-reference)
      (switch-state :ambiguous-ampersand-state))))
 
 
@@ -1611,7 +1611,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
      (reconsume-in :hexadecimal-character-reference-state))
     (Anything_else
      (this-is-a-parse-error :absence-of-digits-in-numeric-character-reference)
-     (action-todo "Flush code points consumed as a character reference")
+     (flush-code-points-consumed-as-a-character-reference)
      (reconsume-in :return-state))))
 
 
@@ -1624,7 +1624,7 @@ U+0058_LATIN_CAPITAL_LETTER_X)
      (reconsume-in :decimal-character-reference-state))
     (Anything_else
      (this-is-a-parse-error :absence-of-digits-in-numeric-character-reference)
-     (action-todo "Flush code points consumed as a character reference")
+     (flush-code-points-consumed-as-a-character-reference)
      (reconsume-in :return-state))))
 
 
