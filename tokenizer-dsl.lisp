@@ -6,6 +6,7 @@
     `(defmethod new-run-state* (self (state (eql ,state)))
        (with-slots (current-token return-state temporary-buffer character-reference-code) self
          (let (current-input-character)
+           (declare (ignorable current-input-character))
            (block nil
              ,@body
              t))))))

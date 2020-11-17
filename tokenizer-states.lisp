@@ -1666,5 +1666,59 @@ U+0020_SPACE)
 ;; 13.2.5.80 Numeric character reference end state
 ;; https://html.spec.whatwg.org/multipage/parsing.html#numeric-character-reference-end-state
 (define-state :numeric-character-reference-end-state
-  (action-todo "Check the character reference code:")
-  (current-character-case))
+  ;; Check the character reference code:
+  (cond
+    ((= 0 character-reference-code)
+     (this-is-a-parse-error :null-character-reference)
+     (setf character-reference-code #xFFFD))
+
+    ((< #x10FFFF character-reference-code)
+     (this-is-a-parse-error :character-reference-outside-unicode-range)
+     (setf character-reference-code #xFFFD))
+
+    ((surrogate-p character-reference-code)
+     (this-is-a-parse-error :surrogate-character-reference)
+     (setf character-reference-code #xFFFD))
+
+    ((noncharacter-p character-reference-code)
+     (this-is-a-parse-error :noncharacter-character-reference))
+
+    ((or (= #x0D character-reference-code)
+         (and (control-p character-reference-code)
+              (not (ascii-whitespace-p character-reference-code))))
+     (this-is-a-parse-error :control-character-reference)
+     (setf character-reference-code
+           (case character-reference-code
+             (#x80 #x20AC) ;; EURO SIGN (€)
+             (#x82 #x201A) ;; SINGLE LOW-9 QUOTATION MARK (‚)
+             (#x83 #x0192) ;; LATIN SMALL LETTER F WITH HOOK (ƒ)
+             (#x84 #x201E) ;; DOUBLE LOW-9 QUOTATION MARK („)
+             (#x85 #x2026) ;; HORIZONTAL ELLIPSIS (…)
+             (#x86 #x2020) ;; DAGGER (†)
+             (#x87 #x2021) ;; DOUBLE DAGGER (‡)
+             (#x88 #x02C6) ;; MODIFIER LETTER CIRCUMFLEX ACCENT (ˆ)
+             (#x89 #x2030) ;; PER MILLE SIGN (‰)
+             (#x8A #x0160) ;; LATIN CAPITAL LETTER S WITH CARON (Š)
+             (#x8B #x2039) ;; SINGLE LEFT-POINTING ANGLE QUOTATION MARK (‹)
+             (#x8C #x0152) ;; LATIN CAPITAL LIGATURE OE (Œ)
+             (#x8E #x017D) ;; LATIN CAPITAL LETTER Z WITH CARON (Ž)
+             (#x91 #x2018) ;; LEFT SINGLE QUOTATION MARK (‘)
+             (#x92 #x2019) ;; RIGHT SINGLE QUOTATION MARK (’)
+             (#x93 #x201C) ;; LEFT DOUBLE QUOTATION MARK (“)
+             (#x94 #x201D) ;; RIGHT DOUBLE QUOTATION MARK (”)
+             (#x95 #x2022) ;; BULLET (•)
+             (#x96 #x2013) ;; EN DASH (–)
+             (#x97 #x2014) ;; EM DASH (—)
+             (#x98 #x02DC) ;; SMALL TILDE (˜)
+             (#x99 #x2122) ;; TRADE MARK SIGN (™)
+             (#x9A #x0161) ;; LATIN SMALL LETTER S WITH CARON (š)
+             (#x9B #x203A) ;; SINGLE RIGHT-POINTING ANGLE QUOTATION MARK (›)
+             (#x9C #x0153) ;; LATIN SMALL LIGATURE OE (œ)
+             (#x9E #x017E) ;; LATIN SMALL LETTER Z WITH CARON (ž)
+             (#x9F #x0178) ;; LATIN CAPITAL LETTER Y WITH DIAERESIS (Ÿ))
+             (otherwise character-reference-code)))))
+
+  (setf temporary-buffer (make-growable-string))
+  (temporary-buffer-append (code-char character-reference-code))
+  (flush-code-points-consumed-as-a-character-reference)
+  (switch-state return-state))
