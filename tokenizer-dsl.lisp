@@ -38,21 +38,24 @@
                                     '((anything_else-clause))
                                     forms)))))))
 
-;; TODO
-(defmacro next-characters-match-two-hyphen-minus-p ())
-(defmacro next-characters-match-doctype-p ())
-(defmacro next-characters-match-[CDATA[-p ())
-(defmacro current-and-next-characters-match-public-p ())
-(defmacro current-and-next-characters-match-system-p ())
-(defmacro consume-those-characters ())
 
-;; TODO
-(defmacro next-input-character ())
+(defmacro consume-those-characters (n)
+  `(loop :repeat ,n
+         :do (consume-next-input-character)))
+
+
+(defmacro next-input-character (&optional (n -1))
+  `(with-slots (peek-buffer stream) self
+     (when (minusp (+ ,n (length peek-buffer)))
+       (vector-push-extend (html5-stream-char stream) peek-buffer))
+     (aref peek-buffer (+ ,n (length peek-buffer)))))
+
 
 (defmacro consume-next-input-character ()
-  `(setf current-input-character (or (slot-value self 'char-to-reconsume)
-                                     (html5-stream-char (slot-value self 'stream)))))
-
+  `(with-slots (peek-buffer stream) self
+     (setf current-input-character (if (plusp (length peek-buffer))
+                                       (vector-pop peek-buffer)
+                                       (html5-stream-char stream)))))
 
 (defmacro switch-state (new-state)
   `(setf (slot-value self 'char-to-reconsume) nil
@@ -60,8 +63,9 @@
 
 
 (defmacro reconsume-in (new-state)
-  `(setf (slot-value self 'char-to-reconsume) current-input-character
-         (slot-value self 'state) ,new-state))
+  `(with-slots (state peek-buffer) self
+     (vector-push-extend current-input-character peek-buffer)
+     (setf state ,new-state)))
 
 
 (defmacro this-is-a-parse-error (error-name)
@@ -73,8 +77,6 @@
     (current-token `(emit-current-token self))
     (:end-of-file `(return))
     (:character `(push-token* self :characters ,@args))))
-
-(defmacro action-todo (todo))
 
 
 (defmacro set-return-state (state)

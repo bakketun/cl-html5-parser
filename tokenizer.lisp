@@ -28,7 +28,7 @@
    (lowercase-attr-name :initform t)
    (escape-flag :initform nil)
    (last-four-chars :initform nil)
-   (char-to-reconsume :initform nil)
+   (peek-buffer :initform (make-growable-string))
    (state :initform :data-state :accessor tokenizer-state)
    (return-state)
    (escape :initform nil)
