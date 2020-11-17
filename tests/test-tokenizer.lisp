@@ -28,7 +28,7 @@
         (errors '()))
     (setf (slot-value tokenizer 'html5-parser::state) initial-state)
     (when last-start-tag
-      (setf (slot-value tokenizer 'html5-parser::current-token)
+      (setf (slot-value tokenizer 'html5-parser::last-start-tag)
             (list :type :start-tag
                   :name last-start-tag)))
     (html5-parser::map-tokens
