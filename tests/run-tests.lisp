@@ -92,6 +92,7 @@
     "Skip test test3 CDATA-SECTION-STATE: {"
     "Skip test test3 CDATA-SECTION-STATE: \\uDBC0\\uDC00"
     ;; (test-parser)
+    "Skip test tests3 <!doctype html><html><body><p><table></table></body></html>"
     "Skip test adoption01 <b><em><foo><foob><fooc><aside></b></em>"
     "Skip test blocks <!doctype html><p>foo<dialog>bar<p>baz"
     "Skip test blocks <!doctype html><dialog><p>foo</dialog>bar"
