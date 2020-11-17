@@ -46,6 +46,9 @@
 (defmacro current-and-next-characters-match-system-p ())
 (defmacro consume-those-characters ())
 
+;; TODO
+(defmacro next-input-character ())
+
 (defmacro consume-next-input-character ()
   `(setf current-input-character (or (slot-value self 'char-to-reconsume)
                                      (html5-stream-char (slot-value self 'stream)))))

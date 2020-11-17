@@ -1570,21 +1570,43 @@ U+0020_SPACE)
 ;; 13.2.5.73 Named character reference state
 ;; https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
 (define-state :named-character-reference-state
-  (action-todo "Consume the maximum number of characters possible, where the consumed characters are one of the
-  identifiers in the first column of the named character references table. Append each
-  character to the temporary buffer when it's consumed.")
+  (let ((entity nil))
+    (loop :with node := *entities-tree*
+          :for char := (next-input-character)
+          :for next-node = (assoc char node)
+          :while next-node
+          :do
+             (consume-next-input-character)
+             (temporary-buffer-append current-input-character)
+             (when (second next-node)
+               (setf entity (second next-node)))
+             (setf node (cddr next-node)))
 
-  ;; If there is a match
-  (action-todo " If the character reference was consumed as part of an attribute, and the last character matched is not a U+003B SEMICOLON character (;), and the next input character is either a U+003D EQUALS SIGN character (=) or an ASCII alphanumeric, then, for historical reasons, flush code points consumed as a character reference and switch to the return state")
-  (action-todo "Otherwise: If the last character matched is not a U+003B SEMICOLON character (;), then this is a missing-semicolon-after-character-reference parse error")
-  (setf temporary-buffer (make-growable-string))
-  (action-todo "Append one or two characters corresponding to the character reference name (as given by the second column of the named character references table) to the temporary buffer")
-  (flush-code-points-consumed-as-a-character-reference)
-  (switch-state :return-state)
+    ;; If there is a match
+    (if entity
+        (progn
+          (if (and (consumed-as-part-of-an-attribute-p)
+                   (not (eql current-input-character U+003B_SEMICOLON_|;|))
+                   (or (eql (next-input-character) U+003D_EQUALS_SIGN_|=|)
+                       (ascii-alphanumeric-p (next-input-character))))
+              (progn
+                (flush-code-points-consumed-as-a-character-reference)
+                (switch-state :return-state)))
+          ;; Othwerwise
+          (progn
+            ;; 1
+            (when (eql current-input-character U+003B_SEMICOLON_|;|)
+              (this-is-a-parse-error :missing-semicolon-after-character-reference))
+            ;; 2
+            (setf temporary-buffer (make-growable-string))
+            (temporary-buffer-append (second entity))
+            ;; 3
+            (flush-code-points-consumed-as-a-character-reference)))
 
-  ;; Otherwise
-  (flush-code-points-consumed-as-a-character-reference)
-  (switch-state :ambiguous-ampersand-state))
+        ;; Otherwise
+        (progn
+          (flush-code-points-consumed-as-a-character-reference)
+          (switch-state :ambiguous-ampersand-state)))))
 
 
 ;; 13.2.5.74 Ambiguous ampersand state
