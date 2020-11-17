@@ -1579,8 +1579,9 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (ASCII_alphanumeric
-     (action-todo "If the character reference was consumed as part of an attribute, then append the current input character to the current attribute's value")
-     (action-todo "Otherwise, emit the current input character as a character token"))
+     (if (consumed-as-part-of-an-attribute-p)
+         (current-attribute-value-append current-input-character)
+         (emit-token :character current-input-character)))
     (U+003B_SEMICOLON_|;|
      (this-is-a-parse-error :unknown-named-character-reference)
      (reconsume-in :return-state))

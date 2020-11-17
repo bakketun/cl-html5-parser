@@ -126,10 +126,13 @@
 (defmacro force-quirks-flag (token)
   `(getf ,token :force-quirks))
 
+(defmacro consumed-as-part-of-an-attribute-p ()
+  `(or (eq :attribute-value-\(double-quoted\)-state return-state)
+       (eq :attribute-value-\(single-quoted\)-state return-state)
+       (eq :attribute-value-\(unquoted\)-state return-state)))
+
 (defmacro flush-code-points-consumed-as-a-character-reference ()
-  `(if (or (eq :attribute-value-\(double-quoted\)-state return-state)
-           (eq :attribute-value-\(single-quoted\)-state return-state)
-           (eq :attribute-value-\(unquoted\)-state return-state))
+  `(if (consumed-as-part-of-an-attribute-p)
        (loop :for char :across temporary-buffer
              :do (current-attribute-value-append char))
        (loop :for char :across temporary-buffer
