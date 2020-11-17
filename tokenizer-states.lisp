@@ -1078,29 +1078,29 @@ EOF)
      ;; Ignoring the character
      )
     (ASCII_upper_alpha
-     (action-todo "Create a new DOCTYPE token")
-     (action-todo "Set the token's name to the (char-downcase current-input-character) (add 0x0020 to the character's code point)")
+     (setf current-token (make-token :doctype))
+     (token-name-append current-token (char-downcase current-input-character))
      (switch-state :DOCTYPE-name-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Create a new DOCTYPE token")
-     (action-todo "Set the token's name to a U+FFFD REPLACEMENT CHARACTER character")
+     (setf current-token (make-token :doctype))
+     (token-name-append current-token U+FFFD_REPLACEMENT_CHARACTER)
      (switch-state :DOCTYPE-name-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-doctype-name)
-     (action-todo "Create a new DOCTYPE token")
-     (action-todo "Set its force-quirks flag to on")
+     (setf current-token (make-token :doctype))
+     (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (action-todo "Emit the token"))
+     (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (action-todo "Create a new DOCTYPE token")
-     (action-todo "Set its force-quirks flag to on")
-     (action-todo "Emit the token")
+     (setf current-token (make-token :doctype))
+     (setf (force-quirks-flag current-token) t)
+     (switch-state :data-state)
      (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Create a new DOCTYPE token")
-     (action-todo "Set the token's name to the current input character")
+     (setf current-token (make-token :doctype))
+     (token-name-append current-token current-input-character)
      (switch-state :DOCTYPE-name-state))))
 
 

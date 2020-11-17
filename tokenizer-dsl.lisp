@@ -92,6 +92,9 @@
 (defmacro token-tag-name-append (token char)
   `(vector-push-extend ,char (getf ,token :name)))
 
+(defmacro token-name-append (token char)
+  `(vector-push-extend ,char (getf ,token :name)))
+
 (defmacro token-data-append (token char)
   `(vector-push-extend ,char (getf ,token :data)))
 
