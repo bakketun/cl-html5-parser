@@ -35,7 +35,8 @@
    (current-token :initform nil)
    (token-queue :initform nil)
    (temporary-buffer :initform nil)
-   (last-start-tag :initform nil)))
+   (last-start-tag :initform nil)
+   (character-reference-code)))
 
 (defun make-html-tokenizer (source &key encoding cdata-switch-helper)
   (make-instance 'html-tokenizer

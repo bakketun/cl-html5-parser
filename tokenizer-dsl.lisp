@@ -4,7 +4,7 @@
 (defmacro define-state (state &body body)
   (unless (member state '(:named-character-reference-state :markup-declaration-open-state))
     `(defmethod new-run-state* (self (state (eql ,state)))
-       (with-slots (current-token return-state temporary-buffer) self
+       (with-slots (current-token return-state temporary-buffer character-reference-code) self
          (let (current-input-character)
            (block nil
              ,@body

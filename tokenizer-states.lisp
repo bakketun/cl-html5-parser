@@ -1591,12 +1591,11 @@ U+0020_SPACE)
 ;; 13.2.5.75 Numeric character reference state
 ;; https://html.spec.whatwg.org/multipage/parsing.html#numeric-character-reference-state
 (define-state :numeric-character-reference-state
-  (action-todo "Set the character reference code to
-  zero (0).")
+  (setf character-reference-code 0)
   (current-character-case
     ((U+0078_LATIN_SMALL_LETTER_X
-U+0058_LATIN_CAPITAL_LETTER_X)
-     (action-todo "Append the current input character to the temporary buffer")
+      U+0058_LATIN_CAPITAL_LETTER_X)
+     (temporary-buffer-append current-input-character)
      (switch-state :hexadecimal-character-reference-start-state))
     (Anything_else
      (reconsume-in :decimal-character-reference-start-state))))
