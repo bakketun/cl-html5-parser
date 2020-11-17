@@ -1205,22 +1205,24 @@ EOF)
      ;; Ignoring the character
      )
     (U+0022_QUOTATION_MARK_|"|
-     (action-todo "Set the DOCTYPE token's public identifier to the empty string (not missing), then switch to the DOCTYPE public identifier (double-quoted) state"))
+     (action-todo "Set the DOCTYPE token's public identifier to the empty string (not missing)")
+     (switch-state :doctype-public-identifier-\(double-quoted\)-state))
     (U+0027_APOSTROPHE_|'|
-     (action-todo "Set the DOCTYPE token's public identifier to the empty string (not missing), then switch to the DOCTYPE public identifier (single-quoted) state"))
+     (action-todo "Set the DOCTYPE token's public identifier to the empty string (not missing)")
+     (switch-state :doctype-public-identifier-\(single-quoted\)-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-doctype-public-identifier)
-     (action-todo "Set the DOCTYPE token's force-quirks flag to on")
+     (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (action-todo "Emit that DOCTYPE token"))
+     (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Emit that DOCTYPE token")
+     (setf (force-quirks-flag current-token) t)
+     (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-public-identifier)
-     (action-todo "Set the DOCTYPE token's force-quirks flag to on")
+     (setf (force-quirks-flag current-token) t)
      (reconsume-in :bogus-DOCTYPE-state))))
 
 
