@@ -23,7 +23,7 @@
 (defun run-tokenizer-test-parser (initial-state last-start-tag source encoding)
   (let ((tokenizer (html5-parser::make-html-tokenizer source
                                                       :encoding encoding
-                                                      :cdata-switch-helper (lambda () ())))
+                                                      :adjusted-current-node-not-in-HTML-namespace-p (lambda () ())))
         (output-tokens '())
         (errors '()))
     (setf (slot-value tokenizer 'html5-parser::state) initial-state)

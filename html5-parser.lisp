@@ -77,7 +77,8 @@
   "ASCII case-insensitive string="
   (every #'ascii-ichar= string1 string2))
 
-(defun cdata-switch-helper ()
+
+(defun adjusted-current-node-not-in-HTML-namespace-p ()
   (and (last-open-element)
        (not (equal (node-namespace (last-open-element))
                    (slot-value *parser* 'html-namespace)))))
@@ -91,7 +92,7 @@
     (setf tokenizer (make-html-tokenizer source
                                          :encoding encoding
 
-                                         :cdata-switch-helper #'cdata-switch-helper))
+                                         :adjusted-current-node-not-in-HTML-namespace-p #'adjusted-current-node-not-in-HTML-namespace-p))
     (parser-reset)
     (loop
           ;; The input stream will throw please-reparse with result true

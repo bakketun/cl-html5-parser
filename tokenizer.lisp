@@ -22,7 +22,7 @@
 
 (defclass html-tokenizer ()
   ((stream :initarg :stream :reader tokenizer-stream)
-   (cdata-switch-helper :initarg :cdata-switch-helper
+   (adjusted-current-node-not-in-HTML-namespace-p :initarg :adjusted-current-node-not-in-HTML-namespace-p
                         :initform (constantly nil))
    (lowercase-element-name :initform t)
    (lowercase-attr-name :initform t)
@@ -38,10 +38,10 @@
    (last-start-tag :initform nil)
    (character-reference-code)))
 
-(defun make-html-tokenizer (source &key encoding cdata-switch-helper)
+(defun make-html-tokenizer (source &key encoding adjusted-current-node-not-in-HTML-namespace-p)
   (make-instance 'html-tokenizer
                  :stream (make-html-input-stream source :override-encoding encoding)
-                 :cdata-switch-helper cdata-switch-helper))
+                 :adjusted-current-node-not-in-HTML-namespace-p adjusted-current-node-not-in-HTML-namespace-p))
 
 (defun map-tokens (tokenizer function)
   "Return next token or NIL on eof"
@@ -1124,7 +1124,7 @@ pointer at the end."
     (setf state :data-state)))
 
 (defstate :markup-declaration-open-state (stream state current-token
-                                                 cdata-switch-helper)
+                                                 adjusted-current-node-not-in-HTML-namespace-p)
   (let ((cdata nil)
         (char-stack (make-array 1
                                 :initial-element (html5-stream-char stream)
@@ -1160,7 +1160,7 @@ pointer at the end."
                  (return)))
              (when matched
                (setf cdata t)
-               (when (funcall cdata-switch-helper)
+               (when (funcall adjusted-current-node-not-in-HTML-namespace-p)
                  (setf state :cdata-section-state)
                  (return t))))))
     (if cdata
