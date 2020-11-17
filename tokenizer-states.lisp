@@ -1468,14 +1468,12 @@ U+0020_SPACE)
      (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Emit that DOCTYPE token")
+     (setf (force-quirks-flag current-token) t)
+     (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
      (this-is-a-parse-error :unexpected-character-after-doctype-system-identifier)
-     (reconsume-in :bogus-DOCTYPE-state)
-     (action-todo "(This does not set the DOCTYPE token's force-quirks flag to on")
-     (action-todo ")"))))
+     (reconsume-in :bogus-DOCTYPE-state))))
 
 
 ;; 13.2.5.68 Bogus DOCTYPE state
