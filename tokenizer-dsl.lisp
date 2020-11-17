@@ -126,6 +126,10 @@
   ;; TODO old code uses :correct with inverted logic
   `(getf ,token :force-quirks))
 
+(defmacro flush-code-points-consumed-as-a-character-reference ()
+  ;; TOOD
+  )
+
 
 (defmacro define-unicode-constant (symbol)
   (let* ((code-point (symbol-name symbol)))

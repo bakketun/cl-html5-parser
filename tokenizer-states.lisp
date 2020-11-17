@@ -1540,14 +1540,14 @@ U+0020_SPACE)
 ;; 13.2.5.72 Character reference state
 ;; https://html.spec.whatwg.org/multipage/parsing.html#character-reference-state
 (define-state :character-reference-state
-  (action-todo "Set the temporary buffer to the empty string. Append
-   a U+0026 AMPERSAND (&) character to the temporary
-   buffer. Consume the next input character:")
+  (setf temporary-buffer (make-growable-string))
+  (temporary-buffer-append U+0026_AMPERSAND_|&|)
+  (consume-next-input-character)
   (current-character-case
     (ASCII_alphanumeric
      (reconsume-in :named-character-reference-state))
     (U+0023_NUMBER_SIGN_|#|
-     (action-todo "Append the current input character to the temporary buffer")
+     (temporary-buffer-append current-input-character)
      (switch-state :numeric-character-reference-state))
     (Anything_else
      (action-todo "Flush code points consumed as a character reference")
