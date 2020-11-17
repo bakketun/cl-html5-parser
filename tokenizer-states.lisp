@@ -1147,14 +1147,15 @@ EOF)
      (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Emit that DOCTYPE token")
+     (setf (force-quirks-flag current-token) t)
+     (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
      (action-todo " If the six characters starting from the current input character are an ASCII case-insensitive match for the word \"PUBLIC\", then consume those characters and switch to the after DOCTYPE public keyword state")
      (action-todo "Otherwise, if the six characters starting from the current input character are an ASCII case-insensitive match for the word \"SYSTEM\", then consume those characters and switch to the after DOCTYPE system keyword state")
      (action-todo "Otherwise, this is an invalid-character-sequence-after-doctype-name parse error")
-     (action-todo "Set the DOCTYPE token's force-quirks flag to on")
+     (this-is-a-parse-error :invalid-character-sequence-after-doctype-name)
+     (setf (force-quirks-flag current-token) t)
      (reconsume-in :bogus-DOCTYPE-state))))
 
 
