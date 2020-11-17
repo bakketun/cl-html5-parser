@@ -1570,17 +1570,18 @@ U+0020_SPACE)
   (action-todo "Consume the maximum number of characters possible, where the consumed characters are one of the
   identifiers in the first column of the named character references table. Append each
   character to the temporary buffer when it's consumed.")
-  (current-character-case
-    (If_there_is_a_match
-     (action-todo " If the character reference was consumed as part of an attribute, and the last character matched is not a U+003B SEMICOLON character (;), and the next input character is either a U+003D EQUALS SIGN character (=) or an ASCII alphanumeric, then, for historical reasons, flush code points consumed as a character reference and switch to the return state")
-     (action-todo "Otherwise: If the last character matched is not a U+003B SEMICOLON character (;), then this is a missing-semicolon-after-character-reference parse error")
-     (setf temporary-buffer (make-growable-string))
-     (action-todo "Append one or two characters corresponding to the character reference name (as given by the second column of the named character references table) to the temporary buffer")
-     (flush-code-points-consumed-as-a-character-reference)
-     (switch-state :return-state))
-    (Otherwise
-     (flush-code-points-consumed-as-a-character-reference)
-     (switch-state :ambiguous-ampersand-state))))
+
+  ;; If there is a match
+  (action-todo " If the character reference was consumed as part of an attribute, and the last character matched is not a U+003B SEMICOLON character (;), and the next input character is either a U+003D EQUALS SIGN character (=) or an ASCII alphanumeric, then, for historical reasons, flush code points consumed as a character reference and switch to the return state")
+  (action-todo "Otherwise: If the last character matched is not a U+003B SEMICOLON character (;), then this is a missing-semicolon-after-character-reference parse error")
+  (setf temporary-buffer (make-growable-string))
+  (action-todo "Append one or two characters corresponding to the character reference name (as given by the second column of the named character references table) to the temporary buffer")
+  (flush-code-points-consumed-as-a-character-reference)
+  (switch-state :return-state)
+
+  ;; Otherwise
+  (flush-code-points-consumed-as-a-character-reference)
+  (switch-state :ambiguous-ampersand-state))
 
 
 ;; 13.2.5.74 Ambiguous ampersand state
