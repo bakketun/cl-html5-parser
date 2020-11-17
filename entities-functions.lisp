@@ -55,17 +55,4 @@
     trie))
 
 
-(defun load-entities-from-json ()
-  (with-open-file (in (asdf:system-relative-pathname :cl-html5-parser "entities.json"))
-    (loop :for (entity . (type . data)) :in (cdr (json-streams:json-parse in))
-          :collect (cons entity (cddr (assoc "codepoints" data :test #'string=))))))
-
-
 (defparameter *entities-tree* (make-entities-trie *entities*))
-
-
-(defun make-entity-matcher ()
-  (let ((node *entities-tree*))
-    (lambda (char)
-      (assoc char *node))))
-
