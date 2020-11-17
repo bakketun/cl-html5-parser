@@ -1158,12 +1158,18 @@ EOF)
      (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
-     (action-todo " If the six characters starting from the current input character are an ASCII case-insensitive match for the word \"PUBLIC\", then consume those characters and switch to the after DOCTYPE public keyword state")
-     (action-todo "Otherwise, if the six characters starting from the current input character are an ASCII case-insensitive match for the word \"SYSTEM\", then consume those characters and switch to the after DOCTYPE system keyword state")
-     (action-todo "Otherwise, this is an invalid-character-sequence-after-doctype-name parse error")
-     (this-is-a-parse-error :invalid-character-sequence-after-doctype-name)
-     (setf (force-quirks-flag current-token) t)
-     (reconsume-in :bogus-DOCTYPE-state))))
+     (cond ((current-and-next-characters-match-public-p)
+            (consume-those-characters)
+            (switch-state :after-doctype-public-keyword-state))
+
+           ((current-and-next-characters-match-system-p)
+            (consume-those-characters)
+            (switch-state :after-doctype-system-keyword-state))
+
+           (t ; Othwerwise
+            (this-is-a-parse-error :invalid-character-sequence-after-doctype-name)
+            (setf (force-quirks-flag current-token) t)
+            (reconsume-in :bogus-DOCTYPE-state))))))
 
 
 ;; 13.2.5.57 After DOCTYPE public keyword state
