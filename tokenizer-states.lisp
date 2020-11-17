@@ -1280,27 +1280,29 @@ EOF)
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
-U+000A_LINE_FEED
-U+000C_FORM_FEED
-U+0020_SPACE)
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
+      U+0020_SPACE)
      (switch-state :between-DOCTYPE-public-and-system-identifiers-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
      (emit-token current-token))
     (U+0022_QUOTATION_MARK_|"|
      (this-is-a-parse-error :missing-whitespace-between-doctype-public-and-system-identifiers)
-     (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (double-quoted) state"))
+     (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing)")
+     (switch-state :doctype-system-identifier-\(double-quoted\)-state))
     (U+0027_APOSTROPHE_|'|
      (this-is-a-parse-error :missing-whitespace-between-doctype-public-and-system-identifiers)
-     (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing), then switch to the DOCTYPE system identifier (single-quoted) state"))
+     (action-todo "Set the DOCTYPE token's system identifier to the empty string (not missing)")
+     (switch-state :doctype-system-identifier-\(single-quoted\)-state))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Emit that DOCTYPE token")
+     (setf (force-quirks-flag current-token) t)
+     (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
-     (action-todo "Set the DOCTYPE token's force-quirks flag to on")
+     (setf (force-quirks-flag current-token) t)
      (reconsume-in :bogus-DOCTYPE-state))))
 
 
