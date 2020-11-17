@@ -1532,7 +1532,8 @@ U+0020_SPACE)
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state))
     (Anything_else
-     (action-todo "Emit two U+005D RIGHT SQUARE BRACKET character tokens")
+     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET_|]|)
+     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET_|]|)
      (reconsume-in :CDATA-section-state))))
 
 
