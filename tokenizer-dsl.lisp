@@ -2,7 +2,7 @@
 
 
 (defmacro define-state (state &body body)
-  `(defmethod new-run-state* (self (state (eql ,state)))
+  `(defmethod run-state* (self (state (eql ,state)))
      (with-slots (current-token return-state temporary-buffer character-reference-code) self
        (let (current-input-character)
          (declare (ignorable current-input-character))

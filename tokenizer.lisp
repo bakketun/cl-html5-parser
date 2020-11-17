@@ -59,7 +59,7 @@
 (defgeneric run-state* (tokenizer state))
 
 (defmacro defstate (state (&rest slots) &body body)
-  `(defmethod run-state* (self (state (eql ,state)))
+  `(defmethod old-run-state* (self (state (eql ,state)))
      (with-slots (,@slots) self
        (block nil
          ,@body

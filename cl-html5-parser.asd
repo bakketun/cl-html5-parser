@@ -32,6 +32,8 @@
                (:file "entities-functions")
                (:file "inputstream")
                (:file "tokenizer")
+               (:file "tokenizer-dsl")
+               (:file "tokenizer-states")
                (:file "simple-tree")
                (:file "html5-parser-class")
                (:file "tree-help")
