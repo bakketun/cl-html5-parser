@@ -124,7 +124,6 @@
   `(getf ,token :self-closing))
 
 (defmacro force-quirks-flag (token)
-  ;; TODO old code uses :correct with inverted logic
   `(getf ,token :force-quirks))
 
 (defmacro flush-code-points-consumed-as-a-character-reference ()
