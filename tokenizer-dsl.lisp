@@ -128,8 +128,13 @@
   `(getf ,token :force-quirks))
 
 (defmacro flush-code-points-consumed-as-a-character-reference ()
-  ;; TOOD
-  )
+  `(if (or (eq :attribute-value-\(double-quoted\)-state return-state)
+           (eq :attribute-value-\(single-quoted\)-state return-state)
+           (eq :attribute-value-\(unquoted\)-state return-state))
+       (loop :for char :across temporary-buffer
+             :do (current-attribute-value-append char))
+       (loop :for char :across temporary-buffer
+             :do (emit-token :character char))))
 
 
 (defmacro define-unicode-constant (symbol)
