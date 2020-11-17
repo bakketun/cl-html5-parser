@@ -101,6 +101,9 @@
 (defmacro current-token-public-id-append (char)
   `(vector-push-extend ,char (getf current-token :public-id)))
 
+(defmacro current-token-system-id-append (char)
+  `(vector-push-extend ,char (getf current-token :system-id)))
+
 (defmacro current-token-set-public-id-not-missing ()
   `(setf (getf current-token :public-id) (make-growable-string)))
 
