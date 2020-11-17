@@ -858,21 +858,31 @@ U+0020_SPACE)
 ;; https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state
 (define-state :markup-declaration-open-state
   (action-todo "If the next few characters are:")
-  (current-character-case
-    (Two_U+002D_HYPHEN-MINUS_characters_|-|
-     (action-todo "Consume those two characters, create a comment token whose data is the empty string, and switch to the comment start state"))
-    (ASCII_case-insensitive_match_for_the_word_"DOCTYPE"
-     (action-todo "Consume those characters and switch to the DOCTYPE state"))
-    (The_string_"[CDATA["_|t|he_five_uppercase_letters_"CDATA"_with_a_U+005B_LEFT_SQUARE_BRACKET_character_before_and_after
-     (action-todo "Consume those characters")
-     (action-todo "If there is an adjusted current node and it is not an element in the HTML namespace, then switch to the CDATA section state")
-     (action-todo "Otherwise, this is a cdata-in-html-content parse error")
-     (action-todo "Create a comment token whose data is the \"[CDATA[\" string")
-     (switch-state :bogus-comment-state))
-    (Anything_else
-     (this-is-a-parse-error :incorrectly-opened-comment)
-     (action-todo "Create a comment token whose data is the empty string")
-     (switch-state :bogus-comment-state-\(don't-consume-anything-in-the-current-state\)))))
+
+  ;; Two U+002D HYPHEN-MINUS characters (-)
+  (action-todo "Consume those two characters")
+  (setf current-token (make-token :comment))
+  (switch-state :comment-start-state)
+
+  ;; ASCII case-insensitive match for the word "DOCTYPE"
+  (action-todo "Consume those characters")
+  (switch-state :doctype-state)
+
+  ;; The string "[CDATA[" (the five uppercase letters "CDATA" with a U+005B LEFT SQUARE BRACKET character before and after)
+  (action-todo "Consume those characters")
+  (if (adjusted-current-node-not-in-HTML-namespace-p)
+      (switch-state :cdata-section-state)
+      (progn (this-is-a-parse-error :cdata-in-html-content)
+             (setf current-token (make-token :comment))
+             (token-data-append current-token "[CDATA[")
+             (switch-state :bogus-comment-state)))
+
+  ;; Anything else
+  (this-is-a-parse-error :incorrectly-opened-comment)
+  (setf current-token (make-token :comment))
+  (switch-state :bogus-comment-state)
+  ;; (don't consume anything in the current state)
+  )
 
 
 ;; 13.2.5.43 Comment start state
