@@ -32,8 +32,7 @@
                                    ;; Verify that characters are defined
                                    (if (listp keys)
                                        (mapcar #'eval keys)
-                                       (eval keys))
-                                   keys))
+                                       (eval keys))))
                                 (if (eql 'Anything_else keys)
                                     '((anything_else-clause))
                                     forms)))))))
@@ -48,18 +47,19 @@
   `(with-slots (peek-buffer stream) self
      (when (minusp (+ ,n (length peek-buffer)))
        (vector-push-extend (html5-stream-char stream) peek-buffer))
-     (aref peek-buffer (+ ,n (length peek-buffer)))))
+     (aref peek-buffer ,(1- (abs n)))))
 
 
 (defmacro consume-next-input-character ()
   `(with-slots (peek-buffer stream) self
      (setf current-input-character (if (plusp (length peek-buffer))
-                                       (vector-pop peek-buffer)
+                                       (prog1 (aref peek-buffer 0)
+                                         (replace peek-buffer peek-buffer :start2 1)
+                                         (decf (fill-pointer peek-buffer)))
                                        (html5-stream-char stream)))))
 
 (defmacro switch-state (new-state)
-  `(setf (slot-value self 'char-to-reconsume) nil
-         (slot-value self 'state) ,new-state))
+  `(setf (slot-value self 'state) ,new-state))
 
 
 (defmacro reconsume-in (new-state)
@@ -89,7 +89,18 @@
                       :name (make-growable-string)
                       :data '()
                       :self-closing nil
-                      :self-closing-acknowledged nil))))
+                      :self-closing-acknowledged nil))
+    (:end-tag (list :type :end-tag
+                    :name (make-growable-string)
+                    :data '()
+                    :self-closing nil))
+    (:comment (list :type :comment
+                    :data (make-growable-string)))
+    (:doctype (list :type :doctype
+                    :name (make-growable-string)
+                    :public-id nil
+                    :system-id nil
+                    :force-quirks nil))))
 
 
 (defun tag-name-match-p (name1 name2)

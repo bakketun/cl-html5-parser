@@ -98,7 +98,7 @@
      (switch-state :end-tag-open-state))
     (ASCII_alpha
      (setf current-token (make-token :start-tag))
-     (reconsume-in :name-state))
+     (reconsume-in :tag-name-state))
     (U+003F_QUESTION_MARK_|?|
      (this-is-a-parse-error :unexpected-question-mark-instead-of-tag-name)
      (setf current-token (make-token :comment))
@@ -890,6 +890,7 @@ U+0020_SPACE)
                 (switch-state :bogus-comment-state))))
 
     (t ;; Anything else
+     (break "here")
      (this-is-a-parse-error :incorrectly-opened-comment)
      (setf current-token (make-token :comment))
      (switch-state :bogus-comment-state))))
@@ -1587,7 +1588,7 @@ U+0020_SPACE)
      (switch-state :numeric-character-reference-state))
     (Anything_else
      (flush-code-points-consumed-as-a-character-reference)
-     (reconsume-in :return-state))))
+     (reconsume-in return-state))))
 
 
 ;; 13.2.5.73 Named character reference state
@@ -1614,7 +1615,7 @@ U+0020_SPACE)
                        (ascii-alphanumeric-p (next-input-character))))
               (progn
                 (flush-code-points-consumed-as-a-character-reference)
-                (switch-state :return-state)))
+                (switch-state return-state)))
           ;; Othwerwise
           (progn
             ;; 1
@@ -1643,9 +1644,9 @@ U+0020_SPACE)
          (emit-token :character current-input-character)))
     (U+003B_SEMICOLON_|;|
      (this-is-a-parse-error :unknown-named-character-reference)
-     (reconsume-in :return-state))
+     (reconsume-in return-state))
     (Anything_else
-     (reconsume-in :return-state))))
+     (reconsume-in return-state))))
 
 
 ;; 13.2.5.75 Numeric character reference state
@@ -1671,7 +1672,7 @@ U+0020_SPACE)
     (Anything_else
      (this-is-a-parse-error :absence-of-digits-in-numeric-character-reference)
      (flush-code-points-consumed-as-a-character-reference)
-     (reconsume-in :return-state))))
+     (reconsume-in return-state))))
 
 
 ;; 13.2.5.77 Decimal character reference start state
@@ -1684,7 +1685,7 @@ U+0020_SPACE)
     (Anything_else
      (this-is-a-parse-error :absence-of-digits-in-numeric-character-reference)
      (flush-code-points-consumed-as-a-character-reference)
-     (reconsume-in :return-state))))
+     (reconsume-in return-state))))
 
 
 ;; 13.2.5.78 Hexadecimal character reference state
