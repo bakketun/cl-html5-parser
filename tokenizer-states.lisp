@@ -1259,19 +1259,19 @@ EOF)
      (switch-state :after-DOCTYPE-public-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (action-todo "Append a U+FFFD REPLACEMENT CHARACTER character to the current DOCTYPE token's public identifier"))
+     (current-token-public-id-append U+FFFD_REPLACEMENT_CHARACTER))
     (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :abrupt-doctype-public-identifier)
-     (action-todo "Set the DOCTYPE token's force-quirks flag to on")
+     (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (action-todo "Emit that DOCTYPE token"))
+     (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (action-todo "Set the DOCTYPE token's force-quirks flag to on")
-     (action-todo "Emit that DOCTYPE token")
+     (setf (force-quirks-flag current-token) t)
+     (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
-     (action-todo "Append the current input character to the current DOCTYPE token's public identifier"))))
+     (current-token-public-id-append current-input-character))))
 
 
 ;; 13.2.5.61 After DOCTYPE public identifier state
