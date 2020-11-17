@@ -38,6 +38,11 @@
                                     '((anything_else-clause))
                                     forms)))))))
 
+;; TODO
+(defmacro next-characters-match-two-hyphen-minus-p ())
+(defmacro next-characters-match-doctype-p ())
+(defmacro next-characters-match-[CDATA[-p ())
+(defmacro consume-those-characters ())
 
 (defmacro consume-next-input-character ()
   `(setf current-input-character (or (slot-value self 'char-to-reconsume)

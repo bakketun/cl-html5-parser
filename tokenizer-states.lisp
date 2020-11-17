@@ -857,32 +857,29 @@ U+0020_SPACE)
 ;; 13.2.5.42 Markup declaration open state
 ;; https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state
 (define-state :markup-declaration-open-state
-  (action-todo "If the next few characters are:")
+  (cond
+    ((next-characters-match-two-hyphen-minus-p)
+     (consume-those-characters)
+     (setf current-token (make-token :comment))
+     (switch-state :comment-start-state))
 
-  ;; Two U+002D HYPHEN-MINUS characters (-)
-  (action-todo "Consume those two characters")
-  (setf current-token (make-token :comment))
-  (switch-state :comment-start-state)
+    ((next-characters-match-doctype-p)
+     (consume-those-characters)
+     (switch-state :doctype-state))
 
-  ;; ASCII case-insensitive match for the word "DOCTYPE"
-  (action-todo "Consume those characters")
-  (switch-state :doctype-state)
+    ((next-characters-match-[CDATA[-p)
+     (consume-those-characters)
+     (if (adjusted-current-node-not-in-HTML-namespace-p)
+         (switch-state :cdata-section-state)
+         (progn (this-is-a-parse-error :cdata-in-html-content)
+                (setf current-token (make-token :comment))
+                (token-data-append current-token "[CDATA[")
+                (switch-state :bogus-comment-state))))
 
-  ;; The string "[CDATA[" (the five uppercase letters "CDATA" with a U+005B LEFT SQUARE BRACKET character before and after)
-  (action-todo "Consume those characters")
-  (if (adjusted-current-node-not-in-HTML-namespace-p)
-      (switch-state :cdata-section-state)
-      (progn (this-is-a-parse-error :cdata-in-html-content)
-             (setf current-token (make-token :comment))
-             (token-data-append current-token "[CDATA[")
-             (switch-state :bogus-comment-state)))
-
-  ;; Anything else
-  (this-is-a-parse-error :incorrectly-opened-comment)
-  (setf current-token (make-token :comment))
-  (switch-state :bogus-comment-state)
-  ;; (don't consume anything in the current state)
-  )
+    (t ; Anything else
+     (this-is-a-parse-error :incorrectly-opened-comment)
+     (setf current-token (make-token :comment))
+     (switch-state :bogus-comment-state))))
 
 
 ;; 13.2.5.43 Comment start state
