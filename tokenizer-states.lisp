@@ -1049,17 +1049,17 @@ EOF)
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
-U+000A_LINE_FEED
-U+000C_FORM_FEED
-U+0020_SPACE)
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
+      U+0020_SPACE)
      (switch-state :before-DOCTYPE-name-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (reconsume-in :before-DOCTYPE-name-state))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (action-todo "Create a new DOCTYPE token")
-     (action-todo "Set its force-quirks flag to on")
-     (action-todo "Emit the token")
+     (setf current-token (make-token :doctype))
+     (setf (force-quirks-flag current-token) t)
+     (emit-token current-token)
      (emit-token :end-of-file))
     (Anything_else
      (this-is-a-parse-error :missing-whitespace-before-doctype-name)

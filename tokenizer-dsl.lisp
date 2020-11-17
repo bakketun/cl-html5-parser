@@ -107,6 +107,10 @@
 (defmacro self-closing-flag (token)
   `(getf ,token :self-closing))
 
+(defmacro force-quirks-flag (token)
+  ;; TODO old code uses :correct with inverted logic
+  `(getf ,token :force-quirks))
+
 
 (defmacro define-unicode-constant (symbol)
   (let* ((code-point (symbol-name symbol)))
