@@ -29,6 +29,7 @@
                (:file "infra")
                (:file "constants")
                (:file "entities")
+               (:file "entities-functions")
                (:file "inputstream")
                (:file "tokenizer")
                (:file "simple-tree")
