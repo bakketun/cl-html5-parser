@@ -43,11 +43,11 @@
          :do (consume-next-input-character)))
 
 
-(defmacro next-input-character (&optional (n -1))
+(defmacro next-input-character (&optional (n 1))
   `(with-slots (peek-buffer stream) self
-     (when (minusp (+ ,n (length peek-buffer)))
+     (when (<= ,n (length peek-buffer))
        (vector-push-extend (html5-stream-char stream) peek-buffer))
-     (aref peek-buffer ,(1- (abs n)))))
+     (aref peek-buffer (1- ,n))))
 
 
 (defmacro consume-next-input-character ()
