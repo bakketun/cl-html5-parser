@@ -21,38 +21,65 @@
 (in-package :html5-parser)
 
 
-(defun convert-to-trie (char-list value)
-  (if (cdr char-list)
-      (list (car char-list)
-            nil
-            (convert-to-trie (rest char-list) value))
-      (list (car char-list)
-            value)))
+(defun entity-match (read-char-function)
+  (let ((code-points nil)
+        (match-length 0))
+    (labels ((match (node depth)
+               (when node
+                 (when (entity-trie-node-code-points node)
+                   (setf code-points (entity-trie-node-code-points node)
+                         match-length depth))
+                 (match (entity-trie-node-search node (funcall read-char-function)) (1+ depth)))))
+      (match *entity-trie-root* 0))
+    (values code-points match-length)))
 
 
-(defun insert-into-trie (char-list value trie)
-  (let ((sub-trie (assoc (car char-list) trie)))
-    (if sub-trie
-        (append (remove sub-trie trie)
-                (list (list* (car sub-trie)
-                             (cadr sub-trie)
-                             (insert-into-trie (rest char-list) value (cddr sub-trie)))))
-        (append trie
-                (list (convert-to-trie char-list value))))))
+(defstruct entity-trie-node
+  prefix
+  code-points
+  (subnodes (make-array 0)))
 
 
-(defun convert-entities-list (entities)
-  (loop for (name . values) in entities
-        collect (cons (coerce name 'list)
-                      (map 'string #'code-char values))))
+(defun entity-trie-node-search (node char)
+  (find char (entity-trie-node-subnodes node) :key #'entity-trie-node-prefix))
 
 
 (defun make-entities-trie (entities)
-  (let (trie)
-    (dolist (entity (convert-entities-list entities))
-      (destructuring-bind (char-list . value) entity
-        (setf trie (insert-into-trie char-list value trie))))
-    trie))
+  (let ((root-node (make-entity-trie-node)))
+    (loop :for (name . code-points) :in entities :do
+      (entity-trie-node-insert root-node
+                               (coerce name 'list)
+                               (map 'string #'code-char code-points)))
+    root-node))
 
 
-(defparameter *entities-tree* (make-entities-trie *entities*))
+(defun entity-trie-node-insert (node char-list code-points)
+  (destructuring-bind (prefix . suffix) char-list
+    (let ((subnode (find prefix (entity-trie-node-subnodes node) :key #'entity-trie-node-prefix)))
+      (unless subnode
+        (setf subnode (make-entity-trie-node :prefix prefix))
+        (setf (entity-trie-node-subnodes node) (concatenate 'vector
+                                                            (entity-trie-node-subnodes node)
+                                                            (make-array 1 :initial-element subnode))))
+      (if suffix
+          (entity-trie-node-insert subnode suffix code-points)
+          (when code-points
+            (setf (entity-trie-node-code-points subnode) code-points))))))
+
+
+(defmethod print-object ((node entity-trie-node) stream)
+  (flet ((print-it ()
+           (princ "(" stream)
+           (princ (entity-trie-node-prefix node) stream)
+           (when (entity-trie-node-code-points node)
+             (format stream "→~A" (entity-trie-node-code-points node)))
+           (loop :for subnode :across (entity-trie-node-subnodes node)
+                 :do (format stream "~A" subnode))
+           (princ ")" stream)))
+    (if *print-escape*
+        (print-unreadable-object (node stream :type t)
+          (print-it))
+        (print-it))))
+
+
+(defparameter *entity-trie-root* (make-entities-trie *entities*))
