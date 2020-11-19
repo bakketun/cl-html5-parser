@@ -15,11 +15,11 @@
      (switch-state :tag-open-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (emit-token :character current-input-character))
+     (emit-character-token current-input-character))
     (EOF
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.2 RCDATA state
@@ -34,11 +34,11 @@
      (switch-state :RCDATA-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
+     (emit-character-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.3 RAWTEXT state
@@ -50,11 +50,11 @@
      (switch-state :RAWTEXT-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
+     (emit-character-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.4 Script data state
@@ -66,11 +66,11 @@
      (switch-state :script-data-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
+     (emit-character-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.5 PLAINTEXT state
@@ -80,11 +80,11 @@
   (current-character-case
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
+     (emit-character-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.6 Tag open state
@@ -105,11 +105,11 @@
      (reconsume-in :bogus-comment-state))
     (EOF
      (this-is-a-parse-error :eof-before-tag-name)
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
-     (emit-token :end-of-file))
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :invalid-first-character-of-tag-name)
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :data-state))))
 
 
@@ -126,7 +126,7 @@
      (switch-state :data-state))
     (EOF
      (this-is-a-parse-error :eof-before-tag-name)
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|))
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|))
     (Anything_else
      (this-is-a-parse-error :invalid-first-character-of-tag-name)
      (create-new-token :comment)
@@ -147,7 +147,7 @@
      (switch-state :self-closing-start-tag-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (ASCII_upper_alpha
      (token-tag-name-append current-token (char-downcase current-input-character)))
     (U+0000_NULL
@@ -155,7 +155,7 @@
      (token-tag-name-append current-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (token-tag-name-append current-token current-input-character))))
 
@@ -169,7 +169,7 @@
      (temporary-buffer-clear)
      (switch-state :RCDATA-end-tag-open-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RCDATA-state))))
 
 
@@ -182,7 +182,7 @@
      (create-new-token :end-tag)
      (reconsume-in :RCDATA-end-tag-name-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RCDATA-state))))
 
 
@@ -205,7 +205,7 @@
     (U+003E_GREATER-THAN_SIGN_|>|
      (if (appropriate-end-tag-token-p current-token)
          (progn (switch-state :data-state)
-                (emit-token current-token))
+                (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
      (token-tag-name-append current-token (char-downcase current-input-character))
@@ -214,7 +214,7 @@
      (token-tag-name-append current-token current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RCDATA-state))))
 
 
@@ -227,7 +227,7 @@
      (temporary-buffer-clear)
      (switch-state :RAWTEXT-end-tag-open-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RAWTEXT-state))))
 
 
@@ -240,7 +240,7 @@
      (create-new-token :end-tag)
      (reconsume-in :RAWTEXT-end-tag-name-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RAWTEXT-state))))
 
 
@@ -263,7 +263,7 @@
     (U+003E_GREATER-THAN_SIGN_|>|
      (if (appropriate-end-tag-token-p current-token)
          (progn (switch-state :data-state)
-                (emit-token current-token))
+                (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
      (token-tag-name-append current-token (char-downcase current-input-character))
@@ -272,7 +272,7 @@
      (token-tag-name-append current-token current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :RAWTEXT-state))))
 
 
@@ -286,9 +286,9 @@
      (switch-state :script-data-end-tag-open-state))
     (U+0021_EXCLAMATION_MARK_|!|
      (switch-state :script-data-escape-start-state)
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|))
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-state))))
 
 
@@ -301,7 +301,7 @@
      (create-new-token :end-tag)
      (reconsume-in :script-data-end-tag-name-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-state))))
 
 
@@ -324,7 +324,7 @@
     (U+003E_GREATER-THAN_SIGN_|>|
      (if (appropriate-end-tag-token-p current-token)
          (progn (switch-state :data-state)
-                (emit-token current-token))
+                (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
      (token-tag-name-append current-token (char-downcase current-input-character))
@@ -333,7 +333,7 @@
      (token-tag-name-append current-token current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-state))))
 
 
@@ -344,7 +344,7 @@
   (current-character-case
     (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-escape-start-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
     (Anything_else
      (reconsume-in :script-data-state))))
 
@@ -356,7 +356,7 @@
   (current-character-case
     (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-escaped-dash-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
     (Anything_else
      (reconsume-in :script-data-state))))
 
@@ -368,17 +368,17 @@
   (current-character-case
     (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-escaped-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
     (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-escaped-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
+     (emit-character-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.21 Script data escaped dash state
@@ -388,19 +388,19 @@
   (current-character-case
     (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-escaped-dash-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
     (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-escaped-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-escaped-state)
-     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
+     (emit-character-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (switch-state :script-data-escaped-state)
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.22 Script data escaped dash dash state
@@ -409,22 +409,22 @@
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_|-|
-     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
     (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-escaped-less-than-sign-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :script-data-state)
-     (emit-token :character U+003E_GREATER-THAN_SIGN_|>|))
+     (emit-character-token U+003E_GREATER-THAN_SIGN_|>|))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-escaped-state)
-     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
+     (emit-character-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (switch-state :script-data-escaped-state)
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.23 Script data escaped less-than sign state
@@ -437,10 +437,10 @@
      (switch-state :script-data-escaped-end-tag-open-state))
     (ASCII_alpha
      (temporary-buffer-clear)
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-double-escape-start-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-escaped-state))))
 
 
@@ -453,7 +453,7 @@
      (create-new-token :end-tag)
      (reconsume-in :script-data-escaped-end-tag-name-state))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-escaped-state))))
 
 
@@ -476,7 +476,7 @@
     (U+003E_GREATER-THAN_SIGN_|>|
      (if (appropriate-end-tag-token-p current-token)
          (progn (switch-state :data-state)
-                (emit-token current-token))
+                (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
      (token-tag-name-append current-token (char-downcase current-input-character))
@@ -485,7 +485,7 @@
      (token-tag-name-append current-token current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-escaped-state))))
 
 
@@ -503,13 +503,13 @@
      (if (string= temporary-buffer "script")
          (switch-state :script-data-double-escaped-state)
          (switch-state :script-data-escaped-state))
-     (emit-token :character current-input-character))
+     (emit-character-token current-input-character))
     (ASCII_upper_alpha
      (temporary-buffer-append (char-downcase current-input-character))
-     (emit-token :character current-input-character))
+     (emit-character-token current-input-character))
     (ASCII_lower_alpha
      (temporary-buffer-append current-input-character)
-     (emit-token :character current-input-character))
+     (emit-character-token current-input-character))
     (Anything_else
      (reconsume-in :script-data-escaped-state))))
 
@@ -521,18 +521,18 @@
   (current-character-case
     (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-double-escaped-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
     (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-double-escaped-less-than-sign-state)
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|))
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
+     (emit-character-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.28 Script data double escaped dash state
@@ -542,20 +542,20 @@
   (current-character-case
     (U+002D_HYPHEN-MINUS_|-|
      (switch-state :script-data-double-escaped-dash-dash-state)
-     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
     (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-double-escaped-less-than-sign-state)
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|))
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-double-escaped-state)
-     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
+     (emit-character-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (switch-state :script-data-double-escaped-state)
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.29 Script data double escaped dash dash state
@@ -564,23 +564,23 @@
   (consume-next-input-character)
   (current-character-case
     (U+002D_HYPHEN-MINUS_|-|
-     (emit-token :character U+002D_HYPHEN-MINUS_|-|))
+     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
     (U+003C_LESS-THAN_SIGN_|<|
      (switch-state :script-data-double-escaped-less-than-sign-state)
-     (emit-token :character U+003C_LESS-THAN_SIGN_|<|))
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|))
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :script-data-state)
-     (emit-token :character U+003E_GREATER-THAN_SIGN_|>|))
+     (emit-character-token U+003E_GREATER-THAN_SIGN_|>|))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state :script-data-double-escaped-state)
-     (emit-token :character U+FFFD_REPLACEMENT_CHARACTER))
+     (emit-character-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-script-html-comment-like-text)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (switch-state :script-data-double-escaped-state)
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.30 Script data double escaped less-than sign state
@@ -591,7 +591,7 @@
     (U+002F_SOLIDUS_|/|
      (temporary-buffer-clear)
      (switch-state :script-data-double-escape-end-state)
-     (emit-token :character U+002F_SOLIDUS_|/|))
+     (emit-character-token U+002F_SOLIDUS_|/|))
     (Anything_else
      (reconsume-in :script-data-double-escaped-state))))
 
@@ -610,13 +610,13 @@
      (if (string= temporary-buffer "script")
          (switch-state :script-data-escaped-state)
          (switch-state :script-data-double-escaped-state))
-     (emit-token :character current-input-character))
+     (emit-character-token current-input-character))
     (ASCII_upper_alpha
      (temporary-buffer-append (char-downcase current-input-character))
-     (emit-token :character current-input-character))
+     (emit-character-token current-input-character))
     (ASCII_lower_alpha
      (temporary-buffer-append current-input-character)
-     (emit-token :character current-input-character))
+     (emit-character-token current-input-character))
     (Anything_else
      (reconsume-in :script-data-double-escaped-state))))
 
@@ -691,10 +691,10 @@
      (switch-state :before-attribute-value-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (add-attribute current-token "")
      (reconsume-in :attribute-name-state))))
@@ -718,7 +718,7 @@
     (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-attribute-value)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (Anything_else
      (reconsume-in :attribute-value-\(unquoted\)-state))))
 
@@ -738,7 +738,7 @@
      (current-attribute-value-append U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (current-attribute-value-append current-input-character))))
 
@@ -758,7 +758,7 @@
      (current-attribute-value-append U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (current-attribute-value-append current-input-character))))
 
@@ -778,7 +778,7 @@
      (switch-state :character-reference-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-attribute-value-append U+FFFD_REPLACEMENT_CHARACTER))
@@ -791,7 +791,7 @@
      (anything_else-clause))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (current-attribute-value-append current-input-character))))
 
@@ -810,10 +810,10 @@ U+0020_SPACE)
      (switch-state :self-closing-start-tag-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-whitespace-between-attributes)
      (reconsume-in :before-attribute-name-state))))
@@ -827,10 +827,10 @@ U+0020_SPACE)
     (U+003E_GREATER-THAN_SIGN_|>|
      (setf (self-closing-flag current-token) t)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-tag)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :unexpected-solidus-in-tag)
      (reconsume-in :before-attribute-name-state))))
@@ -843,10 +843,10 @@ U+0020_SPACE)
   (current-character-case
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (token-data-append current-token U+FFFD_REPLACEMENT_CHARACTER))
@@ -906,7 +906,7 @@ U+0020_SPACE)
     (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :abrupt-closing-of-empty-comment)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (Anything_else
      (reconsume-in :comment-state))))
 
@@ -921,11 +921,11 @@ U+0020_SPACE)
     (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :abrupt-closing-of-empty-comment)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
      (reconsume-in :comment-state))))
@@ -946,8 +946,8 @@ U+0020_SPACE)
      (token-data-append current-token U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (token-data-append current-token current-input-character))))
 
@@ -1010,8 +1010,8 @@ EOF)
      (switch-state :comment-end-state))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
      (reconsume-in :comment-state))))
@@ -1024,15 +1024,15 @@ EOF)
   (current-character-case
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (U+0021_EXCLAMATION_MARK_|!|
      (switch-state :comment-end-bang-state))
     (U+002D_HYPHEN-MINUS_|-|
      (token-data-append current-token U+002D_HYPHEN-MINUS_|-|))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
      (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
@@ -1052,11 +1052,11 @@ EOF)
     (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :incorrectly-closed-comment)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
      (token-data-append current-token U+002D_HYPHEN-MINUS_|-|)
@@ -1080,8 +1080,8 @@ EOF)
      (this-is-a-parse-error :eof-in-doctype)
      (create-new-token :doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-whitespace-before-doctype-name)
      (reconsume-in :before-DOCTYPE-name-state))))
@@ -1112,13 +1112,13 @@ EOF)
      (create-new-token :doctype)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (create-new-token :doctype)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
      (create-new-token :doctype)
      (token-name-append current-token current-input-character)
@@ -1137,7 +1137,7 @@ EOF)
      (switch-state :after-DOCTYPE-name-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (ASCII_upper_alpha
      (token-name-append current-token (char-downcase current-input-character)))
     (U+0000_NULL
@@ -1146,8 +1146,8 @@ EOF)
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (token-name-append current-token current-input-character))))
 
@@ -1165,12 +1165,12 @@ EOF)
      )
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (cond ((and (eql #\P (char-upcase current-input-character))
                  (eql #\U (char-upcase (next-input-character 1)))
@@ -1218,12 +1218,12 @@ EOF)
      (this-is-a-parse-error :missing-doctype-public-identifier)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-public-identifier)
      (setf (force-quirks-flag current-token) t)
@@ -1251,12 +1251,12 @@ EOF)
      (this-is-a-parse-error :missing-doctype-public-identifier)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-public-identifier)
      (setf (force-quirks-flag current-token) t)
@@ -1277,12 +1277,12 @@ EOF)
      (this-is-a-parse-error :abrupt-doctype-public-identifier)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (current-token-public-id-append current-input-character))))
 
@@ -1301,12 +1301,12 @@ EOF)
      (this-is-a-parse-error :abrupt-doctype-public-identifier)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (current-token-public-id-append current-input-character))))
 
@@ -1323,7 +1323,7 @@ EOF)
      (switch-state :between-DOCTYPE-public-and-system-identifiers-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (U+0022_QUOTATION_MARK_|"|
      (this-is-a-parse-error :missing-whitespace-between-doctype-public-and-system-identifiers)
      (current-token-set-system-id-not-missing)
@@ -1335,8 +1335,8 @@ EOF)
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
      (setf (force-quirks-flag current-token) t)
@@ -1356,7 +1356,7 @@ EOF)
      )
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (U+0022_QUOTATION_MARK_|"|
      (current-token-set-system-id-not-missing)
      (switch-state :doctype-system-identifier-\(double-quoted\)-state))
@@ -1366,8 +1366,8 @@ EOF)
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
      (setf (force-quirks-flag current-token) t)
@@ -1396,12 +1396,12 @@ U+0020_SPACE)
      (this-is-a-parse-error :missing-doctype-system-identifier)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
      (setf (force-quirks-flag current-token) t)
@@ -1429,12 +1429,12 @@ U+0020_SPACE)
      (this-is-a-parse-error :missing-doctype-system-identifier)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
      (setf (force-quirks-flag current-token) t)
@@ -1455,12 +1455,12 @@ U+0020_SPACE)
      (this-is-a-parse-error :abrupt-doctype-system-identifier)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (current-token-system-id-append current-input-character))))
 
@@ -1479,12 +1479,12 @@ U+0020_SPACE)
      (this-is-a-parse-error :abrupt-doctype-system-identifier)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (current-token-system-id-append current-input-character))))
 
@@ -1502,12 +1502,12 @@ U+0020_SPACE)
      )
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (setf (force-quirks-flag current-token) t)
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :unexpected-character-after-doctype-system-identifier)
      (reconsume-in :bogus-DOCTYPE-state))))
@@ -1520,14 +1520,14 @@ U+0020_SPACE)
   (current-character-case
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state)
-     (emit-token current-token))
+     (emit-current-token))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      ;; Ignoring the character
      )
     (EOF
-     (emit-token current-token)
-     (emit-token :end-of-file))
+     (emit-current-token)
+     (emit-end-of-file-token))
     (Anything_else
      ;; Ignoring the character
      )))
@@ -1542,9 +1542,9 @@ U+0020_SPACE)
      (switch-state :CDATA-section-bracket-state))
     (EOF
      (this-is-a-parse-error :eof-in-cdata)
-     (emit-token :end-of-file))
+     (emit-end-of-file-token))
     (Anything_else
-     (emit-token :character current-input-character))))
+     (emit-character-token current-input-character))))
 
 
 ;; 13.2.5.70 CDATA section bracket state
@@ -1555,7 +1555,7 @@ U+0020_SPACE)
     (U+005D_RIGHT_SQUARE_BRACKET_|]|
      (switch-state :CDATA-section-end-state))
     (Anything_else
-     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET_|]|)
+     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_|]|)
      (reconsume-in :CDATA-section-state))))
 
 
@@ -1565,12 +1565,12 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (U+005D_RIGHT_SQUARE_BRACKET_|]|
-     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET_|]|))
+     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_|]|))
     (U+003E_GREATER-THAN_SIGN_|>|
      (switch-state :data-state))
     (Anything_else
-     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET_|]|)
-     (emit-token :character U+005D_RIGHT_SQUARE_BRACKET_|]|)
+     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_|]|)
+     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_|]|)
      (reconsume-in :CDATA-section-state))))
 
 
@@ -1640,7 +1640,7 @@ U+0020_SPACE)
     (ASCII_alphanumeric
      (if (consumed-as-part-of-an-attribute-p)
          (current-attribute-value-append current-input-character)
-         (emit-token :character current-input-character)))
+         (emit-character-token current-input-character)))
     (U+003B_SEMICOLON_|;|
      (this-is-a-parse-error :unknown-named-character-reference)
      (reconsume-in return-state))

@@ -132,7 +132,7 @@ pointer at the end."
                (or (getf token indicator) "")
                data)))
 
-(defun emit-current-token (self)
+(defun emit-current-token* (self)
   "This method is a generic handler for emitting the tags. It also sets
    the state to :data because that's what's needed after a token has been
    emitted.

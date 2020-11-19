@@ -72,11 +72,16 @@
   `(push-token self '(:type :parse-error :data ,error-name)))
 
 
-(defmacro emit-token (type &rest args)
-  (ecase type
-    (current-token `(emit-current-token self))
-    (:end-of-file `(return))
-    (:character `(push-token* self :characters ,@args))))
+(defmacro emit-current-token ()
+  `(emit-current-token* self))
+
+
+(defmacro emit-end-of-file-token ()
+  `(return))
+
+
+(defmacro emit-character-token (&rest args)
+  `(push-token* self :characters ,@args))
 
 
 (defmacro set-return-state (state)
