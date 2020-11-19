@@ -133,6 +133,9 @@
 (defmacro current-token-set-system-id-not-missing ()
   `(setf (getf current-token :system-id) (make-growable-string)))
 
+(defmacro temporary-buffer-clear ()
+  `(setf (fill-pointer temporary-buffer) 0))
+
 (defmacro temporary-buffer-append (char)
   `(vector-push-extend ,char temporary-buffer))
 

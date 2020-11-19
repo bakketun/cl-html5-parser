@@ -34,7 +34,7 @@
    (escape :initform nil)
    (current-token :initform nil)
    (token-queue :initform nil)
-   (temporary-buffer :initform nil)
+   (temporary-buffer :initform (make-growable-string))
    (last-start-tag :initform nil)
    (character-reference-code)))
 

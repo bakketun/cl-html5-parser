@@ -166,7 +166,7 @@
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_|/|
-     (setf temporary-buffer (make-growable-string))
+     (temporary-buffer-clear)
      (switch-state :RCDATA-end-tag-open-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
@@ -224,7 +224,7 @@
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_|/|
-     (setf temporary-buffer (make-growable-string))
+     (temporary-buffer-clear)
      (switch-state :RAWTEXT-end-tag-open-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
@@ -282,7 +282,7 @@
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_|/|
-     (setf temporary-buffer (make-growable-string))
+     (temporary-buffer-clear)
      (switch-state :script-data-end-tag-open-state))
     (U+0021_EXCLAMATION_MARK_|!|
      (switch-state :script-data-escape-start-state)
@@ -433,10 +433,10 @@
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_|/|
-     (setf temporary-buffer (make-growable-string))
+     (temporary-buffer-clear)
      (switch-state :script-data-escaped-end-tag-open-state))
     (ASCII_alpha
-     (setf temporary-buffer (make-growable-string))
+     (temporary-buffer-clear)
      (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in :script-data-double-escape-start-state))
     (Anything_else
@@ -589,7 +589,7 @@
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_|/|
-     (setf temporary-buffer (make-growable-string))
+     (temporary-buffer-clear)
      (switch-state :script-data-double-escape-end-state)
      (emit-token :character U+002F_SOLIDUS_|/|))
     (Anything_else
@@ -1577,7 +1577,7 @@ U+0020_SPACE)
 ;; 13.2.5.72 Character reference state
 ;; https://html.spec.whatwg.org/multipage/parsing.html#character-reference-state
 (define-state :character-reference-state
-  (setf temporary-buffer (make-growable-string))
+  (temporary-buffer-clear)
   (temporary-buffer-append U+0026_AMPERSAND_|&|)
   (consume-next-input-character)
   (current-character-case
@@ -1618,7 +1618,7 @@ U+0020_SPACE)
               (unless (eql current-input-character U+003B_SEMICOLON_|;|)
                 (this-is-a-parse-error :missing-semicolon-after-character-reference))
               ;; 2 Add the one or two match characters
-              (setf temporary-buffer (make-growable-string))
+              (temporary-buffer-clear)
               (temporary-buffer-append (elt matched 0))
               (when (< 1 (length matched))
                 (temporary-buffer-append (elt matched 1)))
@@ -1778,7 +1778,7 @@ U+0020_SPACE)
              (#x9F #x0178) ;; LATIN CAPITAL LETTER Y WITH DIAERESIS (Ÿ))
              (otherwise character-reference-code)))))
 
-  (setf temporary-buffer (make-growable-string))
+  (temporary-buffer-clear)
   (temporary-buffer-append (code-char character-reference-code))
   (flush-code-points-consumed-as-a-character-reference)
   (switch-state return-state))
