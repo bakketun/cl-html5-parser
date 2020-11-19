@@ -102,6 +102,9 @@
                     :system-id nil
                     :force-quirks nil))))
 
+(defmacro create-new-token (type)
+  `(setf current-token (make-token ,type)))
+
 
 (defun tag-name-match-p (name1 name2)
   "todo: how to match tagnames correctly?"

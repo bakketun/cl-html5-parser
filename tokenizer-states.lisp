@@ -97,11 +97,11 @@
     (U+002F_SOLIDUS_|/|
      (switch-state :end-tag-open-state))
     (ASCII_alpha
-     (setf current-token (make-token :start-tag))
+     (create-new-token :start-tag)
      (reconsume-in :tag-name-state))
     (U+003F_QUESTION_MARK_|?|
      (this-is-a-parse-error :unexpected-question-mark-instead-of-tag-name)
-     (setf current-token (make-token :comment))
+     (create-new-token :comment)
      (reconsume-in :bogus-comment-state))
     (EOF
      (this-is-a-parse-error :eof-before-tag-name)
@@ -119,7 +119,7 @@
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (setf current-token (make-token :end-tag))
+     (create-new-token :end-tag)
      (reconsume-in :tag-name-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-end-tag-name)
@@ -129,7 +129,7 @@
      (emit-token :character U+003C_LESS-THAN_SIGN_|<|))
     (Anything_else
      (this-is-a-parse-error :invalid-first-character-of-tag-name)
-     (setf current-token (make-token :comment))
+     (create-new-token :comment)
      (reconsume-in :bogus-comment-state))))
 
 
@@ -179,7 +179,7 @@
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (setf current-token (make-token :end-tag))
+     (create-new-token :end-tag)
      (reconsume-in :RCDATA-end-tag-name-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
@@ -237,7 +237,7 @@
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (setf current-token (make-token :end-tag))
+     (create-new-token :end-tag)
      (reconsume-in :RAWTEXT-end-tag-name-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
@@ -298,7 +298,7 @@
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (setf current-token (make-token :end-tag))
+     (create-new-token :end-tag)
      (reconsume-in :script-data-end-tag-name-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
@@ -450,7 +450,7 @@
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
-     (setf current-token (make-token :end-tag))
+     (create-new-token :end-tag)
      (reconsume-in :script-data-escaped-end-tag-name-state))
     (Anything_else
      (emit-token :character U+003C_LESS-THAN_SIGN_|<|)
@@ -861,7 +861,7 @@ U+0020_SPACE)
     ((and (eql U+002D_HYPHEN-MINUS_|-| (next-input-character 1))
           (eql U+002D_HYPHEN-MINUS_|-| (next-input-character 2)))
      (consume-those-characters 2)
-     (setf current-token (make-token :comment))
+     (create-new-token :comment)
      (switch-state :comment-start-state))
 
     ((and (eql #\D (char-upcase (next-input-character 1)))
@@ -885,14 +885,14 @@ U+0020_SPACE)
      (if (adjusted-current-node-not-in-HTML-namespace-p)
          (switch-state :cdata-section-state)
          (progn (this-is-a-parse-error :cdata-in-html-content)
-                (setf current-token (make-token :comment))
+                (create-new-token :comment)
                 (token-data-append current-token "[CDATA[")
                 (switch-state :bogus-comment-state))))
 
     (t ;; Anything else
      (break "here")
      (this-is-a-parse-error :incorrectly-opened-comment)
-     (setf current-token (make-token :comment))
+     (create-new-token :comment)
      (switch-state :bogus-comment-state))))
 
 
@@ -1078,7 +1078,7 @@ EOF)
      (reconsume-in :before-DOCTYPE-name-state))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf current-token (make-token :doctype))
+     (create-new-token :doctype)
      (setf (force-quirks-flag current-token) t)
      (emit-token current-token)
      (emit-token :end-of-file))
@@ -1099,28 +1099,28 @@ EOF)
      ;; Ignoring the character
      )
     (ASCII_upper_alpha
-     (setf current-token (make-token :doctype))
+     (create-new-token :doctype)
      (token-name-append current-token (char-downcase current-input-character))
      (switch-state :DOCTYPE-name-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
-     (setf current-token (make-token :doctype))
+     (create-new-token :doctype)
      (token-name-append current-token U+FFFD_REPLACEMENT_CHARACTER)
      (switch-state :DOCTYPE-name-state))
     (U+003E_GREATER-THAN_SIGN_|>|
      (this-is-a-parse-error :missing-doctype-name)
-     (setf current-token (make-token :doctype))
+     (create-new-token :doctype)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
      (emit-token current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf current-token (make-token :doctype))
+     (create-new-token :doctype)
      (setf (force-quirks-flag current-token) t)
      (switch-state :data-state)
      (emit-token :end-of-file))
     (Anything_else
-     (setf current-token (make-token :doctype))
+     (create-new-token :doctype)
      (token-name-append current-token current-input-character)
      (switch-state :DOCTYPE-name-state))))
 
