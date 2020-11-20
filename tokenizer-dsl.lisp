@@ -5,7 +5,7 @@
 
 
 (defmacro define-state (state &body body)
-  `(defmethod tokenizer-process1-in-state (self (state (eql ,state)) buffer start end reconsume-character)
+  `(defmethod tokenizer-process1-in-state (self (state (eql ',state)) buffer start end reconsume-character)
      (with-slots (current-token return-state temporary-buffer character-reference-code) self
        (let ((current-input-character nil))
          (declare (ignorable current-input-character))
@@ -84,17 +84,17 @@
 
 
 (defmacro switch-state (new-state)
-  `(tokenizer-switch-state self ,new-state))
+  `(tokenizer-switch-state self ',new-state))
 
 
 (defmacro reconsume-in (new-state)
-  `(progn (tokenizer-switch-state self ,new-state :reconsume-character current-input-character)
+  `(progn (tokenizer-switch-state self ',new-state :reconsume-character current-input-character)
           (setf reconsume-character current-input-character)
           (decf start)))
 
 
 (defmacro set-return-state (state)
-  `(setf (slot-value self 'return-state) ,state))
+  `(setf (slot-value self 'return-state) ',state))
 
 
 (defmacro switch-to-the-return-state ()
@@ -406,6 +406,8 @@
    temporary-buffer-clear
    temporary-buffer-equal
    this-is-a-parse-error
+
+   data-state
 
    EOF
    U+0000_NULL

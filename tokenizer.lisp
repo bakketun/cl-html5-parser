@@ -50,7 +50,7 @@
   (format *debug-io* "~&emit-token: ~S~&" args))
 
 
-(defun tokenizer-test (data &key (initial-state :data-state))
+(defun tokenizer-test (data &key (initial-state 'data-state))
   (let ((tz (make-instance 'html-tokenizer :state '?????)))
     (tokenizer-switch-state tz initial-state)
     (tokenizer-process tz data)
