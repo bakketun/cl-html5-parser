@@ -1,6 +1,6 @@
 ;; -*- mode: lisp; eval: (goto-address-mode) -*-
 
-(in-package #:html5-parser)
+(cl:in-package #:html5-parser-tokenizer-states)
 
 
 ;; 13.2.5.1 Data state
@@ -607,7 +607,7 @@
       U+0020_SPACE
       U+002F_SOLIDUS_|/|
       U+003E_GREATER-THAN_SIGN_|>|)
-     (if (string= temporary-buffer "script")
+     (if (temporary-buffer-equal "script")
          (switch-state :script-data-escaped-state)
          (switch-state :script-data-double-escaped-state))
      (emit-character-token current-input-character))
@@ -1588,7 +1588,7 @@ U+0020_SPACE)
      (switch-state :numeric-character-reference-state))
     (Anything_else
      (flush-code-points-consumed-as-a-character-reference)
-     (reconsume-in return-state))))
+     (reconsume-in-return-state))))
 
 
 ;; 13.2.5.73 Named character reference state
@@ -1611,7 +1611,7 @@ U+0020_SPACE)
                          (ascii-alphanumeric-p (next-input-character))))
                 (progn
                   (flush-code-points-consumed-as-a-character-reference)
-                  (switch-state return-state)))
+                  (switch-to-the-return-state)))
             ;; Othwerwise
             (progn
               ;; 1
@@ -1624,7 +1624,7 @@ U+0020_SPACE)
                 (temporary-buffer-append (elt matched 1)))
               ;; 3
               (flush-code-points-consumed-as-a-character-reference)
-              (switch-state return-state)))
+              (switch-to-the-return-state)))
 
           ;; Otherwise
           (progn
@@ -1643,9 +1643,9 @@ U+0020_SPACE)
          (emit-character-token current-input-character)))
     (U+003B_SEMICOLON_|;|
      (this-is-a-parse-error :unknown-named-character-reference)
-     (reconsume-in return-state))
+     (reconsume-in-return-state))
     (Anything_else
-     (reconsume-in return-state))))
+     (reconsume-in-return-state))))
 
 
 ;; 13.2.5.75 Numeric character reference state
@@ -1671,7 +1671,7 @@ U+0020_SPACE)
     (Anything_else
      (this-is-a-parse-error :absence-of-digits-in-numeric-character-reference)
      (flush-code-points-consumed-as-a-character-reference)
-     (reconsume-in return-state))))
+     (reconsume-in-return-state))))
 
 
 ;; 13.2.5.77 Decimal character reference start state
@@ -1684,7 +1684,7 @@ U+0020_SPACE)
     (Anything_else
      (this-is-a-parse-error :absence-of-digits-in-numeric-character-reference)
      (flush-code-points-consumed-as-a-character-reference)
-     (reconsume-in return-state))))
+     (reconsume-in-return-state))))
 
 
 ;; 13.2.5.78 Hexadecimal character reference state
@@ -1781,4 +1781,4 @@ U+0020_SPACE)
   (temporary-buffer-clear)
   (temporary-buffer-append (code-char character-reference-code))
   (flush-code-points-consumed-as-a-character-reference)
-  (switch-state return-state))
+  (switch-to-the-return-state))
