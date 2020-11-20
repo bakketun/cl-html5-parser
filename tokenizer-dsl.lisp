@@ -2,16 +2,16 @@
 
 
 (defmacro define-state (state &body body)
-  `(defmethod tokenizer-process1-in-state (self (state (eql ,state)) buffer start end)
-     (with-slots (current-token return-state temporary-buffer character-reference-code reconsume-character) self
+  `(defmethod tokenizer-process1-in-state (self (state (eql ,state)) buffer start end reconsume-character)
+     (with-slots (current-token return-state temporary-buffer character-reference-code) self
        (let ((current-input-character nil))
          (declare (ignorable current-input-character))
          (block nil
-           ,@body)
-         start))))
+           ,@body
+           (values start nil))))))
 
 
-(defconstant EOF 'EOF)
+(defconstant EOF #\Return)
 
 
 (defmacro current-character-case (&body cases)
@@ -42,9 +42,8 @@
 
 (defmacro next-input-character (&optional (n 1))
   `(let ((index (+ start ,n -1)))
-     (cond ((null buffer) (return))
-           ((< index end) (prog1 (aref buffer index)))
-           (t (throw 'next-input-character ,n)))))
+     (cond ((< index end) (prog1 (aref buffer index)))
+           (t (return start)))))
 
 
 (defmacro consume-next-input-character ()
@@ -53,10 +52,9 @@
             (setf current-input-character reconsume-character
                   reconsume-character nil)
             (incf start))
-           ((null buffer)
-            (setf current-input-character EOF))
            (t
             (setf current-input-character (next-input-character))
+            (incf start)
             ;; TODO
             ;; https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream
             ;; Any occurrences of surrogates are
@@ -65,7 +63,7 @@
             ;; errors and any occurrences of controls other than ASCII
             ;; whitespace and U+0000 NULL characters are
             ;; control-character-in-input-stream parse errors.
-            (incf start)))
+            ))
      current-input-character))
 
 
@@ -79,9 +77,8 @@
 
 
 (defmacro reconsume-in (new-state)
-  `(progn (setf reconsume-character current-input-character)
-          (decf start)
-          (tokenizer-switch-state self ,new-state :reconsumep t)))
+  `(progn (tokenizer-switch-state self ,new-state :reconsume-character current-input-character)
+          (return (values (max 0 (1- start)) current-input-character))))
 
 
 (defmacro this-is-a-parse-error (error-name)
