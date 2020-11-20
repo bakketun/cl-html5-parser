@@ -36,15 +36,15 @@
            (t
             (setf current-input-character (next-input-character))
             (incf start)
-            ;; TODO
-            ;; https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream
-            ;; Any occurrences of surrogates are
-            ;; surrogate-in-input-stream parse errors. Any occurrences
-            ;; of noncharacters are noncharacter-in-input-stream parse
-            ;; errors and any occurrences of controls other than ASCII
-            ;; whitespace and U+0000 NULL characters are
-            ;; control-character-in-input-stream parse errors.
-            ))
+            (let ((code-point (char-code current-input-character)))
+              (cond ((surrogate-p code-point)
+                     (this-is-a-parse-error :surrogate-in-input-stream))
+                    ((noncharacter-p code-point)
+                     (this-is-a-parse-error :noncharacter-in-input-stream))
+                    ((and (not (or (ascii-whitespace-p code-point)
+                                   (eql #x0000 code-point)))
+                          (control-p code-point))
+                     (this-is-a-parse-error :control-character-in-input-stream))))))
      current-input-character))
 
 
