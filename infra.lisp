@@ -12,8 +12,7 @@
 
 
 (defun c0-control-p (code-point)
-  (or (= #x0000 code-point)
-      (= #x001F code-point)))
+  (<= #x0000 code-point #x001F))
 
 
 (defun c0-control-or-space-p (code-point)
@@ -30,4 +29,5 @@
   (or (= #x0009 code-point)
       (= #x000A code-point)
       (= #x000C code-point)
+      (= #x000D code-point)
       (= #x0020 code-point)))
