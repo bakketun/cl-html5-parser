@@ -5,13 +5,15 @@
 
 
 (defmacro define-state (state &body body)
-  `(defmethod tokenizer-process1-in-state (self (state (eql ',state)) buffer start end reconsume-character)
-     (with-slots (current-token return-state temporary-buffer character-reference-code) self
-       (let ((current-input-character nil))
-         (declare (ignorable current-input-character))
-         (block nil
-           ,@body
-           (values start reconsume-character))))))
+  `(progn
+     (defclass ,state (html-tokenizer) ())
+     (defmethod tokenizer-process1-in-state ((self ,state) buffer start end reconsume-character)
+            (with-slots (current-token return-state temporary-buffer character-reference-code) self
+              (let ((current-input-character nil))
+                (declare (ignorable current-input-character))
+                (block nil
+                  ,@body
+                  (values start reconsume-character)))))))
 
 
 ;; Next and current input character

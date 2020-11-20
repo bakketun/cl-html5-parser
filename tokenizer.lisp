@@ -27,9 +27,6 @@
                   :accessor tokenizer-token-handler)
    (adjusted-current-node-not-in-HTML-namespace-p :initarg :adjusted-current-node-not-in-HTML-namespace-p
                                                   :initform (constantly nil))
-   (state :initarg :state
-          :initform :data-state
-          :accessor tokenizer-state)
    (last-start-tag :initarg :last-start-tag
                    :initform nil)
    (return-state)
@@ -40,7 +37,7 @@
 
 (defmethod print-object ((tz html-tokenizer) stream)
   (print-unreadable-object (tz stream :type t :identity t)
-    (loop :for slot :in '(state last-start-tag return-state current-token)
+    (loop :for slot :in '(last-start-tag return-state current-token)
           :do (when (and (slot-boundp tz slot)
                          (slot-value tz slot))
                 (format stream "(~S ~S) " slot (slot-value tz slot))))))
@@ -51,7 +48,7 @@
 
 
 (defun tokenizer-test (data &key (initial-state 'data-state))
-  (let ((tz (make-instance 'html-tokenizer :state '?????)))
+  (let ((tz (make-instance 'html-tokenizer)))
     (tokenizer-switch-state tz initial-state)
     (tokenizer-process tz data)
     tz))
@@ -71,7 +68,7 @@
 (defun tokenizer-process1 (tokenizer buffer &optional (start 0) (end (length buffer)))
   (labels ((process (start reconsume)
              (multiple-value-bind (new-start reconsume-character)
-                 (tokenizer-process1-in-state tokenizer (tokenizer-state tokenizer) buffer start end reconsume)
+                 (tokenizer-process1-in-state tokenizer buffer start end reconsume)
                (format *debug-io* "~&processed: (~S) ~S ~S~&" (- new-start start) (subseq buffer start new-start) reconsume-character)
                (if reconsume-character
                    (process new-start reconsume-character)
@@ -79,13 +76,12 @@
     (process start nil)))
 
 
-(defgeneric tokenizer-process1-in-state (tokenizer state buffer start end reconsumep))
+(defgeneric tokenizer-process1-in-state (tokenizer buffer start end reconsumep))
 
 
 (defun tokenizer-switch-state (tz new-state &key reconsume-character)
-  (with-slots (state) tz
-    (format *debug-io* "~&state: ~S → ~S~@[ reconsume ~S~]~&" state new-state reconsume-character)
-    (setf state new-state)))
+  (format *debug-io* "~&state: ~A → ~A~@[ reconsume ~S~]~&" (class-name (class-of tz)) new-state reconsume-character)
+  (change-class tz new-state))
 
 
 (defun tokenizer-emit-token (tokenizer &rest token)
