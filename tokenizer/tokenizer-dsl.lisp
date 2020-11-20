@@ -4,16 +4,21 @@
 (defconstant EOF #\Return)
 
 
-(defmacro define-state (state &body body)
+(defvar *tokenizer-states* (make-array 81 :initial-element :undefined))
+
+
+(defmacro define-state (name number title url &body body)
   `(progn
-     (defclass ,state (html-tokenizer) ())
-     (defmethod tokenizer-process1-in-state ((self ,state) buffer start end reconsume-character)
-            (with-slots (current-token return-state temporary-buffer character-reference-code) self
-              (let ((current-input-character nil))
-                (declare (ignorable current-input-character))
-                (block nil
-                  ,@body
-                  (values start reconsume-character)))))))
+     (defun ,name (self buffer start end reconsume-character)
+       ,(format nil "13.2.~A ~A~&~A" number title url)
+       (declare (ignorable buffer end))
+       (with-slots (current-token return-state temporary-buffer character-reference-code) self
+         (let ((current-input-character nil))
+           (declare (ignorable current-input-character))
+           (block nil
+             ,@body
+             (values start reconsume-character)))))
+     (setf (aref *tokenizer-states* ,number) #',name)))
 
 
 ;; Next and current input character
@@ -321,132 +326,3 @@
 (define-unicode-constant U+0078_LATIN_SMALL_LETTER_X)
 (define-unicode-constant U+0079_LATIN_SMALL_LETTER_Y)
 (define-unicode-constant U+FFFD_REPLACEMENT_CHARACTER)
-
-
-;;(delete-package :html5-parser-tokenizer-states)
-
-(defpackage :html5-parser-tokenizer-states
-  (:import-from
-   :common-lisp
-   *
-   <
-   =
-   and
-   case
-   cond
-   eql
-   if
-   incf
-   let
-   not
-   or
-   progn
-   setf
-   t
-   unless
-   when
-   )
-  (:import-from
-   :html5-parser
-   ASCII_alpha
-   ASCII_alphanumeric
-   ASCII_digit
-   ASCII_hex_digit
-   ASCII_lower_alpha
-   ASCII_lower_hex_digit
-   ASCII_upper_alpha
-   ASCII_upper_hex_digit
-   Anything_else
-   adjusted-current-node-not-in-HTML-namespace-p
-   anything_else-clause
-   ascii-alphanumeric-p
-   ascii-whitespace-p
-   character-reference-code
-   consume-next-input-character
-   consume-those-characters
-   consumed-as-part-of-an-attribute-p
-   control-p
-   create-new-token
-   current-attribute-name-append
-   current-attribute-value-append
-   current-character-case
-   current-input-character
-   current-token-add-attribute
-   current-token-appropriate-end-tag-p
-   current-token-data-append
-   current-token-force-quirks-flag
-   current-token-name-append
-   current-token-public-id-append
-   current-token-self-closing-flag
-   current-token-set-public-id-not-missing
-   current-token-set-system-id-not-missing
-   current-token-system-id-append
-   current-token-tag-name-append
-   define-state
-   emit-character-token
-   emit-character-token
-   emit-current-token
-   emit-end-of-file-token
-   entity-match
-   flush-code-points-consumed-as-a-character-reference
-   if-named-character-reference-match
-   lowercase-version-of
-   next-input-character
-   noncharacter-p
-   numeric-version-of-current-input-character
-   reconsume-in
-   reconsume-in-return-state
-   set-return-state
-   set-return-state
-   surrogate-p
-   switch-state
-   switch-to-the-return-state
-   temporary-buffer-append
-   temporary-buffer-append-code
-   temporary-buffer-append-entity
-   temporary-buffer-append-matched-character-reference
-   temporary-buffer-clear
-   temporary-buffer-equal
-   this-is-a-parse-error
-
-   data-state
-
-   EOF
-   U+0000_NULL
-   U+0009_CHARACTER_TABULATION
-   U+000A_LINE_FEED
-   U+000C_FORM_FEED
-   U+0020_SPACE
-   U+0021_EXCLAMATION_MARK_|!|
-   U+0022_QUOTATION_MARK_|"|
-   U+0023_NUMBER_SIGN_|#|
-   U+0026_AMPERSAND_|&|
-   U+0027_APOSTROPHE_|'|
-   U+002D_HYPHEN-MINUS_|-|
-   U+002F_SOLIDUS_|/|
-   U+003B_SEMICOLON_|;|
-   U+003C_LESS-THAN_SIGN_|<|
-   U+003D_EQUALS_SIGN_|=|
-   U+003E_GREATER-THAN_SIGN_|>|
-   U+003F_QUESTION_MARK_|?|
-   U+0058_LATIN_CAPITAL_LETTER_X
-   U+005B_LEFT_SQUARE_BRACKET_|[|
-   U+005D_RIGHT_SQUARE_BRACKET_|]|
-   U+0060_GRAVE_ACCENT_|`|
-   U+0061_LATIN_SMALL_LETTER_A
-   U+0062_LATIN_SMALL_LETTER_B
-   U+0063_LATIN_SMALL_LETTER_C
-   U+0064_LATIN_SMALL_LETTER_D
-   U+0065_LATIN_SMALL_LETTER_E
-   U+0069_LATIN_SMALL_LETTER_I
-   U+006C_LATIN_SMALL_LETTER_L
-   U+006D_LATIN_SMALL_LETTER_M
-   U+006F_LATIN_SMALL_LETTER_O
-   U+0070_LATIN_SMALL_LETTER_P
-   U+0073_LATIN_SMALL_LETTER_S
-   U+0074_LATIN_SMALL_LETTER_T
-   U+0075_LATIN_SMALL_LETTER_U
-   U+0078_LATIN_SMALL_LETTER_X
-   U+0079_LATIN_SMALL_LETTER_Y
-   U+FFFD_REPLACEMENT_CHARACTER
-   ))

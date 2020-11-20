@@ -29,6 +29,8 @@
                                                   :initform (constantly nil))
    (last-start-tag :initarg :last-start-tag
                    :initform nil)
+   (state :accessor tokenizer-state
+          :initform :undefined)
    (return-state)
    (current-token)
    (temporary-buffer :initform (make-growable-string))
@@ -37,7 +39,7 @@
 
 (defmethod print-object ((tz html-tokenizer) stream)
   (print-unreadable-object (tz stream :type t :identity t)
-    (loop :for slot :in '(last-start-tag return-state current-token)
+    (loop :for slot :in '(state last-start-tag return-state current-token)
           :do (when (and (slot-boundp tz slot)
                          (slot-value tz slot))
                 (format stream "(~S ~S) " slot (slot-value tz slot))))))
@@ -76,12 +78,13 @@
     (process start nil)))
 
 
-(defgeneric tokenizer-process1-in-state (tokenizer buffer start end reconsumep))
+(defun tokenizer-process1-in-state (tokenizer buffer start end reconsume)
+  (funcall (tokenizer-state tokenizer) tokenizer buffer start end reconsume))
 
 
 (defun tokenizer-switch-state (tz new-state &key reconsume-character)
-  (format *debug-io* "~&state: ~A → ~A~@[ reconsume ~S~]~&" (class-name (class-of tz)) new-state reconsume-character)
-  (change-class tz new-state))
+  (format *debug-io* "~&state: ~A → ~A~@[ reconsume ~S~]~&" (tokenizer-state tz) new-state reconsume-character)
+  (setf (tokenizer-state tz) new-state))
 
 
 (defun tokenizer-emit-token (tokenizer &rest token)
