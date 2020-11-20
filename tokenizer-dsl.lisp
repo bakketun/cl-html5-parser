@@ -14,6 +14,10 @@
 (defconstant EOF #\Return)
 
 
+(defun lowercase-version-of (char)
+  (char-downcase char))
+
+
 (defmacro current-character-case (&body cases)
   (let ((anything-else-progn `(progn ,@(cdr (assoc 'Anything_else cases)))))
     `(macrolet ((anything_else-clause ()
@@ -115,7 +119,6 @@
 (defmacro appropriate-end-tag-token-p (token)
   `(tag-name-match-p (getf ,token :name) (slot-value self 'last-start-tag)))
 
-
 (defmacro token-tag-name-append (token char)
   `(vector-push-extend ,char (getf ,token :name)))
 
@@ -193,7 +196,22 @@
 (define-unicode-constant U+003E_GREATER-THAN_SIGN_|>|)
 (define-unicode-constant U+003F_QUESTION_MARK_|?|)
 (define-unicode-constant U+0058_LATIN_CAPITAL_LETTER_X)
+(define-unicode-constant U+005B_LEFT_SQUARE_BRACKET_|[|)
 (define-unicode-constant U+005D_RIGHT_SQUARE_BRACKET_|]|)
 (define-unicode-constant U+0060_GRAVE_ACCENT_|`|)
+(define-unicode-constant U+0061_LATIN_SMALL_LETTER_A)
+(define-unicode-constant U+0062_LATIN_SMALL_LETTER_B)
+(define-unicode-constant U+0063_LATIN_SMALL_LETTER_C)
+(define-unicode-constant U+0064_LATIN_SMALL_LETTER_D)
+(define-unicode-constant U+0065_LATIN_SMALL_LETTER_E)
+(define-unicode-constant U+0069_LATIN_SMALL_LETTER_I)
+(define-unicode-constant U+006C_LATIN_SMALL_LETTER_L)
+(define-unicode-constant U+006D_LATIN_SMALL_LETTER_M)
+(define-unicode-constant U+006F_LATIN_SMALL_LETTER_O)
+(define-unicode-constant U+0070_LATIN_SMALL_LETTER_P)
+(define-unicode-constant U+0073_LATIN_SMALL_LETTER_S)
+(define-unicode-constant U+0074_LATIN_SMALL_LETTER_T)
+(define-unicode-constant U+0075_LATIN_SMALL_LETTER_U)
 (define-unicode-constant U+0078_LATIN_SMALL_LETTER_X)
+(define-unicode-constant U+0079_LATIN_SMALL_LETTER_Y)
 (define-unicode-constant U+FFFD_REPLACEMENT_CHARACTER)

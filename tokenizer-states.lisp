@@ -149,7 +149,7 @@
      (switch-state :data-state)
      (emit-current-token))
     (ASCII_upper_alpha
-     (token-tag-name-append current-token (char-downcase current-input-character)))
+     (token-tag-name-append current-token (lowercase-version-of current-input-character)))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (token-tag-name-append current-token U+FFFD_REPLACEMENT_CHARACTER))
@@ -208,7 +208,7 @@
                 (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
-     (token-tag-name-append current-token (char-downcase current-input-character))
+     (token-tag-name-append current-token (lowercase-version-of current-input-character))
      (temporary-buffer-append current-input-character))
     (ASCII_lower_alpha
      (token-tag-name-append current-token current-input-character)
@@ -266,7 +266,7 @@
                 (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
-     (token-tag-name-append current-token (char-downcase current-input-character))
+     (token-tag-name-append current-token (lowercase-version-of current-input-character))
      (temporary-buffer-append current-input-character))
     (ASCII_lower_alpha
      (token-tag-name-append current-token current-input-character)
@@ -327,7 +327,7 @@
                 (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
-     (token-tag-name-append current-token (char-downcase current-input-character))
+     (token-tag-name-append current-token (lowercase-version-of current-input-character))
      (temporary-buffer-append current-input-character))
     (ASCII_lower_alpha
      (token-tag-name-append current-token current-input-character)
@@ -479,7 +479,7 @@
                 (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
-     (token-tag-name-append current-token (char-downcase current-input-character))
+     (token-tag-name-append current-token (lowercase-version-of current-input-character))
      (temporary-buffer-append current-input-character))
     (ASCII_lower_alpha
      (token-tag-name-append current-token current-input-character)
@@ -505,7 +505,7 @@
          (switch-state :script-data-escaped-state))
      (emit-character-token current-input-character))
     (ASCII_upper_alpha
-     (temporary-buffer-append (char-downcase current-input-character))
+     (temporary-buffer-append (lowercase-version-of current-input-character))
      (emit-character-token current-input-character))
     (ASCII_lower_alpha
      (temporary-buffer-append current-input-character)
@@ -612,7 +612,7 @@
          (switch-state :script-data-double-escaped-state))
      (emit-character-token current-input-character))
     (ASCII_upper_alpha
-     (temporary-buffer-append (char-downcase current-input-character))
+     (temporary-buffer-append (lowercase-version-of current-input-character))
      (emit-character-token current-input-character))
     (ASCII_lower_alpha
      (temporary-buffer-append current-input-character)
@@ -661,7 +661,7 @@
     (U+003D_EQUALS_SIGN_|=|
      (switch-state :before-attribute-value-state))
     (ASCII_upper_alpha
-     (current-attribute-name-append (char-downcase current-input-character)))
+     (current-attribute-name-append (lowercase-version-of current-input-character)))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-attribute-name-append U+FFFD_REPLACEMENT_CHARACTER))
@@ -864,23 +864,23 @@ U+0020_SPACE)
      (create-new-token :comment)
      (switch-state :comment-start-state))
 
-    ((and (eql #\D (char-upcase (next-input-character 1)))
-          (eql #\O (char-upcase (next-input-character 2)))
-          (eql #\C (char-upcase (next-input-character 3)))
-          (eql #\T (char-upcase (next-input-character 4)))
-          (eql #\Y (char-upcase (next-input-character 5)))
-          (eql #\P (char-upcase (next-input-character 6)))
-          (eql #\E (char-upcase (next-input-character 7))))
+    ((and (eql U+0064_LATIN_SMALL_LETTER_D (lowercase-version-of (next-input-character 1)))
+          (eql U+006F_LATIN_SMALL_LETTER_O (lowercase-version-of (next-input-character 2)))
+          (eql U+0063_LATIN_SMALL_LETTER_C (lowercase-version-of (next-input-character 3)))
+          (eql U+0074_LATIN_SMALL_LETTER_T (lowercase-version-of (next-input-character 4)))
+          (eql U+0079_LATIN_SMALL_LETTER_Y (lowercase-version-of (next-input-character 5)))
+          (eql U+0070_LATIN_SMALL_LETTER_P (lowercase-version-of (next-input-character 6)))
+          (eql U+0065_LATIN_SMALL_LETTER_E (lowercase-version-of (next-input-character 7))))
      (consume-those-characters 7)
      (switch-state :doctype-state))
 
-    ((and (eql #\[ (next-input-character 1))
-          (eql #\C (next-input-character 2))
-          (eql #\D (next-input-character 3))
-          (eql #\A (next-input-character 4))
-          (eql #\T (next-input-character 5))
-          (eql #\A (next-input-character 6))
-          (eql #\[ (next-input-character 7)))
+    ((and (eql U+005B_LEFT_SQUARE_BRACKET_|[| (next-input-character 1))
+          (eql U+0063_LATIN_SMALL_LETTER_C (next-input-character 2))
+          (eql U+0064_LATIN_SMALL_LETTER_D (next-input-character 3))
+          (eql U+0061_LATIN_SMALL_LETTER_A (next-input-character 4))
+          (eql U+0074_LATIN_SMALL_LETTER_T (next-input-character 5))
+          (eql U+0061_LATIN_SMALL_LETTER_A (next-input-character 6))
+          (eql U+005B_LEFT_SQUARE_BRACKET_|[| (next-input-character 7)))
      (consume-those-characters 7)
      (if (adjusted-current-node-not-in-HTML-namespace-p)
          (switch-state :cdata-section-state)
@@ -1099,7 +1099,7 @@ EOF)
      )
     (ASCII_upper_alpha
      (create-new-token :doctype)
-     (token-name-append current-token (char-downcase current-input-character))
+     (token-name-append current-token (lowercase-version-of current-input-character))
      (switch-state :DOCTYPE-name-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -1138,7 +1138,7 @@ EOF)
      (switch-state :data-state)
      (emit-current-token))
     (ASCII_upper_alpha
-     (token-name-append current-token (char-downcase current-input-character)))
+     (token-name-append current-token (lowercase-version-of current-input-character)))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (token-name-append current-token U+FFFD_REPLACEMENT_CHARACTER))
@@ -1171,21 +1171,21 @@ EOF)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
-     (cond ((and (eql #\P (char-upcase current-input-character))
-                 (eql #\U (char-upcase (next-input-character 1)))
-                 (eql #\B (char-upcase (next-input-character 2)))
-                 (eql #\L (char-upcase (next-input-character 3)))
-                 (eql #\I (char-upcase (next-input-character 4)))
-                 (eql #\C (char-upcase (next-input-character 5))))
+     (cond ((and (eql U+0070_LATIN_SMALL_LETTER_P (lowercase-version-of current-input-character))
+                 (eql U+0075_LATIN_SMALL_LETTER_U (lowercase-version-of (next-input-character 1)))
+                 (eql U+0062_LATIN_SMALL_LETTER_B (lowercase-version-of (next-input-character 2)))
+                 (eql U+006C_LATIN_SMALL_LETTER_L (lowercase-version-of (next-input-character 3)))
+                 (eql U+0069_LATIN_SMALL_LETTER_I (lowercase-version-of (next-input-character 4)))
+                 (eql U+0063_LATIN_SMALL_LETTER_C (lowercase-version-of (next-input-character 5))))
             (consume-those-characters 5)
             (switch-state :after-doctype-public-keyword-state))
 
-           ((and (eql #\S (char-upcase current-input-character))
-                 (eql #\Y (char-upcase (next-input-character 1)))
-                 (eql #\S (char-upcase (next-input-character 2)))
-                 (eql #\T (char-upcase (next-input-character 3)))
-                 (eql #\E (char-upcase (next-input-character 4)))
-                 (eql #\M (char-upcase (next-input-character 5))))
+           ((and (eql U+0073_LATIN_SMALL_LETTER_S (lowercase-version-of current-input-character))
+                 (eql U+0079_LATIN_SMALL_LETTER_Y (lowercase-version-of (next-input-character 1)))
+                 (eql U+0073_LATIN_SMALL_LETTER_S (lowercase-version-of (next-input-character 2)))
+                 (eql U+0074_LATIN_SMALL_LETTER_T (lowercase-version-of (next-input-character 3)))
+                 (eql U+0065_LATIN_SMALL_LETTER_E (lowercase-version-of (next-input-character 4)))
+                 (eql U+006D_LATIN_SMALL_LETTER_M (lowercase-version-of (next-input-character 5))))
             (consume-those-characters 5)
             (switch-state :after-doctype-system-keyword-state))
 
