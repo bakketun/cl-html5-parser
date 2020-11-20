@@ -147,6 +147,25 @@
   `(string= temporary-buffer ,string))
 
 
+;; Entity reference
+
+(defmacro if-named-character-reference-match (matched-form else-form)
+  `(let ((peek-offset 0))
+     (multiple-value-bind (matched-entity matched-length)
+         (entity-match (lambda ()
+                         (incf peek-offset)
+                         (next-input-character peek-offset)))
+       (loop :repeat matched-length
+             :do (temporary-buffer-append (consume-next-input-character)))
+       (if matched-entity
+           ,matched-form
+           ,else-form))))
+
+
+(defmacro temporary-buffer-append-matched-character-reference ()
+  `(temporary-buffer-append-entity matched-entity))
+
+
 ;; Current token
 
 (defun make-token (type)
@@ -316,10 +335,7 @@
    eql
    if
    incf
-   lambda
    let
-   loop
-   multiple-value-bind
    not
    or
    progn
@@ -371,6 +387,7 @@
    emit-end-of-file-token
    entity-match
    flush-code-points-consumed-as-a-character-reference
+   if-named-character-reference-match
    lowercase-version-of
    next-input-character
    noncharacter-p
@@ -385,9 +402,9 @@
    temporary-buffer-append
    temporary-buffer-append-code
    temporary-buffer-append-entity
+   temporary-buffer-append-matched-character-reference
    temporary-buffer-clear
    temporary-buffer-equal
-   this-is-a-parse-error
    this-is-a-parse-error
 
    EOF
