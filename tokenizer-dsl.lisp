@@ -8,7 +8,7 @@
          (declare (ignorable current-input-character))
          (block nil
            ,@body
-           (values start nil))))))
+           (values start reconsume-character))))))
 
 
 (defconstant EOF #\Return)
@@ -78,7 +78,8 @@
 
 (defmacro reconsume-in (new-state)
   `(progn (tokenizer-switch-state self ,new-state :reconsume-character current-input-character)
-          (return (values (max 0 (1- start)) current-input-character))))
+          (setf reconsume-character current-input-character)
+          (decf start)))
 
 
 (defmacro this-is-a-parse-error (error-name)
