@@ -88,8 +88,6 @@
 
 ;; State
 
-
-
 (defmacro switch-state (new-state)
   `(tokenizer-switch-state self ',new-state))
 
@@ -200,7 +198,7 @@
 
 
 (defmacro current-token-appropriate-end-tag-p ()
-  `(tag-name-match-p (getf current-token :name) (slot-value self 'last-start-tag)))
+  `(equal (getf current-token :name) (slot-value self 'last-start-tag)))
 
 
 (defmacro current-token-tag-name-append (char)
@@ -273,11 +271,6 @@
 
 (defun lowercase-version-of (char)
   (char-downcase char))
-
-
-(defun tag-name-match-p (name1 name2)
-  "todo: how to match tagnames correctly?"
-  (string-equal name1 name2))
 
 
 ;; Constants for characters used in tokenizer state functions
