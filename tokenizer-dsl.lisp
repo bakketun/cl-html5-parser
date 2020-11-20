@@ -16,6 +16,11 @@
 
 ;; Next and current input character
 
+
+(defmacro numeric-version-of-current-input-character (subtract)
+  `(- (char-code current-input-character) ,subtract))
+
+
 (defmacro next-input-character (&optional (n 1))
   `(let ((index (+ start ,n -1)))
      (cond ((< index end) (prog1 (aref buffer index)))
@@ -125,8 +130,17 @@
   `(setf (fill-pointer temporary-buffer) 0))
 
 
-(defmacro temporary-buffer-append (char)
-  `(vector-push-extend ,char temporary-buffer))
+(defmacro temporary-buffer-append (data)
+  `(vector-push-extend ,data temporary-buffer))
+
+
+(defmacro temporary-buffer-append-entity (data)
+  `(loop :for char :across ,data :do
+    (vector-push-extend char temporary-buffer)))
+
+
+(defmacro temporary-buffer-append-code (code)
+  `(vector-push-extend (code-char ,code) temporary-buffer))
 
 
 (defmacro temporary-buffer-equal (string)
@@ -294,20 +308,15 @@
   (:import-from
    :common-lisp
    *
-   -
    <
    =
    and
    case
-   char-code
-   code-char
    cond
-   elt
    eql
    if
    incf
    lambda
-   length
    let
    loop
    multiple-value-bind
@@ -365,6 +374,7 @@
    lowercase-version-of
    next-input-character
    noncharacter-p
+   numeric-version-of-current-input-character
    reconsume-in
    reconsume-in-return-state
    set-return-state
@@ -373,6 +383,8 @@
    switch-state
    switch-to-the-return-state
    temporary-buffer-append
+   temporary-buffer-append-code
+   temporary-buffer-append-entity
    temporary-buffer-clear
    temporary-buffer-equal
    this-is-a-parse-error

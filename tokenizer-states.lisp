@@ -1619,9 +1619,7 @@ U+0020_SPACE)
                 (this-is-a-parse-error :missing-semicolon-after-character-reference))
               ;; 2 Add the one or two match characters
               (temporary-buffer-clear)
-              (temporary-buffer-append (elt matched 0))
-              (when (< 1 (length matched))
-                (temporary-buffer-append (elt matched 1)))
+              (temporary-buffer-append-entity matched)
               ;; 3
               (flush-code-points-consumed-as-a-character-reference)
               (switch-to-the-return-state)))
@@ -1694,13 +1692,13 @@ U+0020_SPACE)
   (current-character-case
     (ASCII_digit
      (setf character-reference-code (* 16 character-reference-code))
-     (incf character-reference-code (- (char-code current-input-character) #x0030)))
+     (incf character-reference-code (numeric-version-of-current-input-character #x0030)))
     (ASCII_upper_hex_digit
      (setf character-reference-code (* 16 character-reference-code))
-     (incf character-reference-code (- (char-code current-input-character) #x0037)))
+     (incf character-reference-code (numeric-version-of-current-input-character #x0037)))
     (ASCII_lower_hex_digit
      (setf character-reference-code (* 16 character-reference-code))
-     (incf character-reference-code (- (char-code current-input-character) #x0057)))
+     (incf character-reference-code (numeric-version-of-current-input-character #x0057)))
     (U+003B_SEMICOLON_|;|
      (switch-state :numeric-character-reference-end-state))
     (Anything_else
@@ -1714,8 +1712,8 @@ U+0020_SPACE)
   (consume-next-input-character)
   (current-character-case
     (ASCII_digit
-     (setf character-reference-code (* 16 character-reference-code))
-     (incf character-reference-code (- (char-code current-input-character) #x0030)))
+     (setf character-reference-code (* 10 character-reference-code))
+     (incf character-reference-code (numeric-version-of-current-input-character #x0030)))
     (U+003B_SEMICOLON_|;|
      (switch-state :numeric-character-reference-end-state))
     (Anything_else
@@ -1779,6 +1777,6 @@ U+0020_SPACE)
              (otherwise character-reference-code)))))
 
   (temporary-buffer-clear)
-  (temporary-buffer-append (code-char character-reference-code))
+  (temporary-buffer-append-code character-reference-code)
   (flush-code-points-consumed-as-a-character-reference)
   (switch-to-the-return-state))
