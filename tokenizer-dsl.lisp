@@ -2,15 +2,17 @@
 
 
 (defmacro define-state (state &body body)
-  `(defmethod run-state* (self (state (eql ,state)))
-     (with-slots (current-token return-state temporary-buffer character-reference-code) self
-       (let (current-input-character)
+  `(defmethod tokenizer-process1-in-state (self (state (eql ,state)) buffer start end)
+     (with-slots (current-token return-state temporary-buffer character-reference-code reconsume-character) self
+       (let ((current-input-character nil))
          (declare (ignorable current-input-character))
          (block nil
-           ,@body
-           t)))))
+           ,@body)
+         start))))
 
-(defconstant EOF '+eof+)
+
+(defconstant EOF 'EOF)
+
 
 (defmacro current-character-case (&body cases)
   (let ((anything-else-progn `(progn ,@(cdr (assoc 'Anything_else cases)))))
@@ -38,74 +40,70 @@
                                     forms)))))))
 
 
+(defmacro next-input-character (&optional (n 1))
+  `(let ((index (+ start ,n -1)))
+     (cond ((null buffer) (return))
+           ((< index end) (prog1 (aref buffer index)))
+           (t (throw 'next-input-character ,n)))))
+
+
+(defmacro consume-next-input-character ()
+  `(progn
+     (cond (reconsume-character
+            (setf current-input-character reconsume-character
+                  reconsume-character nil)
+            (incf start))
+           ((null buffer)
+            (setf current-input-character EOF))
+           (t
+            (setf current-input-character (next-input-character))
+            ;; TODO
+            ;; https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream
+            ;; Any occurrences of surrogates are
+            ;; surrogate-in-input-stream parse errors. Any occurrences
+            ;; of noncharacters are noncharacter-in-input-stream parse
+            ;; errors and any occurrences of controls other than ASCII
+            ;; whitespace and U+0000 NULL characters are
+            ;; control-character-in-input-stream parse errors.
+            (incf start)))
+     current-input-character))
+
+
 (defmacro consume-those-characters (n)
   `(loop :repeat ,n
          :do (consume-next-input-character)))
 
 
-(defmacro next-input-character (&optional (n 1))
-  `(with-slots (peek-buffer stream) self
-     (when (<= ,n (length peek-buffer))
-       (vector-push-extend (html5-stream-char stream) peek-buffer))
-     (aref peek-buffer (1- ,n))))
-
-
-(defmacro consume-next-input-character ()
-  `(with-slots (peek-buffer stream) self
-     (setf current-input-character (if (plusp (length peek-buffer))
-                                       (prog1 (aref peek-buffer 0)
-                                         (replace peek-buffer peek-buffer :start2 1)
-                                         (decf (fill-pointer peek-buffer)))
-                                       (html5-stream-char stream)))))
-
 (defmacro switch-state (new-state)
-  `(setf (slot-value self 'state) ,new-state))
+  `(tokenizer-switch-state self ,new-state))
 
 
 (defmacro reconsume-in (new-state)
-  `(with-slots (state peek-buffer) self
-     (vector-push-extend current-input-character peek-buffer)
-     (setf state ,new-state)))
+  `(progn (setf reconsume-character current-input-character)
+          (decf start)
+          (tokenizer-switch-state self ,new-state :reconsumep t)))
 
 
 (defmacro this-is-a-parse-error (error-name)
-  `(push-token self '(:type :parse-error :data ,error-name)))
+  `(tokenizer-emit-token self :type :parse-error :data ,error-name))
 
 
 (defmacro emit-current-token ()
-  `(emit-current-token* self))
+  `(progn (setf (slot-value self 'last-start-tag) (getf current-token :name))
+          (apply #'tokenizer-emit-token self current-token)))
 
 
 (defmacro emit-end-of-file-token ()
-  `(return))
+  `(tokenizer-emit-token self :type :end-of-file))
 
 
 (defmacro emit-character-token (&rest args)
-  `(push-token* self :characters ,@args))
+  `(tokenizer-emit-token self :type :character ,@args))
 
 
 (defmacro set-return-state (state)
   `(setf (slot-value self 'return-state) ,state))
 
-
-(defun make-token (type)
-  (ecase type
-    (:start-tag (list :type :start-tag
-                      :name (make-growable-string)
-                      :data '()
-                      :self-closing nil
-                      :self-closing-acknowledged nil))
-    (:end-tag (list :type :end-tag
-                    :name (make-growable-string)
-                    :data '()
-                    :self-closing nil))
-    (:comment (list :type :comment
-                    :data (make-growable-string)))
-    (:doctype (list :type :doctype
-                    :name (make-growable-string)
-                    :public-id nil
-                    :system-id nil
-                    :force-quirks nil))))
 
 (defmacro create-new-token (type)
   `(setf current-token (make-token ,type)))
@@ -117,7 +115,7 @@
 
 
 (defmacro appropriate-end-tag-token-p (token)
-  `(tag-name-match-p (getf ,token :name) (getf (slot-value self 'last-start-tag) :name)))
+  `(tag-name-match-p (getf ,token :name) (slot-value self 'last-start-tag)))
 
 
 (defmacro token-tag-name-append (token char)
@@ -169,7 +167,7 @@
        (loop :for char :across temporary-buffer
              :do (current-attribute-value-append char))
        (loop :for char :across temporary-buffer
-             :do (emit-token :character char))))
+             :do (emit-character-token char))))
 
 
 (defmacro define-unicode-constant (symbol)

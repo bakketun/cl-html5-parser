@@ -20,57 +20,73 @@
 
 (in-package :html5-parser)
 
+
 (defclass html-tokenizer ()
-  ((stream :initarg :stream :reader tokenizer-stream)
+  ((token-handler :initarg :token-handler
+                  :initform 'debug-token-handler
+                  :accessor tokenizer-token-handler)
    (adjusted-current-node-not-in-HTML-namespace-p :initarg :adjusted-current-node-not-in-HTML-namespace-p
-                        :initform (constantly nil))
-   (lowercase-element-name :initform t)
-   (lowercase-attr-name :initform t)
-   (escape-flag :initform nil)
-   (last-four-chars :initform nil)
-   (peek-buffer :initform (make-array 0 :fill-pointer t))
-   (state :initform :data-state :accessor tokenizer-state)
+                                                  :initform (constantly nil))
+   (state :initarg :state
+          :initform :data-state
+          :accessor tokenizer-state)
+   (last-start-tag :initarg :last-start-tag
+                   :initform nil)
    (return-state)
-   (escape :initform nil)
-   (current-token :initform nil)
-   (token-queue :initform nil)
+   (current-token)
+   (reconsume-character :initform nil)
    (temporary-buffer :initform (make-growable-string))
-   (last-start-tag :initform nil)
    (character-reference-code)))
 
-(defun make-html-tokenizer (source &key encoding adjusted-current-node-not-in-HTML-namespace-p)
-  (make-instance 'html-tokenizer
-                 :stream (make-html-input-stream source :override-encoding encoding)
-                 :adjusted-current-node-not-in-HTML-namespace-p adjusted-current-node-not-in-HTML-namespace-p))
 
-(defun map-tokens (tokenizer function)
-  "Return next token or NIL on eof"
-  (with-slots (token-queue stream) tokenizer
-    (loop while (run-state tokenizer) do
-         (setf token-queue (nreverse token-queue))
-         (loop while (html5-stream-errors stream)
-            do (funcall function (list :type :parse-error :data (pop (html5-stream-errors stream)))))
-         (loop while token-queue
-            do (funcall function (pop token-queue))))))
+(defmethod print-object ((tz html-tokenizer) stream)
+  (print-unreadable-object (tz stream :type t :identity t)
+    (loop :for slot :in '(state last-start-tag return-state current-token reconsume-character)
+          :do (when (and (slot-boundp tz slot)
+                         (slot-value tz slot))
+                (format stream "(~S ~S) " slot (slot-value tz slot))))))
 
-(defun run-state (tokenizer)
-  (run-state* tokenizer (slot-value tokenizer 'state)))
 
-(defgeneric run-state* (tokenizer state))
+(defun debug-token-handler (&rest args)
+  (format *debug-io* "~&emit-token: ~S~&" args))
 
-(defmacro defstate (state (&rest slots) &body body)
-  `(defmethod old-run-state* (self (state (eql ,state)))
-     (with-slots (,@slots) self
-       (block nil
-         ,@body
-         t))))
 
-(defun push-token (self token)
-  (with-slots (token-queue) self
-    (push token token-queue)))
+(defun tokenizer-test (data &key (initial-state :data-state))
+  (let ((tz (make-instance 'html-tokenizer :state '?????)))
+    (tokenizer-switch-state tz initial-state)
+    (tokenizer-process tz data)
+    tz))
 
-(defun emit-parse-error (self code)
-  (push-token self `(:type :parse-error :data ,code)))
+
+(defun tokenizer-process (tokenizer buffer &optional (start 0) (end (length buffer)))
+  (let ((new-start (tokenizer-process1 tokenizer buffer start end)))
+    (if (< new-start end)
+        (tokenizer-process tokenizer buffer new-start end)
+        new-start)))
+
+
+(defun tokenizer-end-of-file (tokenizer)
+  (tokenizer-process1 tokenizer nil))
+
+
+(defun tokenizer-process1 (tokenizer buffer &optional (start 0) (end (length buffer)))
+  (let ((new-start (tokenizer-process1-in-state tokenizer (tokenizer-state tokenizer) buffer start end)))
+    (format *debug-io* "~&processed: (~S) ~S~&" (- new-start start) (subseq buffer start new-start))
+    new-start))
+
+
+(defgeneric tokenizer-process1-in-state (tokenizer state buffer start end ))
+
+
+(defun tokenizer-switch-state (tz new-state &key reconsumep)
+  (with-slots (state) tz
+    (format *debug-io* "~&state: ~S → ~S~@[ reconsume~]~&" state new-state reconsumep)
+    (setf state new-state)))
+
+
+(defun tokenizer-emit-token (tokenizer &rest token)
+  (apply (tokenizer-token-handler tokenizer) token))
+
 
 (defun make-growable-string (&optional (init ""))
   "Make an adjustable string with a fill pointer.
@@ -104,10 +120,6 @@ pointer at the end."
 
 (define-modify-macro nconcatf (&rest data) nconcat)
 
-(defun push-token* (self type &rest data)
-  "Push a token with :type type and :data the a string concatenation of data"
-  (push-token self (list :type type
-                         :data (apply #'nconcat (make-growable-string) data))))
 
 (defun add-attribute (token name)
   (setf (getf token :data) (append (getf token :data)
@@ -131,24 +143,3 @@ pointer at the end."
         (apply #'nconcat
                (or (getf token indicator) "")
                data)))
-
-(defun emit-current-token* (self)
-  "This method is a generic handler for emitting the tags. It also sets
-   the state to :data because that's what's needed after a token has been
-   emitted.
-  "
-  (with-slots (current-token state lowercase-element-name last-start-tag) self
-    (when (eql :start-tag (getf current-token :type))
-      (setf last-start-tag current-token))
-    (let ((token current-token))
-      ;; Add token to the queue to be yielded
-      (when (find (getf token :type) +tag-token-types+)
-        (when lowercase-element-name
-          (setf (getf token :name) (ascii-upper-2-lower (getf token :name))))
-        (when (eql (getf token :type) :end-tag)
-          (when (getf token :data)
-            (push-token self '(:type :parse-error :data :end-tag-with-attributes)))
-          (when (getf token :self-closing)
-            (push-token self '(:type :parse-error :data :self-closing-flag-on-end-tag)))))
-      (push-token self token)
-      (setf state :data-state))))

@@ -29,7 +29,8 @@
                  (when (entity-trie-node-code-points node)
                    (setf code-points (entity-trie-node-code-points node)
                          match-length depth))
-                 (match (entity-trie-node-search node (funcall read-char-function)) (1+ depth)))))
+                 (when (plusp (length (entity-trie-node-subnodes node)))
+                   (match (entity-trie-node-search node (funcall read-char-function)) (1+ depth))))))
       (match *entity-trie-root* 0))
     (values code-points match-length)))
 

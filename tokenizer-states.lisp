@@ -890,7 +890,6 @@ U+0020_SPACE)
                 (switch-state :bogus-comment-state))))
 
     (t ;; Anything else
-     (break "here")
      (this-is-a-parse-error :incorrectly-opened-comment)
      (create-new-token :comment)
      (switch-state :bogus-comment-state))))
