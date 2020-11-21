@@ -443,7 +443,7 @@
   "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-less-than-sign-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (temporary-buffer-clear)
      (switch-state script-data-escaped-end-tag-open-state))
     (ASCII_alpha
@@ -465,6 +465,7 @@
      (reconsume-in script-data-escaped-end-tag-name-state))
     (Anything_else
      (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+002F_SOLIDUS_/)
      (reconsume-in script-data-escaped-state))))
 
 
