@@ -1728,8 +1728,8 @@ U+0020_SPACE)
 
 
 (define-state numeric-character-reference-end-state
-  80 "Numeric character reference end state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#numeric-character-reference-end-state"
+    80 "Numeric character reference end state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#numeric-character-reference-end-state"
   ;; Check the character reference code:
   (cond
     ((= 0 character-reference-code)
@@ -1781,7 +1781,6 @@ U+0020_SPACE)
              (#x9E #x017E) ;; LATIN SMALL LETTER Z WITH CARON (ž)
              (#x9F #x0178) ;; LATIN CAPITAL LETTER Y WITH DIAERESIS (Ÿ))
              (otherwise character-reference-code)))))
-
   (temporary-buffer-clear)
   (temporary-buffer-append-code character-reference-code)
   (flush-code-points-consumed-as-a-character-reference)

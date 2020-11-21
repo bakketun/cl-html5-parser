@@ -29,7 +29,7 @@
   `(- (char-code current-input-character) ,subtract))
 
 
-(defmacro next-input-character (&optional offset)
+(defmacro next-input-character (&optional (offset 0))
   `(or (input-stream-next-input-character input-stream ,offset)
        (return)))
 

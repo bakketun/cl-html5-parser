@@ -15,6 +15,7 @@
    let
    not
    or
+   otherwise
    progn
    setf
    t
