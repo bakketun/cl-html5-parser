@@ -4,14 +4,14 @@
 
 
 (define-state data-state
-  1 "Data state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#data-state"
+    1 "Data state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#data-state"
   (consume-next-input-character)
   (current-character-case
-    (U+0026_AMPERSAND_|&|
+    (U+0026_AMPERSAND_&
      (set-return-state data-state)
      (switch-state character-reference-state))
-    (U+003C_LESS-THAN_SIGN_|<|
+    (U+003C_LESS-THAN_SIGN_<
      (switch-state tag-open-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -23,14 +23,14 @@
 
 
 (define-state rcdata-state
-  2 "RCDATA state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#rcdata-state"
+    2 "RCDATA state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#rcdata-state"
   (consume-next-input-character)
   (current-character-case
-    (U+0026_AMPERSAND_|&|
+    (U+0026_AMPERSAND_&
      (set-return-state rcdata-state)
      (switch-state character-reference-state))
-    (U+003C_LESS-THAN_SIGN_|<|
+    (U+003C_LESS-THAN_SIGN_<
      (switch-state RCDATA-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -42,11 +42,11 @@
 
 
 (define-state rawtext-state
-  3 "RAWTEXT state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#rawtext-state"
+    3 "RAWTEXT state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#rawtext-state"
   (consume-next-input-character)
   (current-character-case
-    (U+003C_LESS-THAN_SIGN_|<|
+    (U+003C_LESS-THAN_SIGN_<
      (switch-state RAWTEXT-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -58,11 +58,11 @@
 
 
 (define-state script-data-state
-  4 "Script data state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-state"
+    4 "Script data state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-state"
   (consume-next-input-character)
   (current-character-case
-    (U+003C_LESS-THAN_SIGN_|<|
+    (U+003C_LESS-THAN_SIGN_<
      (switch-state script-data-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -74,8 +74,8 @@
 
 
 (define-state plaintext-state
-  5 "PLAINTEXT state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#plaintext-state"
+    5 "PLAINTEXT state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#plaintext-state"
   (consume-next-input-character)
   (current-character-case
     (U+0000_NULL
@@ -88,46 +88,46 @@
 
 
 (define-state tag-open-state
-  6 "Tag open state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state"
+    6 "Tag open state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state"
   (consume-next-input-character)
   (current-character-case
-    (U+0021_EXCLAMATION_MARK_|!|
+    (U+0021_EXCLAMATION_MARK_!
      (switch-state markup-declaration-open-state))
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (switch-state end-tag-open-state))
     (ASCII_alpha
      (create-new-token :start-tag)
      (reconsume-in tag-name-state))
-    (U+003F_QUESTION_MARK_|?|
+    (U+003F_QUESTION_MARK_?
      (this-is-a-parse-error :unexpected-question-mark-instead-of-tag-name)
      (create-new-token :comment)
      (reconsume-in bogus-comment-state))
     (EOF
      (this-is-a-parse-error :eof-before-tag-name)
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
      (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :invalid-first-character-of-tag-name)
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
      (reconsume-in data-state))))
 
 
 (define-state end-tag-open-state
-  7 "End tag open state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#end-tag-open-state"
+    7 "End tag open state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#end-tag-open-state"
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
      (create-new-token :end-tag)
      (reconsume-in tag-name-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-end-tag-name)
      (switch-state data-state))
     (EOF
      (this-is-a-parse-error :eof-before-tag-name)
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
-     (emit-character-token U+002F_SOLIDUS_|/|))
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
+     (emit-character-token U+002F_SOLIDUS_/))
     (Anything_else
      (this-is-a-parse-error :invalid-first-character-of-tag-name)
      (create-new-token :comment)
@@ -135,8 +135,8 @@
 
 
 (define-state tag-name-state
-  8 "Tag name state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#tag-name-state"
+    8 "Tag name state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#tag-name-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -144,9 +144,9 @@
       U+000C_FORM_FEED
       U+0020_SPACE)
      (switch-state before-attribute-name-state))
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (switch-state self-closing-start-tag-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
     (ASCII_upper_alpha
@@ -162,35 +162,35 @@
 
 
 (define-state rcdata-less-than-sign-state
-  9 "RCDATA less-than sign state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#rcdata-less-than-sign-state"
+    9 "RCDATA less-than sign state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#rcdata-less-than-sign-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (temporary-buffer-clear)
      (switch-state RCDATA-end-tag-open-state))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
      (reconsume-in RCDATA-state))))
 
 
 (define-state rcdata-end-tag-open-state
-  10 "RCDATA end tag open state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#rcdata-end-tag-open-state"
+    10 "RCDATA end tag open state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#rcdata-end-tag-open-state"
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
      (create-new-token :end-tag)
      (reconsume-in RCDATA-end-tag-name-state))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
-     (emit-character-token U+002F_SOLIDUS_|/|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
+     (emit-character-token U+002F_SOLIDUS_/)
      (reconsume-in RCDATA-state))))
 
 
 (define-state rcdata-end-tag-name-state
-  11 "RCDATA end tag name state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#rcdata-end-tag-name-state"
+    11 "RCDATA end tag name state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#rcdata-end-tag-name-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -200,11 +200,11 @@
      (if (current-token-appropriate-end-tag-p)
          (switch-state before-attribute-name-state)
          (anything_else-clause)))
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (if (current-token-appropriate-end-tag-p)
          (switch-state self-closing-start-tag-state)
          (anything_else-clause)))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (if (current-token-appropriate-end-tag-p)
          (progn (switch-state data-state)
                 (emit-current-token))
@@ -216,42 +216,42 @@
      (current-token-tag-name-append current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
-     (emit-character-token U+002F_SOLIDUS_|/|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
+     (emit-character-token U+002F_SOLIDUS_/)
      (emit-character-tokens-from-temporary-buffer)
      (reconsume-in RCDATA-state))))
 
 
 (define-state rawtext-less-than-sign-state
-  12 "RAWTEXT less-than sign state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#rawtext-less-than-sign-state"
+    12 "RAWTEXT less-than sign state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#rawtext-less-than-sign-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (temporary-buffer-clear)
      (switch-state RAWTEXT-end-tag-open-state))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
      (reconsume-in RAWTEXT-state))))
 
 
 (define-state rawtext-end-tag-open-state
-  13 "RAWTEXT end tag open state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#rawtext-end-tag-open-state"
+    13 "RAWTEXT end tag open state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#rawtext-end-tag-open-state"
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
      (create-new-token :end-tag)
      (reconsume-in RAWTEXT-end-tag-name-state))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
-     (emit-character-token U+002F_SOLIDUS_|/|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
+     (emit-character-token U+002F_SOLIDUS_/)
      (reconsume-in RAWTEXT-state))))
 
 
 (define-state rawtext-end-tag-name-state
-  14 "RAWTEXT end tag name state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#rawtext-end-tag-name-state"
+    14 "RAWTEXT end tag name state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#rawtext-end-tag-name-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -261,11 +261,11 @@
      (if (current-token-appropriate-end-tag-p)
          (switch-state before-attribute-name-state)
          (anything_else-clause)))
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (if (current-token-appropriate-end-tag-p)
          (switch-state self-closing-start-tag-state)
          (anything_else-clause)))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (if (current-token-appropriate-end-tag-p)
          (progn (switch-state data-state)
                 (emit-current-token))
@@ -277,46 +277,46 @@
      (current-token-tag-name-append current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
-     (emit-character-token U+002F_SOLIDUS_|/|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
+     (emit-character-token U+002F_SOLIDUS_/)
      (emit-character-tokens-from-temporary-buffer)
      (reconsume-in RAWTEXT-state))))
 
 
 (define-state script-data-less-than-sign-state
-  15 "Script data less-than sign state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-less-than-sign-state"
+    15 "Script data less-than sign state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-less-than-sign-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (temporary-buffer-clear)
      (switch-state script-data-end-tag-open-state))
-    (U+0021_EXCLAMATION_MARK_|!|
+    (U+0021_EXCLAMATION_MARK_!
      (switch-state script-data-escape-start-state)
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
      (emit-character-token U+0021_EXCLAMATION_MARK_!))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
      (reconsume-in script-data-state))))
 
 
 (define-state script-data-end-tag-open-state
-  16 "Script data end tag open state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-open-state"
+    16 "Script data end tag open state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-open-state"
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
      (create-new-token :end-tag)
      (reconsume-in script-data-end-tag-name-state))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
-     (emit-character-token U+002F_SOLIDUS_|/|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
+     (emit-character-token U+002F_SOLIDUS_/)
      (reconsume-in script-data-state))))
 
 
 (define-state script-data-end-tag-name-state
-  17 "Script data end tag name state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-name-state"
+    17 "Script data end tag name state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-name-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -326,11 +326,11 @@
      (if (current-token-appropriate-end-tag-p)
          (switch-state before-attribute-name-state)
          (anything_else-clause)))
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (if (current-token-appropriate-end-tag-p)
          (switch-state self-closing-start-tag-state)
          (anything_else-clause)))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (if (current-token-appropriate-end-tag-p)
          (progn (switch-state data-state)
                 (emit-current-token))
@@ -342,45 +342,45 @@
      (current-token-tag-name-append current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
-     (emit-character-token U+002F_SOLIDUS_|/|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
+     (emit-character-token U+002F_SOLIDUS_/)
      (emit-character-tokens-from-temporary-buffer)
      (reconsume-in script-data-state))))
 
 
 (define-state script-data-escape-start-state
-  18 "Script data escape start state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escape-start-state"
+    18 "Script data escape start state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escape-start-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state script-data-escape-start-dash-state)
-     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
+     (emit-character-token U+002D_HYPHEN-MINUS_-))
     (Anything_else
      (reconsume-in script-data-state))))
 
 
 (define-state script-data-escape-start-dash-state
-  19 "Script data escape start dash state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escape-start-dash-state"
+    19 "Script data escape start dash state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escape-start-dash-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state script-data-escaped-dash-dash-state)
-     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
+     (emit-character-token U+002D_HYPHEN-MINUS_-))
     (Anything_else
      (reconsume-in script-data-state))))
 
 
 (define-state script-data-escaped-state
-  20 "Script data escaped state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-state"
+    20 "Script data escaped state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state script-data-escaped-dash-state)
-     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
-    (U+003C_LESS-THAN_SIGN_|<|
+     (emit-character-token U+002D_HYPHEN-MINUS_-))
+    (U+003C_LESS-THAN_SIGN_<
      (switch-state script-data-escaped-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -393,14 +393,14 @@
 
 
 (define-state script-data-escaped-dash-state
-  21 "Script data escaped dash state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-dash-state"
+    21 "Script data escaped dash state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-dash-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state script-data-escaped-dash-dash-state)
-     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
-    (U+003C_LESS-THAN_SIGN_|<|
+     (emit-character-token U+002D_HYPHEN-MINUS_-))
+    (U+003C_LESS-THAN_SIGN_<
      (switch-state script-data-escaped-less-than-sign-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -415,17 +415,17 @@
 
 
 (define-state script-data-escaped-dash-dash-state
-  22 "Script data escaped dash dash state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-dash-dash-state"
+    22 "Script data escaped dash dash state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-dash-dash-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
-     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
-    (U+003C_LESS-THAN_SIGN_|<|
+    (U+002D_HYPHEN-MINUS_-
+     (emit-character-token U+002D_HYPHEN-MINUS_-))
+    (U+003C_LESS-THAN_SIGN_<
      (switch-state script-data-escaped-less-than-sign-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state script-data-state)
-     (emit-character-token U+003E_GREATER-THAN_SIGN_|>|))
+     (emit-character-token U+003E_GREATER-THAN_SIGN_>))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state script-data-escaped-state)
@@ -439,8 +439,8 @@
 
 
 (define-state script-data-escaped-less-than-sign-state
-  23 "Script data escaped less-than sign state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-less-than-sign-state"
+    23 "Script data escaped less-than sign state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-less-than-sign-state"
   (consume-next-input-character)
   (current-character-case
     (U+002F_SOLIDUS_/
@@ -448,30 +448,30 @@
      (switch-state script-data-escaped-end-tag-open-state))
     (ASCII_alpha
      (temporary-buffer-clear)
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
      (reconsume-in script-data-double-escape-start-state))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
      (reconsume-in script-data-escaped-state))))
 
 
 (define-state script-data-escaped-end-tag-open-state
-  24 "Script data escaped end tag open state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-open-state"
+    24 "Script data escaped end tag open state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-open-state"
   (consume-next-input-character)
   (current-character-case
     (ASCII_alpha
      (create-new-token :end-tag)
      (reconsume-in script-data-escaped-end-tag-name-state))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
      (emit-character-token U+002F_SOLIDUS_/)
      (reconsume-in script-data-escaped-state))))
 
 
 (define-state script-data-escaped-end-tag-name-state
-  25 "Script data escaped end tag name state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-name-state"
+    25 "Script data escaped end tag name state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-name-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -481,11 +481,11 @@
      (if (current-token-appropriate-end-tag-p)
          (switch-state before-attribute-name-state)
          (anything_else-clause)))
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (if (current-token-appropriate-end-tag-p)
          (switch-state self-closing-start-tag-state)
          (anything_else-clause)))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (if (current-token-appropriate-end-tag-p)
          (progn (switch-state data-state)
                 (emit-current-token))
@@ -497,23 +497,23 @@
      (current-token-tag-name-append current-input-character)
      (temporary-buffer-append current-input-character))
     (Anything_else
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
-     (emit-character-token U+002F_SOLIDUS_|/|)
+     (emit-character-token U+003C_LESS-THAN_SIGN_<)
+     (emit-character-token U+002F_SOLIDUS_/)
      (emit-character-tokens-from-temporary-buffer)
      (reconsume-in script-data-escaped-state))))
 
 
 (define-state script-data-double-escape-start-state
-  26 "Script data double escape start state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-start-state"
+    26 "Script data double escape start state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-start-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
       U+000A_LINE_FEED
       U+000C_FORM_FEED
       U+0020_SPACE
-      U+002F_SOLIDUS_|/|
-      U+003E_GREATER-THAN_SIGN_|>|)
+      U+002F_SOLIDUS_/
+      U+003E_GREATER-THAN_SIGN_>)
      (if (temporary-buffer-equal "script")
          (switch-state script-data-double-escaped-state)
          (switch-state script-data-escaped-state))
@@ -529,16 +529,16 @@
 
 
 (define-state script-data-double-escaped-state
-  27 "Script data double escaped state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-state"
+    27 "Script data double escaped state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state script-data-double-escaped-dash-state)
-     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
-    (U+003C_LESS-THAN_SIGN_|<|
+     (emit-character-token U+002D_HYPHEN-MINUS_-))
+    (U+003C_LESS-THAN_SIGN_<
      (switch-state script-data-double-escaped-less-than-sign-state)
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|))
+     (emit-character-token U+003C_LESS-THAN_SIGN_<))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (emit-character-token U+FFFD_REPLACEMENT_CHARACTER))
@@ -550,16 +550,16 @@
 
 
 (define-state script-data-double-escaped-dash-state
-  28 "Script data double escaped dash state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-dash-state"
+    28 "Script data double escaped dash state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-dash-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state script-data-double-escaped-dash-dash-state)
-     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
-    (U+003C_LESS-THAN_SIGN_|<|
+     (emit-character-token U+002D_HYPHEN-MINUS_-))
+    (U+003C_LESS-THAN_SIGN_<
      (switch-state script-data-double-escaped-less-than-sign-state)
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|))
+     (emit-character-token U+003C_LESS-THAN_SIGN_<))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state script-data-double-escaped-state)
@@ -573,18 +573,18 @@
 
 
 (define-state script-data-double-escaped-dash-dash-state
-  29 "Script data double escaped dash dash state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-dash-dash-state"
+    29 "Script data double escaped dash dash state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-dash-dash-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
-     (emit-character-token U+002D_HYPHEN-MINUS_|-|))
-    (U+003C_LESS-THAN_SIGN_|<|
+    (U+002D_HYPHEN-MINUS_-
+     (emit-character-token U+002D_HYPHEN-MINUS_-))
+    (U+003C_LESS-THAN_SIGN_<
      (switch-state script-data-double-escaped-less-than-sign-state)
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|))
-    (U+003E_GREATER-THAN_SIGN_|>|
+     (emit-character-token U+003C_LESS-THAN_SIGN_<))
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state script-data-state)
-     (emit-character-token U+003E_GREATER-THAN_SIGN_|>|))
+     (emit-character-token U+003E_GREATER-THAN_SIGN_>))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (switch-state script-data-double-escaped-state)
@@ -598,29 +598,29 @@
 
 
 (define-state script-data-double-escaped-less-than-sign-state
-  30 "Script data double escaped less-than sign state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-less-than-sign-state"
+    30 "Script data double escaped less-than sign state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escaped-less-than-sign-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (temporary-buffer-clear)
      (switch-state script-data-double-escape-end-state)
-     (emit-character-token U+002F_SOLIDUS_|/|))
+     (emit-character-token U+002F_SOLIDUS_/))
     (Anything_else
      (reconsume-in script-data-double-escaped-state))))
 
 
 (define-state script-data-double-escape-end-state
-  31 "Script data double escape end state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-end-state"
+    31 "Script data double escape end state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-end-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
       U+000A_LINE_FEED
       U+000C_FORM_FEED
       U+0020_SPACE
-      U+002F_SOLIDUS_|/|
-      U+003E_GREATER-THAN_SIGN_|>|)
+      U+002F_SOLIDUS_/
+      U+003E_GREATER-THAN_SIGN_>)
      (if (temporary-buffer-equal "script")
          (switch-state script-data-escaped-state)
          (switch-state script-data-double-escaped-state))
@@ -636,8 +636,8 @@
 
 
 (define-state before-attribute-name-state
-  32 "Before attribute name state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state"
+    32 "Before attribute name state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-name-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -646,11 +646,11 @@
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    ((U+002F_SOLIDUS_|/|
-      U+003E_GREATER-THAN_SIGN_|>|
+    ((U+002F_SOLIDUS_/
+      U+003E_GREATER-THAN_SIGN_>
       EOF)
      (reconsume-in after-attribute-name-state))
-    (U+003D_EQUALS_SIGN_|=|
+    (U+003D_EQUALS_SIGN_=
      (this-is-a-parse-error :unexpected-equals-sign-before-attribute-name)
      (current-token-add-attribute)
      (current-attribute-name-append current-input-character)
@@ -661,28 +661,28 @@
 
 
 (define-state attribute-name-state
-  33 "Attribute name state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#attribute-name-state"
+    33 "Attribute name state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#attribute-name-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
       U+000A_LINE_FEED
       U+000C_FORM_FEED
       U+0020_SPACE
-      U+002F_SOLIDUS_|/|
-      U+003E_GREATER-THAN_SIGN_|>|
+      U+002F_SOLIDUS_/
+      U+003E_GREATER-THAN_SIGN_>
       EOF)
      (reconsume-in after-attribute-name-state))
-    (U+003D_EQUALS_SIGN_|=|
+    (U+003D_EQUALS_SIGN_=
      (switch-state before-attribute-value-state))
     (ASCII_upper_alpha
      (current-attribute-name-append (lowercase-version-of current-input-character)))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-attribute-name-append U+FFFD_REPLACEMENT_CHARACTER))
-    ((U+0022_QUOTATION_MARK_|"|
-      U+0027_APOSTROPHE_|'|
-      U+003C_LESS-THAN_SIGN_|<|)
+    ((U+0022_QUOTATION_MARK_\"
+      U+0027_APOSTROPHE_\'
+      U+003C_LESS-THAN_SIGN_<)
      (this-is-a-parse-error :unexpected-character-in-attribute-name)
      (anything_else-clause))
     (Anything_else
@@ -690,8 +690,8 @@
 
 
 (define-state after-attribute-name-state
-  34 "After attribute name state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-name-state"
+    34 "After attribute name state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-name-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -700,11 +700,11 @@
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (switch-state self-closing-start-tag-state))
-    (U+003D_EQUALS_SIGN_|=|
+    (U+003D_EQUALS_SIGN_=
      (switch-state before-attribute-value-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
     (EOF
@@ -716,8 +716,8 @@
 
 
 (define-state before-attribute-value-state
-  35 "Before attribute value state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-value-state"
+    35 "Before attribute value state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#before-attribute-value-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -726,11 +726,11 @@
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+0022_QUOTATION_MARK_|"|
+    (U+0022_QUOTATION_MARK_\"
      (switch-state attribute-value-\(double-quoted\)-state))
-    (U+0027_APOSTROPHE_|'|
+    (U+0027_APOSTROPHE_\'
      (switch-state attribute-value-\(single-quoted\)-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-attribute-value)
      (switch-state data-state)
      (emit-current-token))
@@ -739,13 +739,13 @@
 
 
 (define-state attribute-value-\(double-quoted\)-state
-  36 "Attribute value (double-quoted) state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#attribute-value-(double-quoted)-state"
+    36 "Attribute value (double-quoted) state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#attribute-value-(double-quoted)-state"
   (consume-next-input-character)
   (current-character-case
-    (U+0022_QUOTATION_MARK_|"|
+    (U+0022_QUOTATION_MARK_\"
      (switch-state after-attribute-value-\(quoted\)-state))
-    (U+0026_AMPERSAND_|&|
+    (U+0026_AMPERSAND_&
      (set-return-state attribute-value-\(double-quoted\)-state)
      (switch-state character-reference-state))
     (U+0000_NULL
@@ -759,13 +759,13 @@
 
 
 (define-state attribute-value-\(single-quoted\)-state
-  37 "Attribute value (single-quoted) state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#attribute-value-(single-quoted)-state"
+    37 "Attribute value (single-quoted) state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#attribute-value-(single-quoted)-state"
   (consume-next-input-character)
   (current-character-case
-    (U+0027_APOSTROPHE_|'|
+    (U+0027_APOSTROPHE_\'
      (switch-state after-attribute-value-\(quoted\)-state))
-    (U+0026_AMPERSAND_|&|
+    (U+0026_AMPERSAND_&
      (set-return-state attribute-value-\(single-quoted\)-state)
      (switch-state character-reference-state))
     (U+0000_NULL
@@ -779,8 +779,8 @@
 
 
 (define-state attribute-value-\(unquoted\)-state
-  38 "Attribute value (unquoted) state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#attribute-value-(unquoted)-state"
+    38 "Attribute value (unquoted) state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#attribute-value-(unquoted)-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -788,20 +788,20 @@
       U+000C_FORM_FEED
       U+0020_SPACE)
      (switch-state before-attribute-name-state))
-    (U+0026_AMPERSAND_|&|
+    (U+0026_AMPERSAND_&
      (set-return-state attribute-value-\(unquoted\)-state)
      (switch-state character-reference-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-attribute-value-append U+FFFD_REPLACEMENT_CHARACTER))
-    ((U+0022_QUOTATION_MARK_|"|
-      U+0027_APOSTROPHE_|'|
-      U+003C_LESS-THAN_SIGN_|<|
-      U+003D_EQUALS_SIGN_|=|
-      U+0060_GRAVE_ACCENT_|`|)
+    ((U+0022_QUOTATION_MARK_\"
+      U+0027_APOSTROPHE_\'
+      U+003C_LESS-THAN_SIGN_<
+      U+003D_EQUALS_SIGN_=
+      U+0060_GRAVE_ACCENT_\`)
      (this-is-a-parse-error :unexpected-character-in-unquoted-attribute-value)
      (anything_else-clause))
     (EOF
@@ -812,18 +812,18 @@
 
 
 (define-state after-attribute-value-\(quoted\)-state
-  39 "After attribute value (quoted) state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-value-(quoted)-state"
+    39 "After attribute value (quoted) state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#after-attribute-value-(quoted)-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
-U+000A_LINE_FEED
-U+000C_FORM_FEED
-U+0020_SPACE)
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
+      U+0020_SPACE)
      (switch-state before-attribute-name-state))
-    (U+002F_SOLIDUS_|/|
+    (U+002F_SOLIDUS_/
      (switch-state self-closing-start-tag-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
     (EOF
@@ -835,11 +835,11 @@ U+0020_SPACE)
 
 
 (define-state self-closing-start-tag-state
-  40 "Self-closing start tag state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#self-closing-start-tag-state"
+    40 "Self-closing start tag state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#self-closing-start-tag-state"
   (consume-next-input-character)
   (current-character-case
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (setf (current-token-self-closing-flag) t)
      (switch-state data-state)
      (emit-current-token))
@@ -852,11 +852,11 @@ U+0020_SPACE)
 
 
 (define-state bogus-comment-state
-  41 "Bogus comment state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#bogus-comment-state"
+    41 "Bogus comment state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#bogus-comment-state"
   (consume-next-input-character)
   (current-character-case
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
     (EOF
@@ -874,8 +874,8 @@ U+0020_SPACE)
     "https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state"
   (cond
     ((with-peek-next-input-character
-       (and (eql U+002D_HYPHEN-MINUS_|-| (peek-next-input-character))
-            (eql U+002D_HYPHEN-MINUS_|-| (peek-next-input-character))))
+       (and (eql U+002D_HYPHEN-MINUS_- (peek-next-input-character))
+            (eql U+002D_HYPHEN-MINUS_- (peek-next-input-character))))
      (consume-those-characters)
      (create-new-token :comment)
      (switch-state comment-start-state))
@@ -892,13 +892,13 @@ U+0020_SPACE)
      (switch-state doctype-state))
 
     ((with-peek-next-input-character
-       (and (eql U+005B_LEFT_SQUARE_BRACKET_|[| (peek-next-input-character))
+       (and (eql U+005B_LEFT_SQUARE_BRACKET_\[ (peek-next-input-character))
             (eql U+0063_LATIN_SMALL_LETTER_C (peek-next-input-character))
             (eql U+0064_LATIN_SMALL_LETTER_D (peek-next-input-character))
             (eql U+0061_LATIN_SMALL_LETTER_A (peek-next-input-character))
             (eql U+0074_LATIN_SMALL_LETTER_T (peek-next-input-character))
             (eql U+0061_LATIN_SMALL_LETTER_A (peek-next-input-character))
-            (eql U+005B_LEFT_SQUARE_BRACKET_|[| (peek-next-input-character))))
+            (eql U+005B_LEFT_SQUARE_BRACKET_\[ (peek-next-input-character))))
      (consume-those-characters)
      (if (adjusted-current-node-not-in-HTML-namespace-p)
          (switch-state cdata-section-state)
@@ -914,13 +914,13 @@ U+0020_SPACE)
 
 
 (define-state comment-start-state
-  43 "Comment start state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#comment-start-state"
+    43 "Comment start state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#comment-start-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state comment-start-dash-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :abrupt-closing-of-empty-comment)
      (switch-state data-state)
      (emit-current-token))
@@ -929,13 +929,13 @@ U+0020_SPACE)
 
 
 (define-state comment-start-dash-state
-  44 "Comment start dash state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#comment-start-dash-state"
+    44 "Comment start dash state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#comment-start-dash-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state comment-end-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :abrupt-closing-of-empty-comment)
      (switch-state data-state)
      (emit-current-token))
@@ -944,19 +944,19 @@ U+0020_SPACE)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
-     (current-token-data-append U+002D_HYPHEN-MINUS_|-|)
+     (current-token-data-append U+002D_HYPHEN-MINUS_-)
      (reconsume-in comment-state))))
 
 
 (define-state comment-state
-  45 "Comment state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#comment-state"
+    45 "Comment state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#comment-state"
   (consume-next-input-character)
   (current-character-case
-    (U+003C_LESS-THAN_SIGN_|<|
+    (U+003C_LESS-THAN_SIGN_<
      (current-token-data-append current-input-character)
      (switch-state comment-less-than-sign-state))
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state comment-end-dash-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -970,48 +970,48 @@ U+0020_SPACE)
 
 
 (define-state comment-less-than-sign-state
-  46 "Comment less-than sign state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-state"
+    46 "Comment less-than sign state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-state"
   (consume-next-input-character)
   (current-character-case
-    (U+0021_EXCLAMATION_MARK_|!|
+    (U+0021_EXCLAMATION_MARK_!
      (current-token-data-append current-input-character)
      (switch-state comment-less-than-sign-bang-state))
-    (U+003C_LESS-THAN_SIGN_|<|
+    (U+003C_LESS-THAN_SIGN_<
      (current-token-data-append current-input-character))
     (Anything_else
      (reconsume-in comment-state))))
 
 
 (define-state comment-less-than-sign-bang-state
-  47 "Comment less-than sign bang state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-state"
+    47 "Comment less-than sign bang state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state comment-less-than-sign-bang-dash-state))
     (Anything_else
      (reconsume-in comment-state))))
 
 
 (define-state comment-less-than-sign-bang-dash-state
-  48 "Comment less-than sign bang dash state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-dash-state"
+    48 "Comment less-than sign bang dash state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-dash-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state comment-less-than-sign-bang-dash-dash-state))
     (Anything_else
      (reconsume-in comment-end-dash-state))))
 
 
 (define-state comment-less-than-sign-bang-dash-dash-state
-  49 "Comment less-than sign bang dash dash state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-dash-dash-state"
+    49 "Comment less-than sign bang dash dash state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#comment-less-than-sign-bang-dash-dash-state"
   (consume-next-input-character)
   (current-character-case
-    ((U+003E_GREATER-THAN_SIGN_|>|
-EOF)
+    ((U+003E_GREATER-THAN_SIGN_>
+      EOF)
      (reconsume-in comment-end-state))
     (Anything_else
      (this-is-a-parse-error :nested-comment)
@@ -1019,54 +1019,54 @@ EOF)
 
 
 (define-state comment-end-dash-state
-  50 "Comment end dash state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#comment-end-dash-state"
+    50 "Comment end dash state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#comment-end-dash-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
+    (U+002D_HYPHEN-MINUS_-
      (switch-state comment-end-state))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
-     (current-token-data-append U+002D_HYPHEN-MINUS_|-|)
+     (current-token-data-append U+002D_HYPHEN-MINUS_-)
      (reconsume-in comment-state))))
 
 
 (define-state comment-end-state
-  51 "Comment end state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#comment-end-state"
+    51 "Comment end state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#comment-end-state"
   (consume-next-input-character)
   (current-character-case
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
-    (U+0021_EXCLAMATION_MARK_|!|
+    (U+0021_EXCLAMATION_MARK_!
      (switch-state comment-end-bang-state))
-    (U+002D_HYPHEN-MINUS_|-|
-     (current-token-data-append U+002D_HYPHEN-MINUS_|-|))
+    (U+002D_HYPHEN-MINUS_-
+     (current-token-data-append U+002D_HYPHEN-MINUS_-))
     (EOF
      (this-is-a-parse-error :eof-in-comment)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
-     (current-token-data-append U+002D_HYPHEN-MINUS_|-|)
-     (current-token-data-append U+002D_HYPHEN-MINUS_|-|)
+     (current-token-data-append U+002D_HYPHEN-MINUS_-)
+     (current-token-data-append U+002D_HYPHEN-MINUS_-)
      (reconsume-in comment-state))))
 
 
 (define-state comment-end-bang-state
-  52 "Comment end bang state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#comment-end-bang-state"
+    52 "Comment end bang state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#comment-end-bang-state"
   (consume-next-input-character)
   (current-character-case
-    (U+002D_HYPHEN-MINUS_|-|
-     (current-token-data-append U+002D_HYPHEN-MINUS_|-|)
-     (current-token-data-append U+002D_HYPHEN-MINUS_|-|)
-     (current-token-data-append U+0021_EXCLAMATION_MARK_|!|)
+    (U+002D_HYPHEN-MINUS_-
+     (current-token-data-append U+002D_HYPHEN-MINUS_-)
+     (current-token-data-append U+002D_HYPHEN-MINUS_-)
+     (current-token-data-append U+0021_EXCLAMATION_MARK_!)
      (switch-state comment-end-dash-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :incorrectly-closed-comment)
      (switch-state data-state)
      (emit-current-token))
@@ -1075,15 +1075,15 @@ EOF)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
-     (current-token-data-append U+002D_HYPHEN-MINUS_|-|)
-     (current-token-data-append U+002D_HYPHEN-MINUS_|-|)
-     (current-token-data-append U+0021_EXCLAMATION_MARK_|!|)
+     (current-token-data-append U+002D_HYPHEN-MINUS_-)
+     (current-token-data-append U+002D_HYPHEN-MINUS_-)
+     (current-token-data-append U+0021_EXCLAMATION_MARK_!)
      (reconsume-in comment-state))))
 
 
 (define-state doctype-state
-  53 "DOCTYPE state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#doctype-state"
+    53 "DOCTYPE state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#doctype-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -1091,7 +1091,7 @@ EOF)
       U+000C_FORM_FEED
       U+0020_SPACE)
      (switch-state before-DOCTYPE-name-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (reconsume-in before-DOCTYPE-name-state))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
@@ -1105,8 +1105,8 @@ EOF)
 
 
 (define-state before-doctype-name-state
-  54 "Before DOCTYPE name state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-name-state"
+    54 "Before DOCTYPE name state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-name-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -1124,7 +1124,7 @@ EOF)
      (create-new-token :doctype)
      (current-token-name-append U+FFFD_REPLACEMENT_CHARACTER)
      (switch-state DOCTYPE-name-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-doctype-name)
      (create-new-token :doctype)
      (setf (current-token-force-quirks-flag) t)
@@ -1143,8 +1143,8 @@ EOF)
 
 
 (define-state doctype-name-state
-  55 "DOCTYPE name state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#doctype-name-state"
+    55 "DOCTYPE name state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#doctype-name-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -1152,7 +1152,7 @@ EOF)
       U+000C_FORM_FEED
       U+0020_SPACE)
      (switch-state after-DOCTYPE-name-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
     (ASCII_upper_alpha
@@ -1170,8 +1170,8 @@ EOF)
 
 
 (define-state after-doctype-name-state
-  56 "After DOCTYPE name state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state"
+    56 "After DOCTYPE name state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -1180,7 +1180,7 @@ EOF)
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
     (EOF
@@ -1216,8 +1216,8 @@ EOF)
 
 
 (define-state after-doctype-public-keyword-state
-  57 "After DOCTYPE public keyword state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-public-keyword-state"
+    57 "After DOCTYPE public keyword state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-public-keyword-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -1225,15 +1225,15 @@ EOF)
       U+000C_FORM_FEED
       U+0020_SPACE)
      (switch-state before-DOCTYPE-public-identifier-state))
-    (U+0022_QUOTATION_MARK_|"|
+    (U+0022_QUOTATION_MARK_\"
      (this-is-a-parse-error :missing-whitespace-after-doctype-public-keyword)
      (current-token-set-public-id-not-missing)
      (switch-state doctype-public-identifier-\(double-quoted\)-state))
-    (U+0027_APOSTROPHE_|'|
+    (U+0027_APOSTROPHE_\'
      (this-is-a-parse-error :missing-whitespace-after-doctype-public-keyword)
      (current-token-set-public-id-not-missing)
      (switch-state doctype-public-identifier-\(single-quoted\)-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-doctype-public-identifier)
      (setf (current-token-force-quirks-flag) t)
      (switch-state data-state)
@@ -1250,8 +1250,8 @@ EOF)
 
 
 (define-state before-doctype-public-identifier-state
-  58 "Before DOCTYPE public identifier state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-public-identifier-state"
+    58 "Before DOCTYPE public identifier state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-public-identifier-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -1260,13 +1260,13 @@ EOF)
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+0022_QUOTATION_MARK_|"|
+    (U+0022_QUOTATION_MARK_\"
      (current-token-set-public-id-not-missing)
      (switch-state doctype-public-identifier-\(double-quoted\)-state))
-    (U+0027_APOSTROPHE_|'|
+    (U+0027_APOSTROPHE_\'
      (current-token-set-public-id-not-missing)
      (switch-state doctype-public-identifier-\(single-quoted\)-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-doctype-public-identifier)
      (setf (current-token-force-quirks-flag) t)
      (switch-state data-state)
@@ -1283,16 +1283,16 @@ EOF)
 
 
 (define-state doctype-public-identifier-\(double-quoted\)-state
-  59 "DOCTYPE public identifier (double-quoted) state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(double-quoted)-state"
+    59 "DOCTYPE public identifier (double-quoted) state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(double-quoted)-state"
   (consume-next-input-character)
   (current-character-case
-    (U+0022_QUOTATION_MARK_|"|
+    (U+0022_QUOTATION_MARK_\"
      (switch-state after-DOCTYPE-public-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-token-public-id-append U+FFFD_REPLACEMENT_CHARACTER))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :abrupt-doctype-public-identifier)
      (setf (current-token-force-quirks-flag) t)
      (switch-state data-state)
@@ -1307,16 +1307,16 @@ EOF)
 
 
 (define-state doctype-public-identifier-\(single-quoted\)-state
-  60 "DOCTYPE public identifier (single-quoted) state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(single-quoted)-state"
+    60 "DOCTYPE public identifier (single-quoted) state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#doctype-public-identifier-(single-quoted)-state"
   (consume-next-input-character)
   (current-character-case
-    (U+0027_APOSTROPHE_|'|
+    (U+0027_APOSTROPHE_\'
      (switch-state after-DOCTYPE-public-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-token-public-id-append U+FFFD_REPLACEMENT_CHARACTER))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :abrupt-doctype-public-identifier)
      (setf (current-token-force-quirks-flag) t)
      (switch-state data-state)
@@ -1331,8 +1331,8 @@ EOF)
 
 
 (define-state after-doctype-public-identifier-state
-  61 "After DOCTYPE public identifier state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-public-identifier-state"
+    61 "After DOCTYPE public identifier state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-public-identifier-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -1340,14 +1340,14 @@ EOF)
       U+000C_FORM_FEED
       U+0020_SPACE)
      (switch-state between-DOCTYPE-public-and-system-identifiers-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
-    (U+0022_QUOTATION_MARK_|"|
+    (U+0022_QUOTATION_MARK_\"
      (this-is-a-parse-error :missing-whitespace-between-doctype-public-and-system-identifiers)
      (current-token-set-system-id-not-missing)
      (switch-state doctype-system-identifier-\(double-quoted\)-state))
-    (U+0027_APOSTROPHE_|'|
+    (U+0027_APOSTROPHE_\'
      (this-is-a-parse-error :missing-whitespace-between-doctype-public-and-system-identifiers)
      (current-token-set-system-id-not-missing)
      (switch-state doctype-system-identifier-\(single-quoted\)-state))
@@ -1363,8 +1363,8 @@ EOF)
 
 
 (define-state between-doctype-public-and-system-identifiers-state
-  62 "Between DOCTYPE public and system identifiers state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#between-doctype-public-and-system-identifiers-state"
+    62 "Between DOCTYPE public and system identifiers state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#between-doctype-public-and-system-identifiers-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -1373,13 +1373,13 @@ EOF)
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
-    (U+0022_QUOTATION_MARK_|"|
+    (U+0022_QUOTATION_MARK_\"
      (current-token-set-system-id-not-missing)
      (switch-state doctype-system-identifier-\(double-quoted\)-state))
-    (U+0027_APOSTROPHE_|'|
+    (U+0027_APOSTROPHE_\'
      (current-token-set-system-id-not-missing)
      (switch-state doctype-system-identifier-\(single-quoted\)-state))
     (EOF
@@ -1394,24 +1394,24 @@ EOF)
 
 
 (define-state after-doctype-system-keyword-state
-  63 "After DOCTYPE system keyword state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-system-keyword-state"
+    63 "After DOCTYPE system keyword state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-system-keyword-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
-U+000A_LINE_FEED
-U+000C_FORM_FEED
-U+0020_SPACE)
+      U+000A_LINE_FEED
+      U+000C_FORM_FEED
+      U+0020_SPACE)
      (switch-state before-DOCTYPE-system-identifier-state))
-    (U+0022_QUOTATION_MARK_|"|
+    (U+0022_QUOTATION_MARK_\"
      (this-is-a-parse-error :missing-whitespace-after-doctype-system-keyword)
      (current-token-set-system-id-not-missing)
      (switch-state doctype-system-identifier-\(double-quoted\)-state))
-    (U+0027_APOSTROPHE_|'|
+    (U+0027_APOSTROPHE_\'
      (this-is-a-parse-error :missing-whitespace-after-doctype-system-keyword)
      (current-token-set-system-id-not-missing)
      (switch-state doctype-system-identifier-\(single-quoted\)-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-doctype-system-identifier)
      (setf (current-token-force-quirks-flag) t)
      (switch-state data-state)
@@ -1428,8 +1428,8 @@ U+0020_SPACE)
 
 
 (define-state before-doctype-system-identifier-state
-  64 "Before DOCTYPE system identifier state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-system-identifier-state"
+    64 "Before DOCTYPE system identifier state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#before-doctype-system-identifier-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -1438,13 +1438,13 @@ U+0020_SPACE)
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+0022_QUOTATION_MARK_|"|
+    (U+0022_QUOTATION_MARK_\"
      (current-token-set-system-id-not-missing)
      (switch-state doctype-system-identifier-\(double-quoted\)-state))
-    (U+0027_APOSTROPHE_|'|
+    (U+0027_APOSTROPHE_\'
      (current-token-set-system-id-not-missing)
      (switch-state doctype-system-identifier-\(single-quoted\)-state))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-doctype-system-identifier)
      (setf (current-token-force-quirks-flag) t)
      (switch-state data-state)
@@ -1461,16 +1461,16 @@ U+0020_SPACE)
 
 
 (define-state doctype-system-identifier-\(double-quoted\)-state
-  65 "DOCTYPE system identifier (double-quoted) state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(double-quoted)-state"
+    65 "DOCTYPE system identifier (double-quoted) state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(double-quoted)-state"
   (consume-next-input-character)
   (current-character-case
-    (U+0022_QUOTATION_MARK_|"|
+    (U+0022_QUOTATION_MARK_\"
      (switch-state after-DOCTYPE-system-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-token-system-id-append U+FFFD_REPLACEMENT_CHARACTER))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :abrupt-doctype-system-identifier)
      (setf (current-token-force-quirks-flag) t)
      (switch-state data-state)
@@ -1485,16 +1485,16 @@ U+0020_SPACE)
 
 
 (define-state doctype-system-identifier-\(single-quoted\)-state
-  66 "DOCTYPE system identifier (single-quoted) state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(single-quoted)-state"
+    66 "DOCTYPE system identifier (single-quoted) state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#doctype-system-identifier-(single-quoted)-state"
   (consume-next-input-character)
   (current-character-case
-    (U+0027_APOSTROPHE_|'|
+    (U+0027_APOSTROPHE_\'
      (switch-state after-DOCTYPE-system-identifier-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-token-system-id-append U+FFFD_REPLACEMENT_CHARACTER))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :abrupt-doctype-system-identifier)
      (setf (current-token-force-quirks-flag) t)
      (switch-state data-state)
@@ -1509,8 +1509,8 @@ U+0020_SPACE)
 
 
 (define-state after-doctype-system-identifier-state
-  67 "After DOCTYPE system identifier state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-system-identifier-state"
+    67 "After DOCTYPE system identifier state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-system-identifier-state"
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION
@@ -1519,7 +1519,7 @@ U+0020_SPACE)
       U+0020_SPACE)
      ;; Ignoring the character
      )
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
     (EOF
@@ -1533,11 +1533,11 @@ U+0020_SPACE)
 
 
 (define-state bogus-doctype-state
-  68 "Bogus DOCTYPE state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#bogus-doctype-state"
+    68 "Bogus DOCTYPE state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#bogus-doctype-state"
   (consume-next-input-character)
   (current-character-case
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state)
      (emit-current-token))
     (U+0000_NULL
@@ -1553,11 +1553,11 @@ U+0020_SPACE)
 
 
 (define-state cdata-section-state
-  69 "CDATA section state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#cdata-section-state"
+    69 "CDATA section state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#cdata-section-state"
   (consume-next-input-character)
   (current-character-case
-    (U+005D_RIGHT_SQUARE_BRACKET_|]|
+    (U+005D_RIGHT_SQUARE_BRACKET_\]
      (switch-state CDATA-section-bracket-state))
     (EOF
      (this-is-a-parse-error :eof-in-cdata)
@@ -1567,42 +1567,42 @@ U+0020_SPACE)
 
 
 (define-state cdata-section-bracket-state
-  70 "CDATA section bracket state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#cdata-section-bracket-state"
+    70 "CDATA section bracket state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#cdata-section-bracket-state"
   (consume-next-input-character)
   (current-character-case
-    (U+005D_RIGHT_SQUARE_BRACKET_|]|
+    (U+005D_RIGHT_SQUARE_BRACKET_\]
      (switch-state CDATA-section-end-state))
     (Anything_else
-     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_|]|)
+     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_\])
      (reconsume-in CDATA-section-state))))
 
 
 (define-state cdata-section-end-state
-  71 "CDATA section end state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#cdata-section-end-state"
+    71 "CDATA section end state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#cdata-section-end-state"
   (consume-next-input-character)
   (current-character-case
-    (U+005D_RIGHT_SQUARE_BRACKET_|]|
-     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_|]|))
-    (U+003E_GREATER-THAN_SIGN_|>|
+    (U+005D_RIGHT_SQUARE_BRACKET_\]
+     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_\]))
+    (U+003E_GREATER-THAN_SIGN_>
      (switch-state data-state))
     (Anything_else
-     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_|]|)
-     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_|]|)
+     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_\])
+     (emit-character-token U+005D_RIGHT_SQUARE_BRACKET_\])
      (reconsume-in CDATA-section-state))))
 
 
 (define-state character-reference-state
-  72 "Character reference state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#character-reference-state"
+    72 "Character reference state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#character-reference-state"
   (temporary-buffer-clear)
-  (temporary-buffer-append U+0026_AMPERSAND_|&|)
+  (temporary-buffer-append U+0026_AMPERSAND_&)
   (consume-next-input-character)
   (current-character-case
     (ASCII_alphanumeric
      (reconsume-in named-character-reference-state))
-    (U+0023_NUMBER_SIGN_|#|
+    (U+0023_NUMBER_SIGN_\#
      (temporary-buffer-append current-input-character)
      (switch-state numeric-character-reference-state))
     (Anything_else
@@ -1616,14 +1616,14 @@ U+0020_SPACE)
   (with-matched-named-character-reference
     (cond (entity-matched-p
            (cond ((and (consumed-as-part-of-an-attribute-p)
-                       (not (eql current-input-character U+003B_SEMICOLON_|;|))
-                       (or (eql (next-input-character) U+003D_EQUALS_SIGN_|=|)
+                       (not (eql current-input-character U+003B_SEMICOLON_\;))
+                       (or (eql (next-input-character) U+003D_EQUALS_SIGN_=)
                            (ascii-alphanumeric-p (next-input-character))))
                   (flush-code-points-consumed-as-a-character-reference)
                   (switch-to-the-return-state))
                  (t ;; Othwerwise
                   ;; 1
-                  (unless (eql current-input-character U+003B_SEMICOLON_|;|)
+                  (unless (eql current-input-character U+003B_SEMICOLON_\;)
                     (this-is-a-parse-error :missing-semicolon-after-character-reference))
                   ;; 2 Add the one or two match characters
                   (temporary-buffer-clear)
@@ -1637,15 +1637,15 @@ U+0020_SPACE)
 
 
 (define-state ambiguous-ampersand-state
-  74 "Ambiguous ampersand state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#ambiguous-ampersand-state"
+    74 "Ambiguous ampersand state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#ambiguous-ampersand-state"
   (consume-next-input-character)
   (current-character-case
     (ASCII_alphanumeric
      (if (consumed-as-part-of-an-attribute-p)
          (current-attribute-value-append current-input-character)
          (emit-character-token current-input-character)))
-    (U+003B_SEMICOLON_|;|
+    (U+003B_SEMICOLON_\;
      (this-is-a-parse-error :unknown-named-character-reference)
      (reconsume-in-return-state))
     (Anything_else
@@ -1653,8 +1653,8 @@ U+0020_SPACE)
 
 
 (define-state numeric-character-reference-state
-  75 "Numeric character reference state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#numeric-character-reference-state"
+    75 "Numeric character reference state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#numeric-character-reference-state"
   (setf character-reference-code 0)
   (consume-next-input-character)
   (current-character-case
@@ -1667,8 +1667,8 @@ U+0020_SPACE)
 
 
 (define-state hexadecimal-character-reference-start-state
-  76 "Hexadecimal character reference start state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#hexadecimal-character-reference-start-state"
+    76 "Hexadecimal character reference start state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#hexadecimal-character-reference-start-state"
   (consume-next-input-character)
   (current-character-case
     (ASCII_hex_digit
@@ -1680,8 +1680,8 @@ U+0020_SPACE)
 
 
 (define-state decimal-character-reference-start-state
-  77 "Decimal character reference start state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#decimal-character-reference-start-state"
+    77 "Decimal character reference start state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#decimal-character-reference-start-state"
   (consume-next-input-character)
   (current-character-case
     (ASCII_digit
@@ -1693,8 +1693,8 @@ U+0020_SPACE)
 
 
 (define-state hexadecimal-character-reference-state
-  78 "Hexadecimal character reference state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#hexadecimal-character-reference-state"
+    78 "Hexadecimal character reference state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#hexadecimal-character-reference-state"
   (consume-next-input-character)
   (current-character-case
     (ASCII_digit
@@ -1706,7 +1706,7 @@ U+0020_SPACE)
     (ASCII_lower_hex_digit
      (setf character-reference-code (* 16 character-reference-code))
      (incf character-reference-code (numeric-version-of-current-input-character #x0057)))
-    (U+003B_SEMICOLON_|;|
+    (U+003B_SEMICOLON_\;
      (switch-state numeric-character-reference-end-state))
     (Anything_else
      (this-is-a-parse-error :missing-semicolon-after-character-reference)
@@ -1714,14 +1714,14 @@ U+0020_SPACE)
 
 
 (define-state decimal-character-reference-state
-  79 "Decimal character reference state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#decimal-character-reference-state"
+    79 "Decimal character reference state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#decimal-character-reference-state"
   (consume-next-input-character)
   (current-character-case
     (ASCII_digit
      (setf character-reference-code (* 10 character-reference-code))
      (incf character-reference-code (numeric-version-of-current-input-character #x0030)))
-    (U+003B_SEMICOLON_|;|
+    (U+003B_SEMICOLON_\;
      (switch-state numeric-character-reference-end-state))
     (Anything_else
      (this-is-a-parse-error :missing-semicolon-after-character-reference)
