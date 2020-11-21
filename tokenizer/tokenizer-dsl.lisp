@@ -18,7 +18,7 @@
            (declare (ignorable current-input-character peek-index))
            (block nil
              ,@body
-             (values start reconsume-character)))))
+             (values start reconsume-character t)))))
      (setf (aref *tokenizer-states* ,number) #',name)))
 
 

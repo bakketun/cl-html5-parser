@@ -69,10 +69,10 @@
 
 (defun tokenizer-process1 (tokenizer buffer &optional (start 0) (end (length buffer)))
   (labels ((process (start reconsume)
-             (multiple-value-bind (new-start reconsume-character)
+             (multiple-value-bind (new-start reconsume-character continuep)
                  (tokenizer-process1-in-state tokenizer buffer start end reconsume)
                (format *debug-io* "~&processed: (~S) ~S ~S~&" (- new-start start) (subseq buffer start new-start) reconsume-character)
-               (if reconsume-character
+               (if continuep
                    (process new-start reconsume-character)
                    new-start))))
     (process start nil)))
