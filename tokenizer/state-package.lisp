@@ -60,7 +60,7 @@
    current-token-tag-name-append
    define-state
    emit-character-token
-   emit-character-token
+   emit-character-tokens-from-temporary-buffer
    emit-current-token
    emit-end-of-file-token
    entity-matched-p

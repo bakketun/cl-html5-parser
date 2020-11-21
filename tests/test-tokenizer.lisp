@@ -21,46 +21,44 @@
 (in-package :html5-parser-tests)
 
 (defun run-tokenizer-test-parser (initial-state last-start-tag source encoding)
-  (let ((tokenizer (html5-parser::make-html-tokenizer source
-                                                      :encoding encoding
-                                                      :adjusted-current-node-not-in-HTML-namespace-p (lambda () ())))
-        (output-tokens '())
-        (errors '()))
-    (setf (slot-value tokenizer 'html5-parser::state) initial-state)
-    (when last-start-tag
-      (setf (slot-value tokenizer 'html5-parser::last-start-tag)
-            (list :type :start-tag
-                  :name last-start-tag)))
-    (html5-parser::map-tokens
-     tokenizer
-     (lambda (token)
-       (if (eq :parse-error (getf token :type))
-           (push (getf token :data) errors)
-           (push (ecase (getf token :type)
-                   (:doctype
-                    (list :type :doctype
-                          :name (getf token :name)
-                          :public-id (getf token :public-id)
-                          :system-id (getf token :system-id)
-                          :force-quirks (getf token :force-quirks)))
-                   ((:start-tag :empty-tag)
-                    (list :type (getf token :type)
-                          :name (getf token :name)
-                          :data (remove-duplicates (getf token :data)
-                                                   :key #'car
-                                                   :test #'string=
-                                                   :from-end t)
-                          :self-closing (getf token :self-closing)))
-                   (:end-tag
-                    (list :type :end-tag
-                          :name (getf token :name)))
-                   (:comment
-                    (list :type :comment
-                          :data (getf token :data)))
-                   ((:space-characters :characters)
-                    (list :type :characters
-                          :data (getf token :data))))
-                 output-tokens))))
+  (let ((tokens (with-open-file (html5-parser::*tokenizer-trace-output* "/tmp/tokenizer-trace" :direction :output :if-exists :append)
+                  (format html5-parser::*tokenizer-trace-output* "~&-----------------------------~&")
+                  (html5-parser::tokenizer-test source
+                                                :initial-state initial-state
+                                                :last-start-tag last-start-tag)))
+        errors output-tokens)
+    ;;(break "~S" tokens)
+    (dolist (token tokens)
+      (case (getf token :type)
+        (:end-of-file)
+        (:parse-error
+         (push (getf token :data) errors))
+        (otherwise
+         (push (ecase (getf token :type)
+                 (:doctype
+                  (list :type :doctype
+                        :name (getf token :name)
+                        :public-id (getf token :public-id)
+                        :system-id (getf token :system-id)
+                        :force-quirks (getf token :force-quirks)))
+                 (:start-tag
+                  (list :type (getf token :type)
+                        :name (getf token :name)
+                        :data (remove-duplicates (getf token :data)
+                                                 :key #'car
+                                                 :test #'string=
+                                                 :from-end t)
+                        :self-closing (getf token :self-closing)))
+                 (:end-tag
+                  (list :type :end-tag
+                        :name (getf token :name)))
+                 (:comment
+                  (list :type :comment
+                        :data (getf token :data)))
+                 (:characters
+                  (list :type :characters
+                        :data (string (getf token :data)))))
+               output-tokens))))
     (values (nreverse output-tokens)
             (nreverse errors))))
 
@@ -164,7 +162,7 @@
                   (error "Unexpected token type ~S" value))))))
 
 (defun find-state-symbol (string)
-  (let ((symbol (find-symbol (substitute #\- #\Space (string-upcase string)) :keyword)))
+  (let ((symbol (find-symbol (substitute #\- #\Space (string-upcase string)) :html5-parser-tokenizer-state)))
     (assert symbol () "Unkown state ~S" string)
     symbol))
 
@@ -211,9 +209,9 @@ Suppling more-keys will result in recursive application of jget with the result 
           collect (list :description (jget test "description" :string)
                         :initial-states (or (loop for raw in (jget test "initialStates" :array)
                                                   collect (find-state-symbol (jget raw :string)))
-                                            '(:data-state))
+                                            '(html5-parser-tokenizer-state:data-state))
                         :last-start-tag (jget test "lastStartTag" :string)
-                        :input (data-to-octects (jget test "input") double-escaped)
+                        :input (flex:octets-to-string (data-to-octects (jget test "input") double-escaped) :external-format :utf-16le)
                         :output (fix-output (jget test "output" :array) double-escaped)
                         :double-escaped double-escaped
                         :errors (loop for error in (jget test "errors" :array)
@@ -231,7 +229,9 @@ Suppling more-keys will result in recursive application of jget with the result 
      ;; Hangs on the following test, due to bug in flexi-streams
      "Invalid Unicode character U+DFFF with valid preceding character"
      ;; The valid "a" character is consumed
-     "Invalid Unicode character U+D800 with valid following character")))
+     "Invalid Unicode character U+D800 with valid following character")
+    ("domjs"
+     "CRLFLF in bogus comment state")))
 
 
 (defun test-tokenizer ()

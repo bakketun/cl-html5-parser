@@ -45,23 +45,31 @@
                 (format stream "(~S ~S) " slot (slot-value tokenizer slot))))))
 
 
+(defvar *tokenizer-trace-output* (make-synonym-stream '*trace-output*))
+
+
 (defun debug-token-handler (&rest args)
-  (format *debug-io* "~&emit-token: ~S~&" args))
+  (format *tokenizer-trace-output* "~&emit-token: ~S~&" args))
 
 
-(defun tokenizer-test (data &key (initial-state 'data-state) (end-of-file-p t))
-  (let ((tokenizer (make-instance 'html-tokenizer))
-        (input-stream (make-input-stream)))
-    (tokenizer-switch-state tokenizer initial-state)
-    (loop :for char :across data
-          :do (input-stream-append input-stream char)
-          :do (print input-stream *debug-io*)
-          :do (tokenizer-process tokenizer input-stream))
-    (when end-of-file-p
-      (input-stream-close input-stream)
-      (print input-stream *debug-io*)
-      (tokenizer-process tokenizer input-stream))
-    (values tokenizer input-stream)))
+(defun tokenizer-test (data &key (initial-state 'data-state) last-start-tag (end-of-file-p t))
+  (let (tokens)
+    (let ((tokenizer (make-instance 'html-tokenizer
+                                    :token-handler (lambda (&rest token)
+                                                     (format *tokenizer-trace-output* "~&emit-token: ~S~&" token)
+                                                     (push token tokens))
+                                    :last-start-tag last-start-tag))
+          (input-stream (make-input-stream)))
+      (tokenizer-switch-state tokenizer initial-state)
+      (loop :for char :across data
+            :do (input-stream-append input-stream (string char))
+            :do (print input-stream *tokenizer-trace-output*)
+            :do (tokenizer-process tokenizer input-stream))
+      (when end-of-file-p
+        (input-stream-close input-stream)
+        (print input-stream *tokenizer-trace-output*)
+        (tokenizer-process tokenizer input-stream))
+      (values (reverse tokens) tokenizer input-stream))))
 
 
 (defun tokenizer-process (tokenizer input-stream)
@@ -78,7 +86,7 @@
   (let ((return-state-p (eql 'return-state new-state)))
     (when return-state-p
       (setf new-state (slot-value tokenizer 'return-state)))
-    (format *debug-io* "~&state: ~A →~:[~; the return state~] ~A ~@[ reconsume ~S~]~&"
+    (format *tokenizer-trace-output* "~&state: ~A →~:[~; the return state~] ~A ~@[ reconsume ~S~]~&"
             (tokenizer-state tokenizer) return-state-p new-state reconsume-character)
     (setf (tokenizer-state tokenizer) new-state)))
 

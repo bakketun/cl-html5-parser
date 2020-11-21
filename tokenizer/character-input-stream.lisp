@@ -6,7 +6,8 @@
 
 (defclass input-stream ()
   ((characters :initform "")
-   (reconsumep :initform nil)))
+   (reconsumep :initform nil)
+   (last-character-was-cr :initform nil)))
 
 
 (defmethod print-object ((input-stream input-stream) stream)
@@ -32,15 +33,15 @@
 
 
 (defun input-stream-append (input-stream new-characters)
-  ;; Normalize newlines
-  (let ((buffer (make-array (length new-characters) :fill-pointer 0)))
-    (loop :for last-was-cr := nil :then is-cr
-          :for char :across new-characters
-          :for is-cr := (eql #\Return char)
-          :for is-lf := (eql #\Linefeed char)
-          :unless (and last-was-cr is-lf)
-            :do (vector-push (if is-cr #\Linefeed char) buffer))
-    (with-slots (characters) input-stream
+  (with-slots (characters last-character-was-cr) input-stream
+    ;; Normalize newlines
+    (let ((buffer (make-array (length new-characters) :fill-pointer 0)))
+      (loop :for char :across new-characters
+            :for is-cr := (eql #\Return char)
+            :for is-lf := (eql #\Linefeed char)
+            :unless (and last-character-was-cr is-lf)
+              :do (vector-push (if is-cr #\Linefeed char) buffer)
+                  (setf last-character-was-cr is-cr))
       (setf characters (concatenate 'string
                                     characters
                                     buffer))))

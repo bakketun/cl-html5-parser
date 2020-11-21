@@ -120,10 +120,16 @@
 
 
 (defmacro emit-character-token (&rest args)
-  `(tokenizer-emit-token self :type :character ,@args))
+  `(tokenizer-emit-token self :type :characters :data ,@args))
 
 
 ;; The temporary buffer
+
+
+(defmacro emit-character-tokens-from-temporary-buffer ()
+  `(loop :for char :across temporary-buffer
+         :do (emit-character-token char)))
+
 
 (defmacro temporary-buffer-clear ()
   `(setf (fill-pointer temporary-buffer) 0))

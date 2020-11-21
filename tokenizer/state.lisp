@@ -215,6 +215,8 @@
      (temporary-buffer-append current-input-character))
     (Anything_else
      (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+002F_SOLIDUS_|/|)
+     (emit-character-tokens-from-temporary-buffer)
      (reconsume-in RCDATA-state))))
 
 
@@ -273,6 +275,8 @@
      (temporary-buffer-append current-input-character))
     (Anything_else
      (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+002F_SOLIDUS_|/|)
+     (emit-character-tokens-from-temporary-buffer)
      (reconsume-in RAWTEXT-state))))
 
 
