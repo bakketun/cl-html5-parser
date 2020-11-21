@@ -126,7 +126,8 @@
      (switch-state data-state))
     (EOF
      (this-is-a-parse-error :eof-before-tag-name)
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|))
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+002F_SOLIDUS_|/|))
     (Anything_else
      (this-is-a-parse-error :invalid-first-character-of-tag-name)
      (create-new-token :comment)
@@ -183,6 +184,7 @@
      (reconsume-in RCDATA-end-tag-name-state))
     (Anything_else
      (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+002F_SOLIDUS_|/|)
      (reconsume-in RCDATA-state))))
 
 
@@ -243,6 +245,7 @@
      (reconsume-in RAWTEXT-end-tag-name-state))
     (Anything_else
      (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+002F_SOLIDUS_|/|)
      (reconsume-in RAWTEXT-state))))
 
 
@@ -290,7 +293,8 @@
      (switch-state script-data-end-tag-open-state))
     (U+0021_EXCLAMATION_MARK_|!|
      (switch-state script-data-escape-start-state)
-     (emit-character-token U+003C_LESS-THAN_SIGN_|<|))
+     (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+0021_EXCLAMATION_MARK_!))
     (Anything_else
      (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
      (reconsume-in script-data-state))))
@@ -306,6 +310,7 @@
      (reconsume-in script-data-end-tag-name-state))
     (Anything_else
      (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+002F_SOLIDUS_|/|)
      (reconsume-in script-data-state))))
 
 
@@ -338,6 +343,8 @@
      (temporary-buffer-append current-input-character))
     (Anything_else
      (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+002F_SOLIDUS_|/|)
+     (emit-character-tokens-from-temporary-buffer)
      (reconsume-in script-data-state))))
 
 
@@ -490,6 +497,8 @@
      (temporary-buffer-append current-input-character))
     (Anything_else
      (emit-character-token U+003C_LESS-THAN_SIGN_|<|)
+     (emit-character-token U+002F_SOLIDUS_|/|)
+     (emit-character-tokens-from-temporary-buffer)
      (reconsume-in script-data-escaped-state))))
 
 

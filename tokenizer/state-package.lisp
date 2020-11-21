@@ -87,6 +87,9 @@
    with-matched-named-character-reference
    with-peek-next-input-character
 
+   attribute-value-\(double-quoted\)-state
+   attribute-value-\(single-quoted\)-state
+   attribute-value-\(unquoted\)-state
    data-state
 
    ;; Constants

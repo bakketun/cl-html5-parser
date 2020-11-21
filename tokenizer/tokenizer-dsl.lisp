@@ -252,9 +252,9 @@
 
 
 (defmacro consumed-as-part-of-an-attribute-p ()
-  `(or (eq :attribute-value-\(double-quoted\)-state return-state)
-       (eq :attribute-value-\(single-quoted\)-state return-state)
-       (eq :attribute-value-\(unquoted\)-state return-state)))
+  `(or (eq 'attribute-value-\(double-quoted\)-state return-state)
+       (eq 'attribute-value-\(single-quoted\)-state return-state)
+       (eq 'attribute-value-\(unquoted\)-state return-state)))
 
 
 (defmacro flush-code-points-consumed-as-a-character-reference ()
