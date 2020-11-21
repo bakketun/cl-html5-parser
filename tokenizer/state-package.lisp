@@ -63,13 +63,13 @@
    emit-character-token
    emit-current-token
    emit-end-of-file-token
-   entity-match
+   entity-matched-p
    flush-code-points-consumed-as-a-character-reference
-   if-named-character-reference-match
    lowercase-version-of
    next-input-character
    noncharacter-p
    numeric-version-of-current-input-character
+   peek-next-input-character
    reconsume-in
    reconsume-in-return-state
    set-return-state
@@ -84,6 +84,8 @@
    temporary-buffer-clear
    temporary-buffer-equal
    this-is-a-parse-error
+   with-matched-named-character-reference
+   with-peek-next-input-character
 
    data-state
 

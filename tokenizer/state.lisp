@@ -856,33 +856,36 @@ U+0020_SPACE)
 
 
 (define-state markup-declaration-open-state
-  42 "Markup declaration open state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state"
+    42 "Markup declaration open state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state"
   (cond
-    ((and (eql U+002D_HYPHEN-MINUS_|-| (next-input-character 1))
-          (eql U+002D_HYPHEN-MINUS_|-| (next-input-character 2)))
-     (consume-those-characters 2)
+    ((with-peek-next-input-character
+       (and (eql U+002D_HYPHEN-MINUS_|-| (peek-next-input-character))
+            (eql U+002D_HYPHEN-MINUS_|-| (peek-next-input-character))))
+     (consume-those-characters)
      (create-new-token :comment)
      (switch-state comment-start-state))
 
-    ((and (eql U+0064_LATIN_SMALL_LETTER_D (lowercase-version-of (next-input-character 1)))
-          (eql U+006F_LATIN_SMALL_LETTER_O (lowercase-version-of (next-input-character 2)))
-          (eql U+0063_LATIN_SMALL_LETTER_C (lowercase-version-of (next-input-character 3)))
-          (eql U+0074_LATIN_SMALL_LETTER_T (lowercase-version-of (next-input-character 4)))
-          (eql U+0079_LATIN_SMALL_LETTER_Y (lowercase-version-of (next-input-character 5)))
-          (eql U+0070_LATIN_SMALL_LETTER_P (lowercase-version-of (next-input-character 6)))
-          (eql U+0065_LATIN_SMALL_LETTER_E (lowercase-version-of (next-input-character 7))))
-     (consume-those-characters 7)
+    ((with-peek-next-input-character
+       (and (eql U+0064_LATIN_SMALL_LETTER_D (lowercase-version-of (peek-next-input-character)))
+            (eql U+006F_LATIN_SMALL_LETTER_O (lowercase-version-of (peek-next-input-character)))
+            (eql U+0063_LATIN_SMALL_LETTER_C (lowercase-version-of (peek-next-input-character)))
+            (eql U+0074_LATIN_SMALL_LETTER_T (lowercase-version-of (peek-next-input-character)))
+            (eql U+0079_LATIN_SMALL_LETTER_Y (lowercase-version-of (peek-next-input-character)))
+            (eql U+0070_LATIN_SMALL_LETTER_P (lowercase-version-of (peek-next-input-character)))
+            (eql U+0065_LATIN_SMALL_LETTER_E (lowercase-version-of (peek-next-input-character)))))
+     (consume-those-characters)
      (switch-state doctype-state))
 
-    ((and (eql U+005B_LEFT_SQUARE_BRACKET_|[| (next-input-character 1))
-          (eql U+0063_LATIN_SMALL_LETTER_C (next-input-character 2))
-          (eql U+0064_LATIN_SMALL_LETTER_D (next-input-character 3))
-          (eql U+0061_LATIN_SMALL_LETTER_A (next-input-character 4))
-          (eql U+0074_LATIN_SMALL_LETTER_T (next-input-character 5))
-          (eql U+0061_LATIN_SMALL_LETTER_A (next-input-character 6))
-          (eql U+005B_LEFT_SQUARE_BRACKET_|[| (next-input-character 7)))
-     (consume-those-characters 7)
+    ((with-peek-next-input-character
+       (and (eql U+005B_LEFT_SQUARE_BRACKET_|[| (peek-next-input-character))
+            (eql U+0063_LATIN_SMALL_LETTER_C (peek-next-input-character))
+            (eql U+0064_LATIN_SMALL_LETTER_D (peek-next-input-character))
+            (eql U+0061_LATIN_SMALL_LETTER_A (peek-next-input-character))
+            (eql U+0074_LATIN_SMALL_LETTER_T (peek-next-input-character))
+            (eql U+0061_LATIN_SMALL_LETTER_A (peek-next-input-character))
+            (eql U+005B_LEFT_SQUARE_BRACKET_|[| (peek-next-input-character))))
+     (consume-those-characters)
      (if (adjusted-current-node-not-in-HTML-namespace-p)
          (switch-state cdata-section-state)
          (progn (this-is-a-parse-error :cdata-in-html-content)
@@ -1172,22 +1175,24 @@ EOF)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
-     (cond ((and (eql U+0070_LATIN_SMALL_LETTER_P (lowercase-version-of current-input-character))
-                 (eql U+0075_LATIN_SMALL_LETTER_U (lowercase-version-of (next-input-character 1)))
-                 (eql U+0062_LATIN_SMALL_LETTER_B (lowercase-version-of (next-input-character 2)))
-                 (eql U+006C_LATIN_SMALL_LETTER_L (lowercase-version-of (next-input-character 3)))
-                 (eql U+0069_LATIN_SMALL_LETTER_I (lowercase-version-of (next-input-character 4)))
-                 (eql U+0063_LATIN_SMALL_LETTER_C (lowercase-version-of (next-input-character 5))))
-            (consume-those-characters 5)
+     (cond ((with-peek-next-input-character
+              (and (eql U+0070_LATIN_SMALL_LETTER_P (lowercase-version-of current-input-character))
+                   (eql U+0075_LATIN_SMALL_LETTER_U (lowercase-version-of (peek-next-input-character)))
+                   (eql U+0062_LATIN_SMALL_LETTER_B (lowercase-version-of (peek-next-input-character)))
+                   (eql U+006C_LATIN_SMALL_LETTER_L (lowercase-version-of (peek-next-input-character)))
+                   (eql U+0069_LATIN_SMALL_LETTER_I (lowercase-version-of (peek-next-input-character)))
+                   (eql U+0063_LATIN_SMALL_LETTER_C (lowercase-version-of (peek-next-input-character)))))
+            (consume-those-characters)
             (switch-state after-doctype-public-keyword-state))
 
-           ((and (eql U+0073_LATIN_SMALL_LETTER_S (lowercase-version-of current-input-character))
-                 (eql U+0079_LATIN_SMALL_LETTER_Y (lowercase-version-of (next-input-character 1)))
-                 (eql U+0073_LATIN_SMALL_LETTER_S (lowercase-version-of (next-input-character 2)))
-                 (eql U+0074_LATIN_SMALL_LETTER_T (lowercase-version-of (next-input-character 3)))
-                 (eql U+0065_LATIN_SMALL_LETTER_E (lowercase-version-of (next-input-character 4)))
-                 (eql U+006D_LATIN_SMALL_LETTER_M (lowercase-version-of (next-input-character 5))))
-            (consume-those-characters 5)
+           ((with-peek-next-input-character
+              (and (eql U+0073_LATIN_SMALL_LETTER_S (lowercase-version-of current-input-character))
+                   (eql U+0079_LATIN_SMALL_LETTER_Y (lowercase-version-of (peek-next-input-character)))
+                   (eql U+0073_LATIN_SMALL_LETTER_S (lowercase-version-of (peek-next-input-character)))
+                   (eql U+0074_LATIN_SMALL_LETTER_T (lowercase-version-of (peek-next-input-character)))
+                   (eql U+0065_LATIN_SMALL_LETTER_E (lowercase-version-of (peek-next-input-character)))
+                   (eql U+006D_LATIN_SMALL_LETTER_M (lowercase-version-of (peek-next-input-character)))))
+            (consume-those-characters)
             (switch-state after-doctype-system-keyword-state))
 
            (t ;; Otherwise
@@ -1592,33 +1597,29 @@ U+0020_SPACE)
 
 
 (define-state named-character-reference-state
-  73 "Named character reference state"
-  "https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state"
-  (if-named-character-reference-match
-   (progn
-     (if (and (consumed-as-part-of-an-attribute-p)
-              (not (eql current-input-character U+003B_SEMICOLON_|;|))
-              (or (eql (next-input-character) U+003D_EQUALS_SIGN_|=|)
-                  (ascii-alphanumeric-p (next-input-character))))
-         (progn
+    73 "Named character reference state"
+    "https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state"
+  (with-matched-named-character-reference
+    (cond (entity-matched-p
+           (cond ((and (consumed-as-part-of-an-attribute-p)
+                       (not (eql current-input-character U+003B_SEMICOLON_|;|))
+                       (or (eql (next-input-character) U+003D_EQUALS_SIGN_|=|)
+                           (ascii-alphanumeric-p (next-input-character))))
+                  (flush-code-points-consumed-as-a-character-reference)
+                  (switch-to-the-return-state))
+                 (t ;; Othwerwise
+                  ;; 1
+                  (unless (eql current-input-character U+003B_SEMICOLON_|;|)
+                    (this-is-a-parse-error :missing-semicolon-after-character-reference))
+                  ;; 2 Add the one or two match characters
+                  (temporary-buffer-clear)
+                  (temporary-buffer-append-matched-character-reference)
+                  ;; 3
+                  (flush-code-points-consumed-as-a-character-reference)
+                  (switch-to-the-return-state))))
+          (t ;; No match
            (flush-code-points-consumed-as-a-character-reference)
-           (switch-to-the-return-state)))
-     ;; Othwerwise
-     (progn
-       ;; 1
-       (unless (eql current-input-character U+003B_SEMICOLON_|;|)
-         (this-is-a-parse-error :missing-semicolon-after-character-reference))
-       ;; 2 Add the one or two match characters
-       (temporary-buffer-clear)
-       (temporary-buffer-append-matched-character-reference)
-       ;; 3
-       (flush-code-points-consumed-as-a-character-reference)
-       (switch-to-the-return-state)))
-
-   ;; No match
-   (progn
-     (flush-code-points-consumed-as-a-character-reference)
-     (switch-state ambiguous-ampersand-state))))
+           (switch-state ambiguous-ampersand-state)))))
 
 
 (define-state ambiguous-ampersand-state

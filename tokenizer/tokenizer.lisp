@@ -83,8 +83,11 @@
 
 
 (defun tokenizer-switch-state (tz new-state &key reconsume-character)
-  (format *debug-io* "~&state: ~A → ~A~@[ reconsume ~S~]~&" (tokenizer-state tz) new-state reconsume-character)
-  (setf (tokenizer-state tz) new-state))
+  (let ((return-state-p (eql 'return-state new-state)))
+    (when return-state-p
+      (setf new-state (slot-value tz 'return-state)))
+    (format *debug-io* "~&state: ~A →~:[~; the return state~] ~A ~@[ reconsume ~S~]~&" (tokenizer-state tz) return-state-p new-state reconsume-character)
+    (setf (tokenizer-state tz) new-state)))
 
 
 (defun tokenizer-emit-token (tokenizer &rest token)

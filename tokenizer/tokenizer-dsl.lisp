@@ -13,8 +13,9 @@
        ,(format nil "13.2.~A ~A~&~A" number title url)
        (declare (ignorable buffer end))
        (with-slots (current-token return-state temporary-buffer character-reference-code) self
-         (let ((current-input-character nil))
-           (declare (ignorable current-input-character))
+         (let ((current-input-character nil)
+               (peek-index nil))
+           (declare (ignorable current-input-character peek-index))
            (block nil
              ,@body
              (values start reconsume-character)))))
@@ -28,21 +29,47 @@
   `(- (char-code current-input-character) ,subtract))
 
 
-(defmacro next-input-character (&optional (n 1))
-  `(let ((index (+ start ,n -1)))
-     (cond ((< index end) (prog1 (aref buffer index)))
-           (t (return start)))))
+(defmacro next-input-character ()
+  `(cond (reconsume-character
+          (values reconsume-character
+                  start
+                  t))
+         ((< start end)
+          (values (aref buffer start)
+                  (1+ start)
+                  nil))
+         (t
+          (return start))))
+
+
+(defmacro with-peek-next-input-character (&body body)
+  `(progn
+     (setf peek-index nil)
+    ,@body))
+
+
+(defmacro peek-next-input-character ()
+  `(multiple-value-bind (next-char next-start)
+       (let ((start (or peek-index start))
+             (reconsume-character (unless peek-index reconsume-character)))
+         (next-input-character))
+     (setf peek-index next-start)
+     next-char))
+
+
+(defmacro consume-those-characters ()
+  `(loop :while (< start peek-index)
+         :do (consume-next-input-character)))
 
 
 (defmacro consume-next-input-character ()
-  `(progn
-     (cond (reconsume-character
-            (setf current-input-character reconsume-character
-                  reconsume-character nil)
-            (incf start))
+  `(multiple-value-bind (next-char next-start reconsumedp)
+       (next-input-character)
+     (setf current-input-character next-char)
+     (setf start next-start)
+     (cond (reconsumedp
+            (setf reconsume-character nil))
            (t
-            (setf current-input-character (next-input-character))
-            (incf start)
             (let ((code-point (char-code current-input-character)))
               (cond ((surrogate-p code-point)
                      (this-is-a-parse-error :surrogate-in-input-stream))
@@ -53,11 +80,6 @@
                           (control-p code-point))
                      (this-is-a-parse-error :control-character-in-input-stream))))))
      current-input-character))
-
-
-(defmacro consume-those-characters (n)
-  `(loop :repeat ,n
-         :do (consume-next-input-character)))
 
 
 (defmacro current-character-case (&body cases)
@@ -94,8 +116,7 @@
 
 (defmacro reconsume-in (new-state)
   `(progn (tokenizer-switch-state self ',new-state :reconsume-character current-input-character)
-          (setf reconsume-character current-input-character)
-          (decf start)))
+          (setf reconsume-character current-input-character)))
 
 
 (defmacro set-return-state (state)
@@ -154,21 +175,17 @@
 
 ;; Entity reference
 
-(defmacro if-named-character-reference-match (matched-form else-form)
-  `(let ((peek-offset 0))
-     (multiple-value-bind (matched-entity matched-length)
-         (entity-match (lambda ()
-                         (incf peek-offset)
-                         (next-input-character peek-offset)))
+(defmacro with-matched-named-character-reference (&body body)
+  `(with-peek-next-input-character
+     (multiple-value-bind (entity-matched-p matched-length)
+         (entity-match (lambda () (peek-next-input-character)))
        (loop :repeat matched-length
              :do (temporary-buffer-append (consume-next-input-character)))
-       (if matched-entity
-           ,matched-form
-           ,else-form))))
+       ,@body)))
 
 
 (defmacro temporary-buffer-append-matched-character-reference ()
-  `(temporary-buffer-append-entity matched-entity))
+  `(temporary-buffer-append-entity entity-matched-p))
 
 
 ;; Current token
