@@ -16,7 +16,7 @@
          (let ((current-input-character nil)
                (peek-offset nil))
            (declare (ignorable current-input-character peek-offset))
-           (block nil
+           (block process-state
              ,@body
              t))))
      (setf (aref *tokenizer-states* ,number) #',name)))
@@ -31,7 +31,7 @@
 
 (defmacro next-input-character (&optional (offset 0))
   `(or (input-stream-next-input-character input-stream ,offset)
-       (return)))
+       (return-from process-state)))
 
 
 (defmacro with-peek-next-input-character (&body body)
@@ -52,7 +52,7 @@
 
 (defmacro consume-next-input-character ()
   `(setf current-input-character (or (input-stream-consume-next-input-character input-stream)
-                                     (return))))
+                                     (return-from process-state))))
 
 
 (defmacro current-character-case (&body cases)

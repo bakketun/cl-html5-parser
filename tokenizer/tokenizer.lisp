@@ -74,8 +74,7 @@
 
 (defun tokenizer-process (tokenizer input-stream)
   (loop :for continuep := (tokenizer-process1-in-state tokenizer input-stream)
-        :repeat 10
-        :while (or continuep (input-stream-empty-p input-stream))))
+        :while (and continuep (not (input-stream-empty-p input-stream)))))
 
 
 (defun tokenizer-process1-in-state (tokenizer input-stream)
