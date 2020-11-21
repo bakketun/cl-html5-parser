@@ -91,6 +91,9 @@
 
 
 (defun tokenizer-emit-token (tokenizer &rest token)
+  (when (and (eql :end-tag (getf token :type))
+             (getf token :data))
+    (tokenizer-emit-token tokenizer :type :parse-error :data :end-tag-with-attributes))
   (apply (tokenizer-token-handler tokenizer) token))
 
 
