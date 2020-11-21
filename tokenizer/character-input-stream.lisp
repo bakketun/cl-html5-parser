@@ -5,7 +5,7 @@
 
 
 (defclass input-stream ()
-  ((characters :initform nil)
+  ((characters :initform "")
    (reconsumep :initform nil)))
 
 
@@ -32,13 +32,19 @@
 
 
 (defun input-stream-append (input-stream new-characters)
-  ;; Todo normalize newlines
-  ;; https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream
-  (with-slots (characters) input-stream
-    (setf characters (concatenate 'string
-                                  characters
-                                  (string new-characters)))
-    new-characters))
+  ;; Normalize newlines
+  (let ((buffer (make-array (length new-characters) :fill-pointer 0)))
+    (loop :for last-was-cr := nil :then is-cr
+          :for char :across new-characters
+          :for is-cr := (eql #\Return char)
+          :for is-lf := (eql #\Linefeed char)
+          :unless (and last-was-cr is-lf)
+            :do (vector-push (if is-cr #\Linefeed char) buffer))
+    (with-slots (characters) input-stream
+      (setf characters (concatenate 'string
+                                    characters
+                                    buffer))))
+  new-characters)
 
 
 (defun input-stream-close (input-stream)
