@@ -32,7 +32,8 @@
                (:file "entities-functions")
                (:file "inputstream")
                (:module "tokenizer"
-                :components ((:file "tokenizer")
+                :components ((:file "character-input-stream")
+                             (:file "tokenizer")
                              (:file "tokenizer-dsl")
                              (:file "state-package")
                              (:file "state")))

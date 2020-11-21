@@ -9,16 +9,16 @@
 
 (defmacro define-state (name number title url &body body)
   `(progn
-     (defun ,name (self buffer start end reconsume-character)
+     (defun ,name (self input-stream)
        ,(format nil "13.2.~A ~A~&~A" number title url)
-       (declare (ignorable buffer end))
+       (declare (ignorable input-stream))
        (with-slots (current-token return-state temporary-buffer character-reference-code) self
          (let ((current-input-character nil)
-               (peek-index nil))
-           (declare (ignorable current-input-character peek-index))
+               (peek-offset nil))
+           (declare (ignorable current-input-character peek-offset))
            (block nil
              ,@body
-             (values start reconsume-character t)))))
+             t))))
      (setf (aref *tokenizer-states* ,number) #',name)))
 
 
@@ -29,57 +29,30 @@
   `(- (char-code current-input-character) ,subtract))
 
 
-(defmacro next-input-character ()
-  `(cond (reconsume-character
-          (values reconsume-character
-                  start
-                  t))
-         ((< start end)
-          (values (aref buffer start)
-                  (1+ start)
-                  nil))
-         (t
-          (return start))))
+(defmacro next-input-character (&optional offset)
+  `(or (input-stream-next-input-character input-stream ,offset)
+       (return)))
 
 
 (defmacro with-peek-next-input-character (&body body)
   `(progn
-     (setf peek-index nil)
+     (setf peek-offset 0)
     ,@body))
 
 
 (defmacro peek-next-input-character ()
-  `(multiple-value-bind (next-char next-start)
-       (let ((start (or peek-index start))
-             (reconsume-character (unless peek-index reconsume-character)))
-         (next-input-character))
-     (setf peek-index next-start)
-     next-char))
+  `(prog1 (next-input-character peek-offset)
+     (incf peek-offset)))
 
 
 (defmacro consume-those-characters ()
-  `(loop :while (< start peek-index)
+  `(loop :repeat peek-offset
          :do (consume-next-input-character)))
 
 
 (defmacro consume-next-input-character ()
-  `(multiple-value-bind (next-char next-start reconsumedp)
-       (next-input-character)
-     (setf current-input-character next-char)
-     (setf start next-start)
-     (cond (reconsumedp
-            (setf reconsume-character nil))
-           (t
-            (let ((code-point (char-code current-input-character)))
-              (cond ((surrogate-p code-point)
-                     (this-is-a-parse-error :surrogate-in-input-stream))
-                    ((noncharacter-p code-point)
-                     (this-is-a-parse-error :noncharacter-in-input-stream))
-                    ((and (not (or (ascii-whitespace-p code-point)
-                                   (eql #x0000 code-point)))
-                          (control-p code-point))
-                     (this-is-a-parse-error :control-character-in-input-stream))))))
-     current-input-character))
+  `(setf current-input-character (or (input-stream-consume-next-input-character input-stream)
+                                     (return))))
 
 
 (defmacro current-character-case (&body cases)
@@ -116,7 +89,7 @@
 
 (defmacro reconsume-in (new-state)
   `(progn (tokenizer-switch-state self ',new-state :reconsume-character current-input-character)
-          (setf reconsume-character current-input-character)))
+          (input-stream-unconsume-character input-stream current-input-character)))
 
 
 (defmacro set-return-state (state)
