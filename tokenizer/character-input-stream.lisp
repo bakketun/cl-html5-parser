@@ -7,7 +7,9 @@
 (defclass input-stream ()
   ((characters :initform "")
    (reconsumep :initform nil)
-   (last-character-was-cr :initform nil)))
+   (last-character-was-cr :initform nil)
+   (closed-p :initform nil
+             :reader input-stream-closed-p)))
 
 
 (defmethod print-object ((input-stream input-stream) stream)
@@ -49,10 +51,11 @@
 
 
 (defun input-stream-close (input-stream)
-  (with-slots (characters) input-stream
+  (with-slots (characters closed-p) input-stream
     (setf characters (concatenate 'string
                                   characters
-                                  (string EOF))))
+                                  (string EOF))
+          closed-p t))
   input-stream)
 
 

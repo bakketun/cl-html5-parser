@@ -1174,6 +1174,12 @@
 (define-state after-doctype-name-state
     56 "After DOCTYPE name state"
     "https://html.spec.whatwg.org/multipage/parsing.html#after-doctype-name-state"
+  ;; If the next input character is P or S, ensure that there is at
+  ;; least 6 characters to peek at before consuming it.
+  (when (or (eql U+0070_LATIN_SMALL_LETTER_P (lowercase-version-of (next-input-character)))
+            (eql U+0073_LATIN_SMALL_LETTER_S (lowercase-version-of (next-input-character))))
+    (with-peek-next-input-character
+      (cl:loop :repeat 6 :do (peek-next-input-character))))
   (consume-next-input-character)
   (current-character-case
     ((U+0009_CHARACTER_TABULATION

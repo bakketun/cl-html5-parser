@@ -32,7 +32,9 @@
 
 (defmacro next-input-character (&optional (offset 0))
   `(or (input-stream-next-input-character input-stream ,offset)
-       (return-from process-state)))
+       (if (input-stream-closed-p input-stream)
+           eof
+           (return-from process-state))))
 
 
 (defmacro with-peek-next-input-character (&body body)
