@@ -151,7 +151,7 @@ pointer at the end."
                (symbol (conc string (string x))))))
     (dolist (x data string)
       (conc string x))))
-
+(define-modify-macro nconcatf (&rest data) nconcat)
 
 (defun add-attribute (token name)
   (let ((attr (cons (make-growable-string (string name))

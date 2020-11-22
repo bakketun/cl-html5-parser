@@ -338,4 +338,5 @@
     (values (input-stream-tests)
             (test-tokenizer)
             (tree-builder-tests)
-            (test-parser))))
+            ;(test-parser)
+            )))
