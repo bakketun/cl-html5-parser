@@ -1136,7 +1136,7 @@
      (this-is-a-parse-error :eof-in-doctype)
      (create-new-doctype-token)
      (current-token-set-force-quirks-flag)
-     (switch-state data-state)
+     (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
      (create-new-doctype-token)
