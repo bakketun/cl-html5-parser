@@ -20,17 +20,18 @@
 
 (in-package :html5-parser-tests)
 
-(defun run-tokenizer-test-parser (initial-state last-start-tag source encoding)
-  (let ((tokens (with-open-file (html5-parser::*tokenizer-trace-output* "/tmp/tokenizer-trace"
-                                                                        :direction :output
-                                                                        :if-does-not-exist :create
-                                                                        :if-exists :append)
-                  (format html5-parser::*tokenizer-trace-output* "~&-----------------------------~&")
-                  (html5-parser::tokenizer-test source
-                                                :initial-state initial-state
-                                                :last-start-tag last-start-tag)))
+(defun run-tokenizer-test-parser (initial-state last-start-tag source)
+  (let ((tokens (with-open-file (binary-out "/tmp/tokenizer-trace" :direction :output
+                                                                   :if-does-not-exist :create
+                                                                   :if-exists :append
+                                                                   :element-type 'flex:octet)
+                  (with-open-stream (html5-parser::*tokenizer-trace-output*
+                                     (flex:make-flexi-stream binary-out :external-format :utf-8))
+                    (format html5-parser::*tokenizer-trace-output* "~&-----------------------------~&")
+                    (html5-parser::tokenizer-test source
+                                                  :initial-state initial-state
+                                                  :last-start-tag last-start-tag))))
         errors output-tokens)
-    ;;(break "~S" tokens)
     (dolist (token tokens)
       (typecase token
         (html5-parser::end-of-file-token)
@@ -62,6 +63,7 @@
     (values (nreverse output-tokens)
             (nreverse errors))))
 
+
 (defun concatenate-character-tokens (tokens)
   (let ((output-tokens '()))
     (dolist (token tokens)
@@ -74,11 +76,9 @@
           (push token output-tokens)))
     (nreverse output-tokens)))
 
-(defun temp-fix (data)
-  (flex:octets-to-string data
-                         :external-format :utf-16le))
 
 (defparameter *simple-errors-check* t)
+
 
 (defun run-tokenizer-test (test-name initial-state test)
   (with-simple-restart (skip "Skip test ~A ~A: ~A"
@@ -90,8 +90,7 @@
       (multiple-value-bind (tokens errors)
           (run-tokenizer-test-parser initial-state
                                      (getf test :last-start-tag)
-                                     (getf test :input)
-                                     :utf-16le)
+                                     (getf test :input))
         (let ((received (concatenate-character-tokens tokens)))
           (unless (equal expected received)
             (error "Test failed ~S ~%Expected: ~S~%Received: ~S" test expected received))
@@ -104,34 +103,19 @@
             (error "Test failed ~S ~%Expected errors: ~S~%Got errors: ~S"
                    test expected-errors errors)))))))
 
-(defun utf16-string-to-octets (string)
-  (when string
-    (coerce (loop for i in (cdr string)
-                  collect (ldb (byte 8 0) i)
-                  collect (ldb (byte 8 8) i))
-            '(vector (unsigned-byte 8)))))
 
-(defun double-unescape (string)
-  (when string
-    (json-streams:json-parse (format nil "\"~A\"" (from-raw-string string)) :raw-strings t)))
-
-(defun data-to-octects (string double-escaped)
-  (when string
-    (utf16-string-to-octets (if double-escaped
-                                (double-unescape string)
-                                string))))
 
 (defun fix-output (output double-escaped)
   (flet ((unescape (string)
-           (when (consp string)
-             (flex:octets-to-string (data-to-octects string double-escaped)
-                                    :external-format :utf-16le))))
+           (etypecase string
+             (string (json-unescape string double-escaped))
+             ((member :null) nil))))
     (loop for value in output
           collect
           (if (and (consp value) (eql :array (car value)))
               (let ((value (cdr value)))
                 (flet ((is (name)
-                         (equal (to-raw-string name) (car value))))
+                         (equal name (car value))))
                   (cond ((is "Character")
                          (assert (= 2 (length value)))
                          (list :type :characters :data (unescape (second value))))
@@ -157,21 +141,22 @@
                                :system-id (unescape (fourth value))
                                :force-quirks (not (fifth value))))
                         (t (error "Unexpected token type ~S" (car value))))))
-              (if (equal (to-raw-string "ParseError") value)
+              (if (equal "ParseError" value)
                   (list :type :parse-error)
                   (error "Unexpected token type ~S" value))))))
+
 
 (defun find-state-symbol (string)
   (let ((symbol (find-symbol (substitute #\- #\Space (string-upcase string)) :html5-parser-tokenizer-state)))
     (assert symbol () "Unkown state ~S" string)
     symbol))
 
-(defun to-raw-string (string)
-  (cons :string (map 'list #'char-code string)))
 
-(defun from-raw-string (raw-string)
-  (when (consp raw-string)
-    (map 'string #'code-char (cdr raw-string))))
+(defun json-unescape (string double-escaped)
+  (if double-escaped
+      (map 'string #'code-char (cdr (json-streams:json-parse (format nil "\"~A\"" string) :raw-strings t)))
+      string))
+
 
 (defun jget (json key &rest more-keys)
   "Access data from json object. Key is one of
@@ -192,44 +177,33 @@ Suppling more-keys will result in recursive application of jget with the result 
                    (integer
                     (elt (jget json :array) key))
                    (string
-                    (cdr (assoc (to-raw-string key) (jget json :object) :test #'equal)))
-                   ((member :string)
-                    (assert (eq :string (car json)) (json) "Not a JSON string")
-                    (from-raw-string json)))))
+                    (cdr (assoc key (jget json :object) :test #'equal))))))
       (if more-keys
           (apply #'jget value more-keys)
           (if (eq :null value)
               (values)
               value)))))
 
+
 (defun load-tests (filename)
   (with-open-file (in filename)
-    (loop for test in (jget (json-streams:json-parse in :raw-strings t) "tests" :array)
+    (loop for test in (jget (json-streams:json-parse in) "tests" :array)
           for double-escaped = (jget test "doubleEscaped")
-          collect (list :description (jget test "description" :string)
-                        :initial-states (or (loop for raw in (jget test "initialStates" :array)
-                                                  collect (find-state-symbol (jget raw :string)))
+          collect (list :description (jget test "description")
+                        :initial-states (or (loop for string in (jget test "initialStates" :array)
+                                                  collect (find-state-symbol string))
                                             '(html5-parser-tokenizer-state:data-state))
-                        :last-start-tag (jget test "lastStartTag" :string)
-                        :input (flex:octets-to-string (data-to-octects (jget test "input") double-escaped) :external-format :utf-16le)
+                        :last-start-tag (jget test "lastStartTag")
+                        :input (json-unescape (jget test "input") double-escaped)
                         :output (fix-output (jget test "output" :array) double-escaped)
                         :double-escaped double-escaped
                         :errors (loop for error in (jget test "errors" :array)
-                                      collect (list :code (jget error "code" :string)
+                                      collect (list :code (jget error "code")
                                                     :line (jget error "line")
                                                     :col (jget error "col")))))))
 
-;; (setf *simple-errors-check* t)
-;; (setf *simple-errors-check* nil)
 
-(defparameter *skip-tests*
-  '(("unicodeCharsProblematic"
-     ;; Unable to run these test, flex-streams doesn't like invalid UTF-16
-     :skip
-     ;; Hangs on the following test, due to bug in flexi-streams
-     "Invalid Unicode character U+DFFF with valid preceding character"
-     ;; The valid "a" character is consumed
-     "Invalid Unicode character U+D800 with valid following character")))
+(defparameter *skip-tests* nil)
 
 
 (defun test-tokenizer ()
