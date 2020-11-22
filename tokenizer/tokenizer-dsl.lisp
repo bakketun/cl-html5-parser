@@ -54,8 +54,12 @@
 
 
 (defmacro consume-next-input-character ()
-  `(setf current-input-character (or (input-stream-consume-next-input-character input-stream)
-                                     (return-from process-state))))
+  `(setf current-input-character (multiple-value-bind (next-char error)
+                                     (input-stream-consume-next-input-character input-stream)
+                                   (prog1 (or next-char
+                                              (return-from process-state))
+                                     (when error
+                                       (this-is-a-parse-error error))))))
 
 
 (defmacro current-character-case (&body cases)
