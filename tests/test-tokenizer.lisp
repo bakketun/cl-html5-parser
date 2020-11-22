@@ -21,7 +21,10 @@
 (in-package :html5-parser-tests)
 
 (defun run-tokenizer-test-parser (initial-state last-start-tag source encoding)
-  (let ((tokens (with-open-file (html5-parser::*tokenizer-trace-output* "/tmp/tokenizer-trace" :direction :output :if-exists :append)
+  (let ((tokens (with-open-file (html5-parser::*tokenizer-trace-output* "/tmp/tokenizer-trace"
+                                                                        :direction :output
+                                                                        :if-does-not-exist :create
+                                                                        :if-exists :append)
                   (format html5-parser::*tokenizer-trace-output* "~&-----------------------------~&")
                   (html5-parser::tokenizer-test source
                                                 :initial-state initial-state
