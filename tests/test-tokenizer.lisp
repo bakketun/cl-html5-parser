@@ -229,9 +229,7 @@ Suppling more-keys will result in recursive application of jget with the result 
      ;; Hangs on the following test, due to bug in flexi-streams
      "Invalid Unicode character U+DFFF with valid preceding character"
      ;; The valid "a" character is consumed
-     "Invalid Unicode character U+D800 with valid following character")
-    ("domjs"
-     "CRLFLF in bogus comment state")))
+     "Invalid Unicode character U+D800 with valid following character")))
 
 
 (defun test-tokenizer ()

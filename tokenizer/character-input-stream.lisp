@@ -41,9 +41,9 @@
       (loop :for char :across new-characters
             :for is-cr := (eql #\Return char)
             :for is-lf := (eql #\Linefeed char)
-            :unless (and last-character-was-cr is-lf)
-              :do (vector-push (if is-cr #\Linefeed char) buffer)
-                  (setf last-character-was-cr is-cr))
+            :do (unless (and last-character-was-cr is-lf)
+                  (vector-push (if is-cr #\Linefeed char) buffer))
+                (setf last-character-was-cr is-cr))
       (setf characters (concatenate 'string
                                     characters
                                     buffer))))
