@@ -29,35 +29,32 @@
         errors output-tokens)
     ;;(break "~S" tokens)
     (dolist (token tokens)
-      (case (getf token :type)
-        (:end-of-file)
-        (:parse-error
-         (push (getf token :data) errors))
+      (typecase token
+        (html5-parser::end-of-file-token)
+        (html5-parser::parse-error-token
+         (push (html5-parser::parse-error-token-code token) errors))
         (otherwise
-         (push (ecase (getf token :type)
-                 (:doctype
+         (push (etypecase token
+                 (html5-parser::doctype-token
                   (list :type :doctype
-                        :name (getf token :name)
-                        :public-id (getf token :public-id)
-                        :system-id (getf token :system-id)
-                        :force-quirks (getf token :force-quirks)))
-                 (:start-tag
-                  (list :type (getf token :type)
-                        :name (getf token :name)
-                        :data (remove-duplicates (getf token :data)
-                                                 :key #'car
-                                                 :test #'string=
-                                                 :from-end t)
-                        :self-closing (getf token :self-closing)))
-                 (:end-tag
+                        :name (html5-parser::doctype-token-name token)
+                        :public-id (html5-parser::doctype-token-public-id token)
+                        :system-id (html5-parser::doctype-token-system-id token)
+                        :force-quirks (html5-parser::doctype-token-force-quirks-flag token)))
+                 (html5-parser::start-tag-token
+                  (list :type :start-tag
+                        :name (html5-parser::tag-token-name token)
+                        :data (html5-parser::tag-token-attributes token)
+                        :self-closing (html5-parser::tag-token-self-closing-flag token)))
+                 (html5-parser::end-tag-token
                   (list :type :end-tag
-                        :name (getf token :name)))
-                 (:comment
+                        :name (html5-parser::tag-token-name token)))
+                 (html5-parser::comment-token
                   (list :type :comment
-                        :data (getf token :data)))
-                 (:characters
+                        :data (html5-parser::comment-token-data token)))
+                 (html5-parser::character-token
                   (list :type :characters
-                        :data (string (getf token :data)))))
+                        :data (string (html5-parser::character-token-character token)))))
                output-tokens))))
     (values (nreverse output-tokens)
             (nreverse errors))))

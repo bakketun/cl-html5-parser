@@ -49,14 +49,14 @@
 (defvar *tokenizer-trace-output* (make-synonym-stream '*trace-output*))
 
 
-(defun debug-token-handler (&rest args)
-  (format *tokenizer-trace-output* "~&emit-token: ~S~&" args))
+(defun debug-token-handler (token)
+  (format *tokenizer-trace-output* "~&emit-token: ~S~&" token))
 
 
 (defun tokenizer-test (data &key (initial-state 'data-state) last-start-tag (end-of-file-p t))
   (let (tokens)
     (let ((tokenizer (make-instance 'html-tokenizer
-                                    :token-handler (lambda (&rest token)
+                                    :token-handler (lambda (token)
                                                      (format *tokenizer-trace-output* "~&emit-token: ~S~&" token)
                                                      (push token tokens))
                                     :last-start-tag last-start-tag))
@@ -82,14 +82,43 @@
   (funcall (tokenizer-state tokenizer) tokenizer input-stream))
 
 
+;; Tokens
+
+(defstruct token)
+
+(defstruct (end-of-file-token (:include token)))
+
+(defstruct (parse-error-token (:include token))
+  (code))
+
+(defstruct (character-token (:include token))
+  (character))
+
+(defstruct (comment-token (:include token))
+  (data (make-growable-string)))
+
+(defstruct (named-token (:include token))
+  (name))
+
+(defstruct (doctype-token (:include named-token))
+  (public-id nil)
+  (system-id nil)
+  (force-quirks-flag nil))
+
+(defstruct (tag-token (:include named-token))
+  (attributes nil)
+  (self-closing-flag nil))
+
+(defstruct (start-tag-token (:include tag-token)))
+
+(defstruct (end-tag-token (:include tag-token)))
 
 
-
-(defun tokenizer-emit-token (tokenizer &rest token)
-  (when (and (eql :end-tag (getf token :type))
-             (getf token :data))
-    (tokenizer-emit-token tokenizer :type :parse-error :data :end-tag-with-attributes))
-  (apply (tokenizer-token-handler tokenizer) token))
+(defun tokenizer-emit-token (tokenizer token)
+  (when (and (end-tag-token-p token)
+             (tag-token-attributes token))
+    (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-attributes))
+  (funcall (tokenizer-token-handler tokenizer) token))
 
 
 (defun make-growable-string (&optional (init ""))
@@ -121,18 +150,21 @@ pointer at the end."
     (dolist (x data string)
       (conc string x))))
 
+
 (defun add-attribute (token name)
   (let ((attr (cons (make-growable-string (string name))
                     (make-growable-string))))
-    (setf (getf token :data) (append (getf token :data)
-                                     (list attr)))
+    (setf (tag-token-attributes token)
+          (append (tag-token-attributes token) (list attr)))
     attr))
+
 
 (defun add-to-attr-name (attr &rest data)
   (setf (car attr)
         (apply #'nconcat
                (car attr)
                data)))
+
 
 (defun add-to-attr-value (attr &rest data)
   (setf (cdr attr)
@@ -166,22 +198,24 @@ pointer at the end."
 
 ;; Emit tokens
 
-(defun tokenizer-this-is-a-parse-error (tokenizer error-name)
-  (tokenizer-emit-token tokenizer :type :parse-error :data error-name))
+(defun tokenizer-this-is-a-parse-error (tokenizer code)
+  (tokenizer-emit-token tokenizer (make-parse-error-token :code code)))
 
 
 (defun tokenizer-emit-current-token (tokenizer)
   (with-slots (current-token last-start-tag) tokenizer
-   (progn (setf last-start-tag (getf current-token :name))
-          (apply #'tokenizer-emit-token tokenizer current-token))))
+    (progn
+      (when (start-tag-token-p current-token)
+        (setf last-start-tag (tag-token-name current-token)))
+      (tokenizer-emit-token tokenizer current-token))))
 
 
 (defun tokenizer-emit-end-of-file-token (tokenizer)
-  (tokenizer-emit-token tokenizer :type :end-of-file))
+  (tokenizer-emit-token tokenizer (make-end-of-file-token)))
 
 
 (defun tokenizer-emit-character-token (tokenizer character)
-  (tokenizer-emit-token tokenizer :type :characters :data character))
+  (tokenizer-emit-token tokenizer (make-character-token :character character)))
 
 
 ;; The temporary buffer
@@ -220,79 +254,71 @@ pointer at the end."
 
 ;; Current token
 
-(defun make-token (type)
-  (ecase type
-    (:start-tag (list :type :start-tag
-                      :name (make-growable-string)
-                      :data '()
-                      :self-closing nil
-                      :self-closing-acknowledged nil))
-    (:end-tag (list :type :end-tag
-                    :name (make-growable-string)
-                    :data '()
-                    :self-closing nil))
-    (:comment (list :type :comment
-                    :data (make-growable-string)))
-    (:doctype (list :type :doctype
-                    :name (make-growable-string)
-                    :public-id nil
-                    :system-id nil
-                    :force-quirks nil))))
-
-
-(defun tokenizer-create-new-token (tokenizer type)
+(defun tokenizer-create-new-start-tag-token (tokenizer)
   (with-slots (current-token) tokenizer
-    (setf current-token (make-token type))))
+    (setf current-token (make-start-tag-token))))
+
+
+(defun tokenizer-create-new-end-tag-token (tokenizer)
+  (with-slots (current-token) tokenizer
+    (setf current-token (make-end-tag-token))))
+
+
+(defun tokenizer-create-new-comment-token (tokenizer)
+  (with-slots (current-token) tokenizer
+    (setf current-token (make-comment-token))))
+
+
+(defun tokenizer-create-new-doctype-token (tokenizer)
+  (with-slots (current-token) tokenizer
+    (setf current-token (make-doctype-token))))
 
 
 (defun tokenizer-current-token-appropriate-end-tag-p (tokenizer)
   (with-slots (current-token last-start-tag) tokenizer
-    (equal (getf current-token :name) last-start-tag)))
-
-
-(defun tokenizer-current-token-tag-name-append (tokenizer char)
-  (with-slots (current-token) tokenizer
-    (vector-push-extend char (getf current-token :name))))
+    (equal (tag-token-name current-token) last-start-tag)))
 
 
 (defun tokenizer-current-token-name-append (tokenizer char)
   (with-slots (current-token) tokenizer
-    (vector-push-extend char (getf current-token :name))))
+    (unless (named-token-name current-token)
+      (setf (named-token-name current-token) (make-growable-string)))
+    (vector-push-extend char (named-token-name current-token))))
 
 
 (defun tokenizer-current-token-data-append (tokenizer char)
   (with-slots (current-token) tokenizer
-    (vector-push-extend char (getf current-token :data))))
+    (vector-push-extend char (comment-token-data current-token))))
 
 
 (defun tokenizer-current-token-public-id-append (tokenizer char)
   (with-slots (current-token) tokenizer
-    (vector-push-extend char (getf current-token :public-id))))
+    (vector-push-extend char (doctype-token-public-id current-token))))
 
 
 (defun tokenizer-current-token-system-id-append (tokenizer char)
   (with-slots (current-token) tokenizer
-    (vector-push-extend char (getf current-token :system-id))))
+    (vector-push-extend char (doctype-token-system-id current-token))))
 
 
 (defun tokenizer-current-token-set-public-id-not-missing (tokenizer)
   (with-slots (current-token) tokenizer
-    (setf (getf current-token :public-id) (make-growable-string))))
+    (setf (doctype-token-public-id current-token) (make-growable-string))))
 
 
 (defun tokenizer-current-token-set-system-id-not-missing (tokenizer)
   (with-slots (current-token) tokenizer
-    (setf (getf current-token :system-id) (make-growable-string))))
+    (setf (doctype-token-system-id current-token) (make-growable-string))))
 
 
 (defun tokenizer-current-token-set-self-closing-flag (tokenizer)
   (with-slots (current-token) tokenizer
-    (setf (getf current-token :self-closing) t)))
+    (setf (tag-token-self-closing-flag current-token) t)))
 
 
 (defun tokenizer-current-token-set-force-quirks-flag (tokenizer)
   (with-slots (current-token) tokenizer
-    (setf (getf current-token :force-quirks) t)))
+    (setf (doctype-token-force-quirks-flag current-token) t)))
 
 
 ;; Current attribute
@@ -315,13 +341,13 @@ pointer at the end."
 (defun tokenizer-check-for-duplicate-attribute (tokenizer)
   (with-slots (current-token current-attribute) tokenizer
     (let ((other-attribute (assoc (car current-attribute)
-                                  (getf current-token :data)
+                                  (tag-token-attributes current-token)
                                   :test #'equal)))
       (when (and other-attribute
                  (not (eq other-attribute current-attribute)))
-        (setf (getf current-token :data)
+        (setf (tag-token-attributes current-token)
               (remove current-attribute
-                      (getf current-token :data)))
+                      (tag-token-attributes current-token)))
         (tokenizer-this-is-a-parse-error tokenizer :duplicate-attribute-parser-error)))))
 
 

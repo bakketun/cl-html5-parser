@@ -141,9 +141,12 @@
 
 ;; Current token
 
-(define-tokenizer-function-macro create-new-token (type))
+(define-tokenizer-function-macro create-new-start-tag-token ())
+(define-tokenizer-function-macro create-new-end-tag-token ())
+(define-tokenizer-function-macro create-new-comment-token ())
+(define-tokenizer-function-macro create-new-doctype-token ())
+
 (define-tokenizer-function-macro current-token-appropriate-end-tag-p ())
-(define-tokenizer-function-macro current-token-tag-name-append (char))
 (define-tokenizer-function-macro current-token-name-append (char))
 (define-tokenizer-function-macro current-token-data-append (char))
 (define-tokenizer-function-macro current-token-public-id-append (char))

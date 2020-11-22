@@ -45,7 +45,10 @@
    consumed-as-part-of-an-attribute-p
    control-p
    create-new-attribute
-   create-new-token
+   create-new-comment-token
+   create-new-doctype-token
+   create-new-end-tag-token
+   create-new-start-tag-token
    current-attribute-name-append
    current-attribute-value-append
    current-character-case
@@ -59,7 +62,6 @@
    current-token-set-self-closing-flag
    current-token-set-system-id-not-missing
    current-token-system-id-append
-   current-token-tag-name-append
    define-state
    emit-character-token
    emit-character-tokens-from-temporary-buffer
