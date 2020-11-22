@@ -115,9 +115,11 @@
 
 
 (defun tokenizer-emit-token (tokenizer token)
-  (when (and (end-tag-token-p token)
-             (tag-token-attributes token))
-    (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-attributes))
+  (when (end-tag-token-p token)
+    (when (tag-token-attributes token)
+      (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-attributes))
+    (when (tag-token-self-closing-flag token)
+      (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-trailing-solidus)))
   (funcall (tokenizer-token-handler tokenizer) token))
 
 
