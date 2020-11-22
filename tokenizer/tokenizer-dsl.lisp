@@ -9,10 +9,11 @@
 
 (defmacro define-state (name number title url &body body)
   `(progn
+     (defconstant ,name ',name)
      (defun ,name (self input-stream)
        ,(format nil "13.2.~A ~A~&~A" number title url)
        (declare (ignorable input-stream))
-       (with-slots (current-token return-state temporary-buffer character-reference-code) self
+       (with-slots (character-reference-code) self
          (let ((current-input-character nil)
                (peek-offset nil))
            (declare (ignorable current-input-character peek-offset))
@@ -81,23 +82,24 @@
                                     forms)))))))
 
 
+(defmacro define-tokenizer-function-macro (name (&rest args))
+  (let ((function-name (intern (format nil "~A-~A" 'tokenizer name)
+                               (symbol-package name))))
+    `(defmacro ,name (,@args)
+
+       (list ',function-name 'self ,@args))))
+
+
 ;; State
 
-(defmacro switch-state (new-state)
-  `(tokenizer-switch-state self ',new-state))
+(define-tokenizer-function-macro switch-state (new-state))
+(define-tokenizer-function-macro set-return-state (state))
+(define-tokenizer-function-macro switch-to-the-return-state ())
 
 
 (defmacro reconsume-in (new-state)
   `(progn (tokenizer-switch-state self ',new-state :reconsume-character current-input-character)
           (input-stream-unconsume-character input-stream current-input-character)))
-
-
-(defmacro set-return-state (state)
-  `(setf (slot-value self 'return-state) ',state))
-
-
-(defmacro switch-to-the-return-state ()
-  `(switch-state return-state))
 
 
 (defmacro reconsume-in-return-state ()
@@ -106,50 +108,20 @@
 
 ;; Emit tokens
 
-(defmacro this-is-a-parse-error (error-name)
-  `(tokenizer-emit-token self :type :parse-error :data ,error-name))
-
-
-(defmacro emit-current-token ()
-  `(progn (setf (slot-value self 'last-start-tag) (getf current-token :name))
-          (apply #'tokenizer-emit-token self current-token)))
-
-
-(defmacro emit-end-of-file-token ()
-  `(tokenizer-emit-token self :type :end-of-file))
-
-
-(defmacro emit-character-token (&rest args)
-  `(tokenizer-emit-token self :type :characters :data ,@args))
+(define-tokenizer-function-macro this-is-a-parse-error (error-name))
+(define-tokenizer-function-macro emit-current-token ())
+(define-tokenizer-function-macro emit-end-of-file-token ())
+(define-tokenizer-function-macro emit-character-token (char))
 
 
 ;; The temporary buffer
 
-
-(defmacro emit-character-tokens-from-temporary-buffer ()
-  `(loop :for char :across temporary-buffer
-         :do (emit-character-token char)))
-
-
-(defmacro temporary-buffer-clear ()
-  `(setf (fill-pointer temporary-buffer) 0))
-
-
-(defmacro temporary-buffer-append (data)
-  `(vector-push-extend ,data temporary-buffer))
-
-
-(defmacro temporary-buffer-append-entity (data)
-  `(loop :for char :across ,data :do
-    (vector-push-extend char temporary-buffer)))
-
-
-(defmacro temporary-buffer-append-code (code)
-  `(vector-push-extend (code-char ,code) temporary-buffer))
-
-
-(defmacro temporary-buffer-equal (string)
-  `(string= temporary-buffer ,string))
+(define-tokenizer-function-macro emit-character-tokens-from-temporary-buffer ())
+(define-tokenizer-function-macro temporary-buffer-clear ())
+(define-tokenizer-function-macro temporary-buffer-append (data))
+(define-tokenizer-function-macro temporary-buffer-append-entity (data))
+(define-tokenizer-function-macro temporary-buffer-append-code-point (code-point))
+(define-tokenizer-function-macro temporary-buffer-equal (string))
 
 
 ;; Entity reference
@@ -169,100 +141,27 @@
 
 ;; Current token
 
-(defun make-token (type)
-  (ecase type
-    (:start-tag (list :type :start-tag
-                      :name (make-growable-string)
-                      :data '()
-                      :self-closing nil
-                      :self-closing-acknowledged nil))
-    (:end-tag (list :type :end-tag
-                    :name (make-growable-string)
-                    :data '()
-                    :self-closing nil))
-    (:comment (list :type :comment
-                    :data (make-growable-string)))
-    (:doctype (list :type :doctype
-                    :name (make-growable-string)
-                    :public-id nil
-                    :system-id nil
-                    :force-quirks nil))))
-
-
-(defmacro create-new-token (type)
-  `(setf current-token (make-token ,type)))
-
-
-(defmacro current-token-appropriate-end-tag-p ()
-  `(equal (getf current-token :name) (slot-value self 'last-start-tag)))
-
-
-(defmacro current-token-tag-name-append (char)
-  `(vector-push-extend ,char (getf current-token :name)))
-
-
-(defmacro current-token-name-append (char)
-  `(vector-push-extend ,char (getf current-token :name)))
-
-
-(defmacro current-token-data-append (char)
-  `(vector-push-extend ,char (getf current-token :data)))
-
-
-(defmacro current-token-public-id-append (char)
-  `(vector-push-extend ,char (getf current-token :public-id)))
-
-
-(defmacro current-token-system-id-append (char)
-  `(vector-push-extend ,char (getf current-token :system-id)))
-
-
-(defmacro current-token-set-public-id-not-missing ()
-  `(setf (getf current-token :public-id) (make-growable-string)))
-
-
-(defmacro current-token-set-system-id-not-missing ()
-  `(setf (getf current-token :system-id) (make-growable-string)))
-
-
-(defmacro current-token-self-closing-flag ()
-  `(getf current-token :self-closing))
-
-
-(defmacro current-token-force-quirks-flag ()
-  `(getf current-token :force-quirks))
-
-
-(defmacro current-token-add-attribute ()
-  `(add-attribute current-token (make-growable-string)))
-
-
-(defmacro current-attribute-name-append (char)
-  `(add-to-attr-name current-token ,char))
-
-
-(defmacro current-attribute-value-append (char)
-  `(add-to-attr-value current-token ,char))
+(define-tokenizer-function-macro create-new-token (type))
+(define-tokenizer-function-macro current-token-appropriate-end-tag-p ())
+(define-tokenizer-function-macro current-token-tag-name-append (char))
+(define-tokenizer-function-macro current-token-name-append (char))
+(define-tokenizer-function-macro current-token-data-append (char))
+(define-tokenizer-function-macro current-token-public-id-append (char))
+(define-tokenizer-function-macro current-token-system-id-append (char))
+(define-tokenizer-function-macro current-token-set-public-id-not-missing ())
+(define-tokenizer-function-macro current-token-set-system-id-not-missing ())
+(define-tokenizer-function-macro current-token-set-self-closing-flag ())
+(define-tokenizer-function-macro current-token-set-force-quirks-flag ())
+(define-tokenizer-function-macro current-token-add-attribute ())
+(define-tokenizer-function-macro current-attribute-name-append (char))
+(define-tokenizer-function-macro current-attribute-value-append (char))
 
 
 ;; Other helpers
 
-(defmacro adjusted-current-node-not-in-HTML-namespace-p ()
-  `(funcall (slot-value self 'adjusted-current-node-not-in-HTML-namespace-p)))
-
-
-(defmacro consumed-as-part-of-an-attribute-p ()
-  `(or (eq 'attribute-value-\(double-quoted\)-state return-state)
-       (eq 'attribute-value-\(single-quoted\)-state return-state)
-       (eq 'attribute-value-\(unquoted\)-state return-state)))
-
-
-(defmacro flush-code-points-consumed-as-a-character-reference ()
-  `(if (consumed-as-part-of-an-attribute-p)
-       (loop :for char :across temporary-buffer
-             :do (current-attribute-value-append char))
-       (loop :for char :across temporary-buffer
-             :do (emit-character-token char))))
+(define-tokenizer-function-macro adjusted-current-node-not-in-HTML-namespace-p ())
+(define-tokenizer-function-macro consumed-as-part-of-an-attribute-p ())
+(define-tokenizer-function-macro flush-code-points-consumed-as-a-character-reference ())
 
 
 (defun lowercase-version-of (char)

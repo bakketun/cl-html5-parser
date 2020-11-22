@@ -840,7 +840,7 @@
   (consume-next-input-character)
   (current-character-case
     (U+003E_GREATER-THAN_SIGN_>
-     (setf (current-token-self-closing-flag) t)
+     (current-token-set-self-closing-flag)
      (switch-state data-state)
      (emit-current-token))
     (EOF
@@ -1096,7 +1096,7 @@
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (create-new-token :doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
@@ -1127,13 +1127,13 @@
     (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-doctype-name)
      (create-new-token :doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (switch-state data-state)
      (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
      (create-new-token :doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (switch-state data-state)
      (emit-end-of-file-token))
     (Anything_else
@@ -1162,7 +1162,7 @@
      (current-token-name-append U+FFFD_REPLACEMENT_CHARACTER))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
@@ -1185,7 +1185,7 @@
      (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
@@ -1211,7 +1211,7 @@
 
            (t ;; Otherwise
             (this-is-a-parse-error :invalid-character-sequence-after-doctype-name)
-            (setf (current-token-force-quirks-flag) t)
+            (current-token-set-force-quirks-flag)
             (reconsume-in bogus-DOCTYPE-state))))))
 
 
@@ -1235,17 +1235,17 @@
      (switch-state doctype-public-identifier-\(single-quoted\)-state))
     (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-doctype-public-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (switch-state data-state)
      (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-public-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (reconsume-in bogus-DOCTYPE-state))))
 
 
@@ -1268,17 +1268,17 @@
      (switch-state doctype-public-identifier-\(single-quoted\)-state))
     (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-doctype-public-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (switch-state data-state)
      (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-public-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (reconsume-in bogus-DOCTYPE-state))))
 
 
@@ -1294,12 +1294,12 @@
      (current-token-public-id-append U+FFFD_REPLACEMENT_CHARACTER))
     (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :abrupt-doctype-public-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (switch-state data-state)
      (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
@@ -1318,12 +1318,12 @@
      (current-token-public-id-append U+FFFD_REPLACEMENT_CHARACTER))
     (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :abrupt-doctype-public-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (switch-state data-state)
      (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
@@ -1353,12 +1353,12 @@
      (switch-state doctype-system-identifier-\(single-quoted\)-state))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (reconsume-in bogus-DOCTYPE-state))))
 
 
@@ -1384,12 +1384,12 @@
      (switch-state doctype-system-identifier-\(single-quoted\)-state))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (reconsume-in bogus-DOCTYPE-state))))
 
 
@@ -1413,17 +1413,17 @@
      (switch-state doctype-system-identifier-\(single-quoted\)-state))
     (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-doctype-system-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (switch-state data-state)
      (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (reconsume-in bogus-DOCTYPE-state))))
 
 
@@ -1446,17 +1446,17 @@
      (switch-state doctype-system-identifier-\(single-quoted\)-state))
     (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :missing-doctype-system-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (switch-state data-state)
      (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
      (this-is-a-parse-error :missing-quote-before-doctype-system-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (reconsume-in bogus-DOCTYPE-state))))
 
 
@@ -1472,12 +1472,12 @@
      (current-token-system-id-append U+FFFD_REPLACEMENT_CHARACTER))
     (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :abrupt-doctype-system-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (switch-state data-state)
      (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
@@ -1496,12 +1496,12 @@
      (current-token-system-id-append U+FFFD_REPLACEMENT_CHARACTER))
     (U+003E_GREATER-THAN_SIGN_>
      (this-is-a-parse-error :abrupt-doctype-system-identifier)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (switch-state data-state)
      (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
@@ -1524,7 +1524,7 @@
      (emit-current-token))
     (EOF
      (this-is-a-parse-error :eof-in-doctype)
-     (setf (current-token-force-quirks-flag) t)
+     (current-token-set-force-quirks-flag)
      (emit-current-token)
      (emit-end-of-file-token))
     (Anything_else
@@ -1783,6 +1783,6 @@
              (#x9F #x0178) ;; LATIN CAPITAL LETTER Y WITH DIAERESIS (Ÿ))
              (otherwise character-reference-code)))))
   (temporary-buffer-clear)
-  (temporary-buffer-append-code character-reference-code)
+  (temporary-buffer-append-code-point character-reference-code)
   (flush-code-points-consumed-as-a-character-reference)
   (switch-to-the-return-state))

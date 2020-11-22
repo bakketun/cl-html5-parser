@@ -51,11 +51,11 @@
    current-token-add-attribute
    current-token-appropriate-end-tag-p
    current-token-data-append
-   current-token-force-quirks-flag
    current-token-name-append
    current-token-public-id-append
-   current-token-self-closing-flag
+   current-token-set-force-quirks-flag
    current-token-set-public-id-not-missing
+   current-token-set-self-closing-flag
    current-token-set-system-id-not-missing
    current-token-system-id-append
    current-token-tag-name-append
@@ -79,7 +79,7 @@
    switch-state
    switch-to-the-return-state
    temporary-buffer-append
-   temporary-buffer-append-code
+   temporary-buffer-append-code-point
    temporary-buffer-append-entity
    temporary-buffer-append-matched-character-reference
    temporary-buffer-clear
