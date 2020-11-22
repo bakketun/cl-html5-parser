@@ -21,8 +21,56 @@
 (in-package :html5-parser)
 
 
+(defun make-html-tokenizer (source &key encoding adjusted-current-node-not-in-HTML-namespace-p)
+  (make-instance 'html-tokenizer
+                 :source (cons source encoding)
+                 :adjusted-current-node-not-in-HTML-namespace-p adjusted-current-node-not-in-HTML-namespace-p
+                 :token-handler #'map-tokens-handler))
+
+
+(defvar *map-tokens-handler*)
+
+
+(defun map-tokens-handler (token)
+  (funcall *map-tokens-handler* (token-as-plist token)))
+
+
+(defun map-tokens (tokenizer function)
+  (with-slots (source) tokenizer
+    (let ((*map-tokens-handler* function))
+      (tokenizer-process tokenizer (make-input-stream :characters (car source))))))
+
+
+(defun token-as-plist (token)
+  (etypecase token
+    (doctype-token
+     (list :type :doctype
+           :name (doctype-token-name token)
+           :public-id (doctype-token-public-id token)
+           :system-id (doctype-token-system-id token)
+           :force-quirks (doctype-token-force-quirks-flag token)))
+    (start-tag-token
+     (list :type :start-tag
+           :name (tag-token-name token)
+           :data (tag-token-attributes token)
+           :self-closing (tag-token-self-closing-flag token)))
+    (end-tag-token
+     (list :type :end-tag
+           :name (tag-token-name token)))
+    (comment-token
+     (list :type :comment
+           :data (comment-token-data token)))
+    (character-token
+     (list :type :characters
+           :data (string (character-token-character token))))
+    (parse-error-token
+     (list :type :parse-error
+           :data (parse-error-token-code token)))))
+
+
 (defclass html-tokenizer ()
-  ((token-handler :initarg :token-handler
+  ((source :initarg :source)
+   (token-handler :initarg :token-handler
                   :initform 'debug-token-handler
                   :accessor tokenizer-token-handler)
    (adjusted-current-node-not-in-HTML-namespace-p :initarg :adjusted-current-node-not-in-HTML-namespace-p
@@ -30,7 +78,7 @@
    (last-start-tag :initarg :last-start-tag
                    :initform nil)
    (state :accessor tokenizer-state
-          :initform :undefined)
+          :initform 'data-state)
    (return-state)
    (current-token)
    (current-attribute)

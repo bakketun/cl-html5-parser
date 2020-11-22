@@ -94,6 +94,10 @@
    attribute-value-\(single-quoted\)-state
    attribute-value-\(unquoted\)-state
    data-state
+   plaintext-state
+   rawtext-state
+   rcdata-state
+   script-data-state
 
    ;; Constants
    EOF

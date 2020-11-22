@@ -121,11 +121,11 @@
     (cond (inner-html-mode
            (setf inner-html (string-downcase container))
            (cond ((member inner-html +cdata-elements+ :test #'string=)
-                  (setf (slot-value tokenizer 'state) :rcdata-state))
+                  (tokenizer-switch-state tokenizer 'rcdata-state))
                  ((member inner-html +rcdata-elements+ :test #'string=)
-                  (setf (slot-value tokenizer 'state) :rawtext-state))
+                  (tokenizer-switch-state tokenizer 'rawtext-state))
                  ((string= inner-html "plaintext")
-                  (setf (slot-value tokenizer 'state) :plaintext-state)))
+                  (tokenizer-switch-state tokenizer 'plaintext-state)))
            (insert-root (implied-tag-token "html" :start-tag))
            (setf phase :before-head)
            (reset-insertion-mode))
@@ -371,9 +371,9 @@
   (assert (member content-type '(:rawtext :rcdata)))
   (with-slots (tokenizer original-phase phase) *parser*
     (insert-element token)
-    (setf (tokenizer-state tokenizer) (ecase content-type
-                                        (:rawtext :rawtext-state)
-                                        (:rcdata :rcdata-state)))
+    (tokenizer-switch-state tokenizer (ecase content-type
+                                        (:rawtext 'rawtext-state)
+                                        (:rcdata 'rcdata-state)))
     (setf original-phase phase)
     (setf phase :text)
     nil))
@@ -848,7 +848,7 @@
 
   (def :in-head start-tag-script (tokenizer original-phase phase)
     (insert-element token)
-    (setf (tokenizer-state tokenizer) :script-data-state)
+    (tokenizer-switch-state tokenizer 'script-data-state)
     (setf original-phase phase)
     (setf phase :text)
     nil)
@@ -1174,7 +1174,7 @@
   (when (element-in-scope "p" "button")
     (end-tag-p (implied-tag-token "p")))
   (insert-element token)
-  (setf (tokenizer-state tokenizer) :plaintext-state)
+  (tokenizer-switch-state tokenizer 'plaintext-state)
   nil)
 
 (def :in-body start-tag-heading (open-elements)
@@ -1332,7 +1332,7 @@
                                   in-body-process-space-characters-mode
                                   frameset-ok)
   (insert-element token)
-  (setf (tokenizer-state tokenizer) :rcdata-state)
+  (tokenizer-switch-state tokenizer 'rcdata-state)
   (setf in-body-process-space-characters-mode :drop-newline)
   (setf frameset-ok nil)
   nil)
