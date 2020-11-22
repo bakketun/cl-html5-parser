@@ -107,7 +107,6 @@ pointer at the end."
 
 (defun nconcat (string &rest data)
   "Destructively concatenate DATA, string designators, to STRING."
-  (declare (optimize speed))
   (unless (array-has-fill-pointer-p string)
     (setf string (make-growable-string string)))
   (labels ((conc (string x)
@@ -122,32 +121,24 @@ pointer at the end."
     (dolist (x data string)
       (conc string x))))
 
-(define-modify-macro nconcatf (&rest data) nconcat)
-
-
 (defun add-attribute (token name)
-  (setf (getf token :data) (append (getf token :data)
-                                   (list (cons (make-growable-string (string name))
-                                               (make-growable-string))))))
+  (let ((attr (cons (make-growable-string (string name))
+                    (make-growable-string))))
+    (setf (getf token :data) (append (getf token :data)
+                                     (list attr)))
+    attr))
 
-(defun add-to-attr-name (token &rest data)
-  (setf (caar (last (getf token :data)))
+(defun add-to-attr-name (attr &rest data)
+  (setf (car attr)
         (apply #'nconcat
-               (caar (last (getf token :data)))
+               (car attr)
                data)))
 
-(defun add-to-attr-value (token &rest data)
-  (setf (cdar (last (getf token :data)))
+(defun add-to-attr-value (attr &rest data)
+  (setf (cdr attr)
         (apply #'nconcat
-               (cdar (last (getf token :data)))
+               (cdr attr)
                data)))
-
-(defun add-to (token indicator &rest data)
-  (setf (getf token indicator)
-        (apply #'nconcat
-               (or (getf token indicator) "")
-               data)))
-
 
 ;; -------------------
 
@@ -304,19 +295,34 @@ pointer at the end."
     (setf (getf current-token :force-quirks) t)))
 
 
-(defun tokenizer-current-token-add-attribute (tokenizer)
-  (with-slots (current-token) tokenizer
-    (add-attribute current-token (make-growable-string))))
+;; Current attribute
+
+(defun tokenizer-create-new-attribute (tokenizer)
+  (with-slots (current-token current-attribute) tokenizer
+    (setf current-attribute (add-attribute current-token (make-growable-string)))))
 
 
 (defun tokenizer-current-attribute-name-append (tokenizer char)
-  (with-slots (current-token) tokenizer
-    (add-to-attr-name current-token char)))
+  (with-slots (current-attribute) tokenizer
+    (add-to-attr-name current-attribute char)))
 
 
 (defun tokenizer-current-attribute-value-append (tokenizer char)
-  (with-slots (current-token) tokenizer
-    (add-to-attr-value current-token char)))
+  (with-slots (current-attribute) tokenizer
+    (add-to-attr-value current-attribute char)))
+
+
+(defun tokenizer-check-for-duplicate-attribute (tokenizer)
+  (with-slots (current-token current-attribute) tokenizer
+    (let ((other-attribute (assoc (car current-attribute)
+                                  (getf current-token :data)
+                                  :test #'equal)))
+      (when (and other-attribute
+                 (not (eq other-attribute current-attribute)))
+        (setf (getf current-token :data)
+              (remove current-attribute
+                      (getf current-token :data)))
+        (tokenizer-this-is-a-parse-error tokenizer :duplicate-attribute-parser-error)))))
 
 
 ;; Other functions

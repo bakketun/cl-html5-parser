@@ -152,10 +152,14 @@
 (define-tokenizer-function-macro current-token-set-system-id-not-missing ())
 (define-tokenizer-function-macro current-token-set-self-closing-flag ())
 (define-tokenizer-function-macro current-token-set-force-quirks-flag ())
-(define-tokenizer-function-macro current-token-add-attribute ())
+
+
+;; Current attribute
+
+(define-tokenizer-function-macro create-new-attribute ())
 (define-tokenizer-function-macro current-attribute-name-append (char))
 (define-tokenizer-function-macro current-attribute-value-append (char))
-
+(define-tokenizer-function-macro check-for-duplicate-attribute ())
 
 ;; Other helpers
 

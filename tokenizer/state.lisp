@@ -652,11 +652,11 @@
      (reconsume-in after-attribute-name-state))
     (U+003D_EQUALS_SIGN_=
      (this-is-a-parse-error :unexpected-equals-sign-before-attribute-name)
-     (current-token-add-attribute)
+     (create-new-attribute)
      (current-attribute-name-append current-input-character)
      (switch-state attribute-name-state))
     (Anything_else
-     (current-token-add-attribute)
+     (create-new-attribute)
      (reconsume-in attribute-name-state))))
 
 
@@ -672,8 +672,10 @@
       U+002F_SOLIDUS_/
       U+003E_GREATER-THAN_SIGN_>
       EOF)
+     (check-for-duplicate-attribute)
      (reconsume-in after-attribute-name-state))
     (U+003D_EQUALS_SIGN_=
+     (check-for-duplicate-attribute)
      (switch-state before-attribute-value-state))
     (ASCII_upper_alpha
      (current-attribute-name-append (lowercase-version-of current-input-character)))
@@ -711,7 +713,7 @@
      (this-is-a-parse-error :eof-in-tag)
      (emit-end-of-file-token))
     (Anything_else
-     (current-token-add-attribute)
+     (create-new-attribute)
      (reconsume-in attribute-name-state))))
 
 

@@ -39,16 +39,17 @@
    ascii-alphanumeric-p
    ascii-whitespace-p
    character-reference-code
+   check-for-duplicate-attribute
    consume-next-input-character
    consume-those-characters
    consumed-as-part-of-an-attribute-p
    control-p
+   create-new-attribute
    create-new-token
    current-attribute-name-append
    current-attribute-value-append
    current-character-case
    current-input-character
-   current-token-add-attribute
    current-token-appropriate-end-tag-p
    current-token-data-append
    current-token-name-append
@@ -73,7 +74,6 @@
    peek-next-input-character
    reconsume-in
    reconsume-in-return-state
-   set-return-state
    set-return-state
    surrogate-p
    switch-state
