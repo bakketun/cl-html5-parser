@@ -18,9 +18,9 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage :html5-constants
+(defpackage #:html5-constants
   (:use
-   :common-lisp)
+   #:common-lisp)
   (:export
    #:+namespaces+
    #:find-namespace
@@ -53,45 +53,3 @@
    #:ascii-upper-2-lower
    #:+replacement-characters+
    #:+heading-elements+))
-
-(defpackage :html5-parser
-  (:use
-   :common-lisp
-   :html5-constants
-   :cl-ppcre)
-  (:export
-   #:parse-html5
-   #:parse-html5-fragment
-   #:transform-html5-dom
-
-   #:xml-escape-name
-   #:xml-unescape-name
-
-   ;; A simple DOM
-   #:make-document
-   #:make-fragment
-   #:make-doctype
-   #:make-comment
-   #:make-element
-   #:make-text-node
-
-   #:node-type
-   #:node-name
-   #:node-namespace
-   #:node-value
-   #:node-public-id
-   #:node-system-id
-   #:element-attribute
-
-   #:node-append-child
-   #:node-insert-before
-   #:node-remove-child
-
-   #:node-parent
-   #:node-first-child
-   #:node-last-child
-   #:node-previous-sibling
-   #:node-next-sibling
-   #:element-map-attributes
-   #:element-map-attributes*
-   #:element-map-children))

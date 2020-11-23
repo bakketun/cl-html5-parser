@@ -1,6 +1,6 @@
 ;; -*- mode: lisp; eval: (goto-address-mode) -*-
 
-(cl:in-package #:html5-parser-tokenizer-state)
+(cl:in-package #:html5-parser-tokenizer-dsl)
 
 
 (define-state data-state

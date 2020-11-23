@@ -90,7 +90,7 @@
 
 (defmacro define-tokenizer-function-macro (name (&rest args))
   (let ((function-name (intern (format nil "~A-~A" 'tokenizer name)
-                               (symbol-package name))))
+                               (symbol-package 'define-tokenizer-function-macro))))
     `(defmacro ,name (,@args)
 
        (list ',function-name 'self ,@args))))

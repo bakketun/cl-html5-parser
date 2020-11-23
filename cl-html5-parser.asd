@@ -25,18 +25,20 @@
   :author "Thomas Bakketun <thomas.bakketun@copyleft.no>"
   :depends-on (:cl-ppcre :flexi-streams :string-case)
   :serial t
-  :components ((:file "packages")
+  :components ((:file "package-constants")
+               (:file "package-tokenizer-state")
+               (:file "package-tokenizer-dsl")
+               (:file "package-html5-parser")
                (:file "infra")
                (:file "constants")
                (:file "entities")
                (:file "entities-functions")
-               (:file "inputstream")
                (:module "tokenizer"
                 :components ((:file "character-input-stream")
                              (:file "tokenizer")
                              (:file "tokenizer-dsl")
-                             (:file "state-package")
                              (:file "state")))
+               (:file "inputstream")
                (:file "simple-tree")
                (:file "html5-parser-class")
                (:file "tree-help")
