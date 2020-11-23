@@ -53,8 +53,8 @@
                       (dom:set-attribute element "xmlns" (node-namespace node)))
                     (element-map-attributes (lambda (name namespace value)
                                               (when (and (not xlink-defined)
-                                                         (equal namespace (html5-constants:find-namespace "xlink")))
-                                                (dom:set-attribute element "xmlns:xlink" (html5-constants:find-namespace "xlink"))
+                                                         (equal namespace (find-namespace "xlink")))
+                                                (dom:set-attribute element "xmlns:xlink" (find-namespace "xlink"))
                                                 (setf xlink-defined t))
                                               (if namespace
                                                   (dom:set-attribute-ns element namespace name value)

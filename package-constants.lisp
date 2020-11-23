@@ -18,7 +18,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-constants
+(defpackage #:html5-parser-constants
   (:use
    #:common-lisp)
   (:export

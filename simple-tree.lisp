@@ -161,7 +161,7 @@
    (lambda (name namespace value)
      (funcall function
               (if namespace
-                  (format nil "~A:~A" (html5-constants:find-prefix namespace) name)
+                  (format nil "~A:~A" (find-prefix namespace) name)
                   name)
               namespace
               value))

@@ -47,8 +47,8 @@ at. If the node is a document-fragement a list of XMLS trees is returned."
                 (element-map-attributes (lambda (name node-namespace value)
                                           (when (and namespace
                                                      (not xlink-defined)
-                                                     (equal node-namespace (html5-constants:find-namespace "xlink")))
-                                            (push '#.(list "xmlns:xlink" (html5-constants:find-namespace "xlink")) attrs)
+                                                     (equal node-namespace (find-namespace "xlink")))
+                                            (push '#.(list "xmlns:xlink" (find-namespace "xlink")) attrs)
                                             (setf xlink-defined t))
                                           (push (list (if node-namespace
                                                           name

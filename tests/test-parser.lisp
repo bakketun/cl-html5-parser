@@ -37,9 +37,9 @@
     (:element
      (if (and (node-namespace node)
               (string/= (node-namespace node)
-                        (html5-constants::find-namespace "html")))
+                        (html5-parser-constants:find-namespace "html")))
          (format stream "<~A ~A>"
-                 (html5-constants::find-prefix (node-namespace node))
+                 (html5-parser-constants:find-prefix (node-namespace node))
                  (node-name node))
          (format stream "<~A>" (node-name node))))
     (:text
@@ -70,7 +70,7 @@
                do
                (format stream "~&|~vT" indent)
                (if (cdr name)
-                   (format stream "~A ~A" (html5-constants:find-prefix (cdr name)) (car name))
+                   (format stream "~A ~A" (html5-parser-constants:find-prefix (cdr name)) (car name))
                    (format stream "~A" (car name)))
                (format stream "=\"~A\"" value)))
        (element-map-children (lambda (child)

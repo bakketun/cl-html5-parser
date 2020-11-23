@@ -34,11 +34,11 @@
     (is (eql #\h (html5-parser::html5-stream-char stream)))
     (is (eql #\e (html5-parser::html5-stream-char stream)))
     (is (eql #\i (html5-parser::html5-stream-char stream)))
-    (is (eql html5-constants::+eof+ (html5-parser::html5-stream-char stream)))
-    (html5-parser::html5-stream-unget stream html5-constants::+eof+)
+    (is (eql html5-parser-constants:+eof+ (html5-parser::html5-stream-char stream)))
+    (html5-parser::html5-stream-unget stream html5-parser-constants:+eof+)
     (html5-parser::html5-stream-unget stream #\i)
     (is (eql #\i (html5-parser::html5-stream-char stream)))
-    (is (eql html5-constants::+eof+ (html5-parser::html5-stream-char stream)))))
+    (is (eql html5-parser-constants:+eof+ (html5-parser::html5-stream-char stream)))))
 
 (deftest test-chars-until ()
   (let ((stream (html5-parser::make-html-input-stream "hello<--__-->a")))
@@ -50,7 +50,7 @@
 (deftest test-chars-until-eof ()
   (let ((stream (html5-parser::make-html-input-stream "hello")))
     (is (equal "hello" (html5-parser::html5-stream-chars-until stream "?")))
-    (is (eql html5-constants::+eof+ (html5-parser::html5-stream-char stream)))))
+    (is (eql html5-parser-constants:+eof+ (html5-parser::html5-stream-char stream)))))
 
 (deftest test-line-ending-fix ()
   (let ((stream (html5-parser::make-html-input-stream (coerce #(#\a #\Newline
@@ -65,7 +65,7 @@
     (is (eql #\c (html5-parser::html5-stream-char stream)))
     (is (eql #\Newline (html5-parser::html5-stream-char stream)))
     (is (eql #\d (html5-parser::html5-stream-char stream)))
-    (is (eql html5-constants::+eof+ (html5-parser::html5-stream-char stream)))))
+    (is (eql html5-parser-constants:+eof+ (html5-parser::html5-stream-char stream)))))
 
 (deftest test-line-ending-fix2 ()
   (let ((stream (html5-parser::make-html-input-stream (coerce #(#\< #\? #\Return)
@@ -73,7 +73,7 @@
     (is (eql #\< (html5-parser::html5-stream-char stream)))
     (is (eql #\? (html5-parser::html5-stream-char stream)))
     (is (eql #\Newline (html5-parser::html5-stream-char stream)))
-    (is (eql html5-constants::+eof+ (html5-parser::html5-stream-char stream)))))
+    (is (eql html5-parser-constants:+eof+ (html5-parser::html5-stream-char stream)))))
 
 
 (deftest test-bom ()

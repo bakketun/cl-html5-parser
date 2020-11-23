@@ -18,7 +18,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :html5-constants)
+(in-package :html5-parser-constants)
 
 (defmacro defglobal (name value &optional docstring)
   (let ((docstring (and docstring (list docstring))))

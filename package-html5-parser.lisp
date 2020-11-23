@@ -21,7 +21,7 @@
 (defpackage #:html5-parser
   (:use
    #:common-lisp
-   #:html5-constants
+   #:html5-parser-constants
    #:html5-parser-tokenizer-state
    #:html5-parser-tokenizer-dsl
    #:cl-ppcre)
