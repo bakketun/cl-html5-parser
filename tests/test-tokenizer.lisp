@@ -25,40 +25,40 @@
                                                                    :if-does-not-exist :create
                                                                    :if-exists :append
                                                                    :element-type 'flex:octet)
-                  (with-open-stream (html5-parser::*tokenizer-trace-output*
+                  (with-open-stream (html5-parser-tokenizer::*tokenizer-trace-output*
                                      (flex:make-flexi-stream binary-out :external-format :utf-8))
-                    (format html5-parser::*tokenizer-trace-output* "~&-----------------------------~&")
-                    (html5-parser::tokenizer-test source
-                                                  :initial-state initial-state
-                                                  :last-start-tag last-start-tag))))
+                    (format html5-parser-tokenizer::*tokenizer-trace-output* "~&-----------------------------~&")
+                    (html5-parser-tokenizer::tokenizer-test source
+                                                            :initial-state initial-state
+                                                            :last-start-tag last-start-tag))))
         errors output-tokens)
     (dolist (token tokens)
       (typecase token
-        (html5-parser::end-of-file-token)
-        (html5-parser::parse-error-token
-         (push (html5-parser::parse-error-token-code token) errors))
+        (html5-parser-tokenizer::end-of-file-token)
+        (html5-parser-tokenizer::parse-error-token
+         (push (html5-parser-tokenizer::parse-error-token-code token) errors))
         (otherwise
          (push (etypecase token
-                 (html5-parser::doctype-token
+                 (html5-parser-tokenizer::doctype-token
                   (list :type :doctype
-                        :name (html5-parser::doctype-token-name token)
-                        :public-id (html5-parser::doctype-token-public-id token)
-                        :system-id (html5-parser::doctype-token-system-id token)
-                        :force-quirks (html5-parser::doctype-token-force-quirks-flag token)))
-                 (html5-parser::start-tag-token
+                        :name (html5-parser-tokenizer::doctype-token-name token)
+                        :public-id (html5-parser-tokenizer::doctype-token-public-id token)
+                        :system-id (html5-parser-tokenizer::doctype-token-system-id token)
+                        :force-quirks (html5-parser-tokenizer::doctype-token-force-quirks-flag token)))
+                 (html5-parser-tokenizer::start-tag-token
                   (list :type :start-tag
-                        :name (html5-parser::tag-token-name token)
-                        :data (html5-parser::tag-token-attributes token)
-                        :self-closing (html5-parser::tag-token-self-closing-flag token)))
-                 (html5-parser::end-tag-token
+                        :name (html5-parser-tokenizer::tag-token-name token)
+                        :data (html5-parser-tokenizer::tag-token-attributes token)
+                        :self-closing (html5-parser-tokenizer::tag-token-self-closing-flag token)))
+                 (html5-parser-tokenizer::end-tag-token
                   (list :type :end-tag
-                        :name (html5-parser::tag-token-name token)))
-                 (html5-parser::comment-token
+                        :name (html5-parser-tokenizer::tag-token-name token)))
+                 (html5-parser-tokenizer::comment-token
                   (list :type :comment
-                        :data (html5-parser::comment-token-data token)))
-                 (html5-parser::character-token
+                        :data (html5-parser-tokenizer::comment-token-data token)))
+                 (html5-parser-tokenizer::character-token
                   (list :type :characters
-                        :data (string (html5-parser::character-token-character token)))))
+                        :data (string (html5-parser-tokenizer::character-token-character token)))))
                output-tokens))))
     (values (nreverse output-tokens)
             (nreverse errors))))

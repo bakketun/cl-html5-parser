@@ -87,6 +87,37 @@
     (and (has-all-attributes-of node1 node2)
          (has-all-attributes-of node2 node1))))
 
+(defun make-growable-string (&optional (init ""))
+  "Make an adjustable string with a fill pointer.
+Given INIT, a string, return an adjustable version of it with the fill
+pointer at the end."
+  (let ((string
+          (make-array (max 5 (length init))
+                      :element-type 'character
+                      :adjustable t
+                      :fill-pointer (length init))))
+    (when init
+      (replace string init))
+    string))
+
+(defun nconcat (string &rest data)
+  "Destructively concatenate DATA, string designators, to STRING."
+  (unless (array-has-fill-pointer-p string)
+    (setf string (make-growable-string string)))
+  (labels ((conc (string x)
+             (typecase x
+               (character
+                (vector-push-extend x string))
+               (string
+                (let ((len (length x)))
+                  (loop for c across x do
+                    (vector-push-extend c string len))))
+               (symbol (conc string (string x))))))
+    (dolist (x data string)
+      (conc string x))))
+
+(define-modify-macro nconcatf (&rest data) nconcat)
+
 (defun node-append-child* (node child)
   (let ((last-child (node-last-child node)))
     (if (and (eql :text (node-type child))

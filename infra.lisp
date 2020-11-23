@@ -1,4 +1,4 @@
-(in-package #:html5-parser)
+(in-package #:html5-parser-infra)
 
 ;; https://infra.spec.whatwg.org/
 

@@ -2,7 +2,7 @@
 ;;;; https://html.spec.whatwg.org/multipage/named-characters.html
 ;;;; https://html.spec.whatwg.org/entities.json
 
-(in-package :html5-parser)
+(in-package :html5-parser-entities)
 
 (defparameter *entities*
   '(

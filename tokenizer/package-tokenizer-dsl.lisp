@@ -1,6 +1,7 @@
 (defpackage #:html5-parser-tokenizer-dsl
   (:use
    #:html5-parser-constants
+   #:html5-parser-infra
    #:html5-parser-tokenizer-state
    )
   (:import-from  #:common-lisp

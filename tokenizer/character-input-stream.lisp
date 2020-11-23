@@ -1,4 +1,4 @@
-(in-package :html5-parser)
+(in-package :html5-parser-tokenizer)
 
 
 (defconstant EOF #\Return)
