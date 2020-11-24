@@ -24,6 +24,7 @@
                (:file "support")
                (:file "test-inputstream")
                (:file "test-tokenizer")
+               (:file "fiveam-test-tokenizer")
                (:file "test-tree-builder")
                (:file "test-parser")
                (:file "run-tests")))
