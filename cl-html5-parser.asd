@@ -36,14 +36,14 @@
                              (:file "named-character-references-table")
                              (:file "named-character-references")))
 
-               (:module "tokenizer"
-                :components ((:file "package-tokenizer-state")
-                             (:file "package-tokenizer-dsl")
-                             (:file "package-tokenizer")
+               (:module "tokenization"
+                :components ((:file "package-tokenization-state")
+                             (:file "package-tokenization-dsl")
+                             (:file "package-tokenization")
                              (:file "character-input-stream")
-                             (:file "tokenizer")
-                             (:file "tokenizer-dsl")
-                             (:file "state")))
+                             (:file "tokenization")
+                             (:file "tokenization-dsl")
+                             (:file "tokenization-state")))
 
                (:file "package-html5-parser")
                (:file "inputstream")

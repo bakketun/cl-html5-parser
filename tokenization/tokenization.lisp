@@ -18,7 +18,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :html5-parser-tokenizer)
+(in-package :html5-parser-tokenization)
 
 
 (defun make-html-tokenizer (source &key encoding adjusted-current-node-not-in-HTML-namespace-p)

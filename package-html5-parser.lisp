@@ -23,8 +23,8 @@
    #:common-lisp
    #:html5-parser-constants
    #:html5-parser-infra
-   #:html5-parser-tokenizer-state
-   #:html5-parser-tokenizer
+   #:html5-parser-tokenization-state
+   #:html5-parser-tokenization
    #:cl-ppcre)
   (:export
    #:parse-html5

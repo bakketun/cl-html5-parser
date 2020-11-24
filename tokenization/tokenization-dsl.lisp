@@ -1,10 +1,10 @@
-(in-package :html5-parser-tokenizer)
+(in-package :html5-parser-tokenization)
 
 
 (defconstant EOF #\Return)
 
 
-(defvar *tokenizer-states* (make-array 81 :initial-element :undefined))
+(defvar *tokenization-states* (make-array 81 :initial-element :undefined))
 
 
 (defmacro define-state (name number title url &body body)
@@ -20,7 +20,7 @@
            (block process-state
              ,@body
              t))))
-     (setf (aref *tokenizer-states* ,number) #',name)))
+     (setf (aref *tokenization-states* ,number) #',name)))
 
 
 ;; Next and current input character

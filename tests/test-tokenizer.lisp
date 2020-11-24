@@ -25,40 +25,40 @@
                                                                    :if-does-not-exist :create
                                                                    :if-exists :append
                                                                    :element-type 'flex:octet)
-                  (with-open-stream (html5-parser-tokenizer::*tokenizer-trace-output*
+                  (with-open-stream (html5-parser-tokenization::*tokenizer-trace-output*
                                      (flex:make-flexi-stream binary-out :external-format :utf-8))
-                    (format html5-parser-tokenizer::*tokenizer-trace-output* "~&-----------------------------~&")
-                    (html5-parser-tokenizer::tokenizer-test source
+                    (format html5-parser-tokenization::*tokenizer-trace-output* "~&-----------------------------~&")
+                    (html5-parser-tokenization::tokenizer-test source
                                                             :initial-state initial-state
                                                             :last-start-tag last-start-tag))))
         errors output-tokens)
     (dolist (token tokens)
       (typecase token
-        (html5-parser-tokenizer::end-of-file-token)
-        (html5-parser-tokenizer::parse-error-token
-         (push (html5-parser-tokenizer::parse-error-token-code token) errors))
+        (html5-parser-tokenization::end-of-file-token)
+        (html5-parser-tokenization::parse-error-token
+         (push (html5-parser-tokenization::parse-error-token-code token) errors))
         (otherwise
          (push (etypecase token
-                 (html5-parser-tokenizer::doctype-token
+                 (html5-parser-tokenization::doctype-token
                   (list :type :doctype
-                        :name (html5-parser-tokenizer::doctype-token-name token)
-                        :public-id (html5-parser-tokenizer::doctype-token-public-id token)
-                        :system-id (html5-parser-tokenizer::doctype-token-system-id token)
-                        :force-quirks (html5-parser-tokenizer::doctype-token-force-quirks-flag token)))
-                 (html5-parser-tokenizer::start-tag-token
+                        :name (html5-parser-tokenization::doctype-token-name token)
+                        :public-id (html5-parser-tokenization::doctype-token-public-id token)
+                        :system-id (html5-parser-tokenization::doctype-token-system-id token)
+                        :force-quirks (html5-parser-tokenization::doctype-token-force-quirks-flag token)))
+                 (html5-parser-tokenization::start-tag-token
                   (list :type :start-tag
-                        :name (html5-parser-tokenizer::tag-token-name token)
-                        :data (html5-parser-tokenizer::tag-token-attributes token)
-                        :self-closing (html5-parser-tokenizer::tag-token-self-closing-flag token)))
-                 (html5-parser-tokenizer::end-tag-token
+                        :name (html5-parser-tokenization::tag-token-name token)
+                        :data (html5-parser-tokenization::tag-token-attributes token)
+                        :self-closing (html5-parser-tokenization::tag-token-self-closing-flag token)))
+                 (html5-parser-tokenization::end-tag-token
                   (list :type :end-tag
-                        :name (html5-parser-tokenizer::tag-token-name token)))
-                 (html5-parser-tokenizer::comment-token
+                        :name (html5-parser-tokenization::tag-token-name token)))
+                 (html5-parser-tokenization::comment-token
                   (list :type :comment
-                        :data (html5-parser-tokenizer::comment-token-data token)))
-                 (html5-parser-tokenizer::character-token
+                        :data (html5-parser-tokenization::comment-token-data token)))
+                 (html5-parser-tokenization::character-token
                   (list :type :characters
-                        :data (string (html5-parser-tokenizer::character-token-character token)))))
+                        :data (string (html5-parser-tokenization::character-token-character token)))))
                output-tokens))))
     (values (nreverse output-tokens)
             (nreverse errors))))
@@ -147,7 +147,7 @@
 
 
 (defun find-state-symbol (string)
-  (let ((symbol (find-symbol (substitute #\- #\Space (string-upcase string)) :html5-parser-tokenizer-state)))
+  (let ((symbol (find-symbol (substitute #\- #\Space (string-upcase string)) :html5-parser-tokenization-state)))
     (assert symbol () "Unkown state ~S" string)
     symbol))
 
@@ -192,7 +192,7 @@ Suppling more-keys will result in recursive application of jget with the result 
           collect (list :description (jget test "description")
                         :initial-states (or (loop for string in (jget test "initialStates" :array)
                                                   collect (find-state-symbol string))
-                                            '(html5-parser-tokenizer-state:data-state))
+                                            '(html5-parser-tokenization-state:data-state))
                         :last-start-tag (jget test "lastStartTag")
                         :input (json-unescape (jget test "input") double-escaped)
                         :output (fix-output (jget test "output" :array) double-escaped)
