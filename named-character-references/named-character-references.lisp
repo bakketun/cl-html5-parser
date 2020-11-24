@@ -21,6 +21,53 @@
 (in-package :html5-parser-named-character-references)
 
 
+(defstruct trie-node
+  (name "")
+  char
+  code-points
+  (subnodes (make-array 0)))
+
+
+(defmethod print-object ((node trie-node) stream)
+  (print-unreadable-object (node stream :type t)
+    (format stream "~A~:[~;…~]~@[=~S~]~[~:;~:* (~A)~]"
+            (trie-node-name node)
+            (plusp (length (trie-node-subnodes node)))
+            (trie-node-code-points node)
+            (length (trie-node-subnodes node)))))
+
+
+(defun trie-node-insert (node char-list code-points &optional prefix)
+  (destructuring-bind (char . suffix) char-list
+    (let ((subnode (find char (trie-node-subnodes node) :key #'trie-node-char)))
+      (unless subnode
+        (setf subnode (make-trie-node :char char
+                                      :name (coerce (reverse (cons char prefix)) 'string)))
+        (setf (trie-node-subnodes node) (concatenate 'vector
+                                                     (trie-node-subnodes node)
+                                                     (make-array 1 :initial-element subnode))))
+      (if suffix
+          (trie-node-insert subnode suffix code-points (cons char prefix))
+          (when code-points
+            (setf (trie-node-code-points subnode) code-points))))))
+
+
+(defun make-search-trie (named-character-references-table)
+  (let ((root-node (make-trie-node)))
+    (loop :for (name . code-points) :in named-character-references-table :do
+      (trie-node-insert root-node
+                        (coerce name 'list)
+                        code-points))
+    root-node))
+
+
+(defparameter *search-trie-root* (make-search-trie +named-character-references-table+))
+
+
+(defun trie-node-search (node char)
+  (find char (trie-node-subnodes node) :key #'trie-node-char))
+
+
 (defun named-character-references-search (read-char-function)
   "Searches for longest matched named character reference by calling
 read-char-function. The search terminates when the longest match is
@@ -42,50 +89,3 @@ Returns two values:
         (values (trie-node-code-points matched-node)
                 (trie-node-name matched-node))
         (values nil ""))))
-
-
-(defstruct trie-node
-  (name "")
-  char
-  code-points
-  (subnodes (make-array 0)))
-
-
-(defun trie-node-search (node char)
-  (find char (trie-node-subnodes node) :key #'trie-node-char))
-
-
-(defun make-search-trie (named-character-references-table)
-  (let ((root-node (make-trie-node)))
-    (loop :for (name . code-points) :in named-character-references-table :do
-      (trie-node-insert root-node
-                        (coerce name 'list)
-                        code-points))
-    root-node))
-
-
-(defun trie-node-insert (node char-list code-points &optional prefix)
-  (destructuring-bind (char . suffix) char-list
-    (let ((subnode (find char (trie-node-subnodes node) :key #'trie-node-char)))
-      (unless subnode
-        (setf subnode (make-trie-node :char char
-                                      :name (coerce (reverse (cons char prefix)) 'string)))
-        (setf (trie-node-subnodes node) (concatenate 'vector
-                                                     (trie-node-subnodes node)
-                                                     (make-array 1 :initial-element subnode))))
-      (if suffix
-          (trie-node-insert subnode suffix code-points (cons char prefix))
-          (when code-points
-            (setf (trie-node-code-points subnode) code-points))))))
-
-
-(defmethod print-object ((node trie-node) stream)
-  (print-unreadable-object (node stream :type t)
-    (format stream "~A~:[~;…~]~@[=~S~]~[~:;~:* (~A)~]"
-            (trie-node-name node)
-            (plusp (length (trie-node-subnodes node)))
-            (trie-node-code-points node)
-            (length (trie-node-subnodes node)))))
-
-
-(defparameter *search-trie-root* (make-search-trie +named-character-references-table+))
