@@ -44,7 +44,6 @@
 (defclass html-tokenizer ()
   ((source :initarg :source)
    (token-handler :initarg :token-handler
-                  :initform 'debug-token-handler
                   :accessor tokenizer-token-handler)
    (adjusted-current-node-not-in-HTML-namespace-p :initarg :adjusted-current-node-not-in-HTML-namespace-p
                                                   :initform (constantly nil))
@@ -67,11 +66,13 @@
                 (format stream "(~S ~S) " slot (slot-value tokenizer slot))))))
 
 
-(defvar *tokenizer-trace-output* (make-synonym-stream '*trace-output*))
+(defvar *tokenizer-trace-output* nil)
+;;(setf *tokenizer-trace-output* (make-synonym-stream '*trace-output*))
 
 
-(defun debug-token-handler (token)
-  (format *tokenizer-trace-output* "~&emit-token: ~S~&" token))
+(defmacro do-tokenizer-trace (&body body)
+  `(when *tokenizer-trace-output*
+     ,@body))
 
 
 (defun tokenizer-test (data &key (initial-state 'data-state) last-start-tag (end-of-file-p t))
@@ -84,11 +85,11 @@
       (tokenizer-switch-state tokenizer initial-state)
       (loop :for char :across data
             :do (input-stream-append input-stream (string char))
-            :do (print input-stream *tokenizer-trace-output*)
+            :do (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
             :do (tokenizer-process tokenizer input-stream))
       (when end-of-file-p
         (input-stream-close input-stream)
-        (print input-stream *tokenizer-trace-output*)
+        (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
         (tokenizer-process tokenizer input-stream))
       (values (reverse tokens) tokenizer input-stream))))
 
@@ -167,7 +168,7 @@
       (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-attributes))
     (when (tag-token-self-closing-flag token)
       (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-trailing-solidus)))
-  (format *tokenizer-trace-output* "~&emit-token: ~S~&" token)
+  (do-tokenizer-trace (format *tokenizer-trace-output* "~&emit-token: ~S~&" token))
   (funcall (tokenizer-token-handler tokenizer) token))
 
 
@@ -231,8 +232,8 @@ pointer at the end."
   (let ((return-state-p (eql 'return-state new-state)))
     (when return-state-p
       (setf new-state (slot-value tokenizer 'return-state)))
-    (format *tokenizer-trace-output* "~&state: ~A →~:[~; the return state~] ~A ~@[ reconsume ~S~]~&"
-            (tokenizer-state tokenizer) return-state-p new-state reconsume-character)
+    (do-tokenizer-trace (format *tokenizer-trace-output* "~&state: ~A →~:[~; the return state~] ~A ~@[ reconsume ~S~]~&"
+                                (tokenizer-state tokenizer) return-state-p new-state reconsume-character))
     (setf (tokenizer-state tokenizer) new-state)))
 
 

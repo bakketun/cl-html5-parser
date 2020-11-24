@@ -21,16 +21,9 @@
 (in-package :html5-parser-tests)
 
 (defun run-tokenizer-test-parser (initial-state last-start-tag source)
-  (let ((tokens (with-open-file (binary-out "/tmp/tokenizer-trace" :direction :output
-                                                                   :if-does-not-exist :create
-                                                                   :if-exists :append
-                                                                   :element-type 'flex:octet)
-                  (with-open-stream (html5-parser-tokenization::*tokenizer-trace-output*
-                                     (flex:make-flexi-stream binary-out :external-format :utf-8))
-                    (format html5-parser-tokenization::*tokenizer-trace-output* "~&-----------------------------~&")
-                    (html5-parser-tokenization::tokenizer-test source
-                                                            :initial-state initial-state
-                                                            :last-start-tag last-start-tag))))
+  (let ((tokens (html5-parser-tokenization::tokenizer-test source
+                                                           :initial-state initial-state
+                                                           :last-start-tag last-start-tag))
         errors output-tokens)
     (dolist (token tokens)
       (typecase token
