@@ -330,9 +330,14 @@ pointer at the end."
     (vector-push-extend char (named-token-name current-token))))
 
 
-(defun tokenizer-current-token-data-append (tokenizer char)
+(defun tokenizer-current-token-data-append (tokenizer data)
   (with-slots (current-token) tokenizer
-    (vector-push-extend char (comment-token-data current-token))))
+    (etypecase data
+      (character
+       (vector-push-extend data (comment-token-data current-token)))
+      (string
+       (loop :for char :across data :do
+         (vector-push-extend char (comment-token-data current-token)))))))
 
 
 (defun tokenizer-current-token-public-id-append (tokenizer char)
@@ -392,7 +397,7 @@ pointer at the end."
         (setf (tag-token-attributes current-token)
               (remove current-attribute
                       (tag-token-attributes current-token)))
-        (tokenizer-this-is-a-parse-error tokenizer :duplicate-attribute-parser-error)))))
+        (tokenizer-this-is-a-parse-error tokenizer :duplicate-attribute)))))
 
 
 ;; Other functions

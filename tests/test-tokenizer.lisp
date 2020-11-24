@@ -86,22 +86,17 @@
                              initial-state
                              (getf test :description))
     (let ((expected (getf test :output))
-          (expected-errors (getf test :errors)))
-      (multiple-value-bind (tokens errors)
+          (expected-errors (mapcar (lambda (x) (getf x :code)) (getf test :errors))))
+      (multiple-value-bind (tokens got-errors)
           (run-tokenizer-test-parser initial-state
                                      (getf test :last-start-tag)
                                      (getf test :input))
         (let ((received (concatenate-character-tokens tokens)))
           (unless (equal expected received)
             (error "Test failed ~S ~%Expected: ~S~%Received: ~S" test expected received))
-          (unless (if *simple-errors-check*
-                      (eq (not (not expected-errors)) (not (not errors)))
-                      (and (= (length expected-errors) (length errors))
-                           (loop for expected in expected-errors
-                                 for got in errors
-                                 always (equalp (getf expected :code) (string got)))))
+          (unless (equal expected-errors got-errors)
             (error "Test failed ~S ~%Expected errors: ~S~%Got errors: ~S"
-                   test expected-errors errors)))))))
+                   test expected-errors got-errors)))))))
 
 
 
@@ -198,7 +193,7 @@ Suppling more-keys will result in recursive application of jget with the result 
                         :output (fix-output (jget test "output" :array) double-escaped)
                         :double-escaped double-escaped
                         :errors (loop for error in (jget test "errors" :array)
-                                      collect (list :code (jget error "code")
+                                      collect (list :code (intern (string-upcase (jget error "code")) :keyword)
                                                     :line (jget error "line")
                                                     :col (jget error "col")))))))
 

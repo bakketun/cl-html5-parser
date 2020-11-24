@@ -895,11 +895,11 @@
 
     ((with-peek-next-input-character
        (and (eql U+005B_LEFT_SQUARE_BRACKET_\[ (peek-next-input-character))
-            (eql U+0063_LATIN_SMALL_LETTER_C (peek-next-input-character))
-            (eql U+0064_LATIN_SMALL_LETTER_D (peek-next-input-character))
-            (eql U+0061_LATIN_SMALL_LETTER_A (peek-next-input-character))
-            (eql U+0074_LATIN_SMALL_LETTER_T (peek-next-input-character))
-            (eql U+0061_LATIN_SMALL_LETTER_A (peek-next-input-character))
+            (eql U+0043_LATIN_CAPITAL_LETTER_C (peek-next-input-character))
+            (eql U+0044_LATIN_CAPITAL_LETTER_D (peek-next-input-character))
+            (eql U+0041_LATIN_CAPITAL_LETTER_A (peek-next-input-character))
+            (eql U+0054_LATIN_CAPITAL_LETTER_T (peek-next-input-character))
+            (eql U+0041_LATIN_CAPITAL_LETTER_A (peek-next-input-character))
             (eql U+005B_LEFT_SQUARE_BRACKET_\[ (peek-next-input-character))))
      (consume-those-characters)
      (if (adjusted-current-node-not-in-HTML-namespace-p)
