@@ -255,6 +255,190 @@
     "Skip test svg <svg><tbody><title></table>"
     "Skip test svg <svg><thead><title></table>"
     "Skip test svg <svg><tfoot><title></table>"
+
+    ;; New problems
+    "Skip test comments01 FOO<!-- BAR --! >BAZ"
+    "Skip test comments01 FOO<!-- BAR --!
+>BAZ"
+    "Skip test comments01 FOO<!-- BAR --   >BAZ"
+    "Skip test comments01 FOO<!-- BAR -- <QUX> -- MUX -- >BAZ"
+    "Skip test comments01 <?xml version"
+    "Skip test doctype01 <!DOCTYPE root-element [SYSTEM OR PUBLIC FPI] \"uri\" [ 
+<!-- internal declarations -->
+]>"
+    "Skip test domjs-unsafe <svg><![CDATA[foo
+bar]]>"
+    "Skip test domjs-unsafe <svg><![CDATA[foobar]]>"
+    "Skip test domjs-unsafe <svg><![CDATA[foo
+bar]]>"
+    "Skip test domjs-unsafe <table><colgroup> foo</colgroup></table>"
+    "Skip test entities01 FOO&#11111111111"
+    "Skip test entities01 FOO&#1111111111"
+    "Skip test entities01 FOO&#111111111111"
+    "Skip test plain-text-unsafe <svg><![CDATA[ filler text ]]>"
+    "Skip test plain-text-unsafe <!DOCTYPE html><pre>
+
+A</pre>"
+    "Skip test plain-text-unsafe <!DOCTYPE html><pre>A</pre>"
+    "Skip test plain-text-unsafe <!DOCTYPE html><pre>A</pre>"
+    "Skip test tests1 <" "Skip test tests1 </" "Skip test tests1 </#"
+    "Skip test tests1 <?" "Skip test tests1 <?#" "Skip test tests1 <!"
+    "Skip test tests1 <!#"
+    "Skip test tests1 <!DOCTYPE html><script> <!-- </script> --> </script> EOF"
+    "Skip test tests1 <style><!--</style><meta><script>--><link></script>"
+    "Skip test tests1 <head><meta></head><link>"
+    "Skip test tests1 <body><body><base><link><meta><title><p></title><body><p></body>"
+    "Skip test tests1 <head></p><meta><p>"
+    "Skip test tests1 <head></html><meta><p>"
+    "Skip test tests10 <!DOCTYPE html><body xlink:href=foo xml:lang=en><svg><g xml:lang=en xlink:href=foo /></svg>"
+    "Skip test tests10 <!DOCTYPE html><body xlink:href=foo xml:lang=en><svg><g xml:lang=en xlink:href=foo />bar</svg>"
+    "Skip test tests11 <!DOCTYPE html><body><svg><altGlyph /><altGlyphDef /><altGlyphItem /><animateColor /><animateMotion /><animateTransform /><clipPath /><feBlend /><feColorMatrix /><feComponentTransfer /><feComposite /><feConvolveMatrix /><feDiffuseLighting /><feDisplacementMap /><feDistantLight /><feFlood /><feFuncA /><feFuncB /><feFuncG /><feFuncR /><feGaussianBlur /><feImage /><feMerge /><feMergeNode /><feMorphology /><feOffset /><fePointLight /><feSpecularLighting /><feSpotLight /><feTile /><feTurbulence /><foreignObject /><glyphRef /><linearGradient /><radialGradient /><textPath /></svg>"
+    "Skip test tests11 <!DOCTYPE html><body><svg><altglyph /><altglyphdef /><altglyphitem /><animatecolor /><animatemotion /><animatetransform /><clippath /><feblend /><fecolormatrix /><fecomponenttransfer /><fecomposite /><feconvolvematrix /><fediffuselighting /><fedisplacementmap /><fedistantlight /><feflood /><fefunca /><fefuncb /><fefuncg /><fefuncr /><fegaussianblur /><feimage /><femerge /><femergenode /><femorphology /><feoffset /><fepointlight /><fespecularlighting /><fespotlight /><fetile /><feturbulence /><foreignobject /><glyphref /><lineargradient /><radialgradient /><textpath /></svg>"
+    "Skip test tests11 <!DOCTYPE html><BODY><SVG><ALTGLYPH /><ALTGLYPHDEF /><ALTGLYPHITEM /><ANIMATECOLOR /><ANIMATEMOTION /><ANIMATETRANSFORM /><CLIPPATH /><FEBLEND /><FECOLORMATRIX /><FECOMPONENTTRANSFER /><FECOMPOSITE /><FECONVOLVEMATRIX /><FEDIFFUSELIGHTING /><FEDISPLACEMENTMAP /><FEDISTANTLIGHT /><FEFLOOD /><FEFUNCA /><FEFUNCB /><FEFUNCG /><FEFUNCR /><FEGAUSSIANBLUR /><FEIMAGE /><FEMERGE /><FEMERGENODE /><FEMORPHOLOGY /><FEOFFSET /><FEPOINTLIGHT /><FESPECULARLIGHTING /><FESPOTLIGHT /><FETILE /><FETURBULENCE /><FOREIGNOBJECT /><GLYPHREF /><LINEARGRADIENT /><RADIALGRADIENT /><TEXTPATH /></SVG>"
+    "Skip test tests11 <!DOCTYPE html><body><math><altGlyph /><altGlyphDef /><altGlyphItem /><animateColor /><animateMotion /><animateTransform /><clipPath /><feBlend /><feColorMatrix /><feComponentTransfer /><feComposite /><feConvolveMatrix /><feDiffuseLighting /><feDisplacementMap /><feDistantLight /><feFlood /><feFuncA /><feFuncB /><feFuncG /><feFuncR /><feGaussianBlur /><feImage /><feMerge /><feMergeNode /><feMorphology /><feOffset /><fePointLight /><feSpecularLighting /><feSpotLight /><feTile /><feTurbulence /><foreignObject /><glyphRef /><linearGradient /><radialGradient /><textPath /></math>"
+    "Skip test tests11 <!DOCTYPE html><body><svg><solidColor /></svg>"
+    "Skip test tests15 <!doctype html></body><meta>"
+    "Skip test tests15 <!doctype html><table> X<meta></table>"
+    "Skip test tests16 <!doctype html><script><"
+    "Skip test tests16 <!doctype html><script></"
+    "Skip test tests16 <!doctype html><script></S"
+    "Skip test tests16 <!doctype html><script></SC"
+    "Skip test tests16 <!doctype html><script></SCR"
+    "Skip test tests16 <!doctype html><script></SCRI"
+    "Skip test tests16 <!doctype html><script></SCRIP"
+    "Skip test tests16 <!doctype html><script></SCRIPT"
+    "Skip test tests16 <!doctype html><script></s"
+    "Skip test tests16 <!doctype html><script></sc"
+    "Skip test tests16 <!doctype html><script></scr"
+    "Skip test tests16 <!doctype html><script></scri"
+    "Skip test tests16 <!doctype html><script></scrip"
+    "Skip test tests16 <!doctype html><script></script"
+    "Skip test tests16 <!doctype html><script><!--<"
+    "Skip test tests16 <!doctype html><script><!--</"
+    "Skip test tests16 <!doctype html><script><!--</script"
+    "Skip test tests16 <!doctype html><script><!--<script </script <"
+    "Skip test tests16 <!doctype html><script><!--<script </script </"
+    "Skip test tests16 <!doctype html><script><!--<script </script </script"
+    "Skip test tests16 <!doctype html><script><!--<script --><"
+    "Skip test tests16 <!doctype html><script><!--<script --></"
+    "Skip test tests16 <!doctype html><script><!--<script --></script"
+    "Skip test tests16 <script><" "Skip test tests16 <script></"
+    "Skip test tests16 <script></S" "Skip test tests16 <script></SC"
+    "Skip test tests16 <script></SCR" "Skip test tests16 <script></SCRI"
+    "Skip test tests16 <script></SCRIP" "Skip test tests16 <script></SCRIPT"
+    "Skip test tests16 <script></s" "Skip test tests16 <script></sc"
+    "Skip test tests16 <script></scr" "Skip test tests16 <script></scri"
+    "Skip test tests16 <script></scrip" "Skip test tests16 <script></script"
+    "Skip test tests16 <script><!--<" "Skip test tests16 <script><!--</"
+    "Skip test tests16 <script><!--</script"
+    "Skip test tests16 <script><!--<script </script <"
+    "Skip test tests16 <script><!--<script </script </"
+    "Skip test tests16 <script><!--<script </script </script"
+    "Skip test tests16 <script><!--<script --><"
+    "Skip test tests16 <script><!--<script --></"
+    "Skip test tests16 <script><!--<script --></script"
+    "Skip test tests19 <!doctype html><html><frameset></frameset></html>  "
+    "Skip test tests19 <html> a <frameset></frameset>"
+    "Skip test tests19 <!doctype html><meta charset=\"ascii\">"
+    "Skip test tests19 <!doctype html><meta http-equiv=\"content-type\" content=\"text/html;charset=ascii\">"
+    "Skip test tests19 <!doctype html><head><!--aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa--><meta charset=\"utf8\">"
+    "Skip test tests2 <script></x"
+    "Skip test tests2 <!doctypehtml><scrIPt type=text/x-foobar;baz>X</SCRipt"
+    "Skip test tests2 &" "Skip test tests2 &#" "Skip test tests2 &#X"
+    "Skip test tests2 &#x" "Skip test tests2 &#45" "Skip test tests2 &AMP"
+    "Skip test tests2 <!DOCTYPE html><!-- X"
+    "Skip test tests2 <!DOCTYPE html><!-- XXX - XXX"
+    "Skip test tests2 <!DOCTYPE html><body><title>X</title><meta name=z><link rel=foo><style>
+x { content:\"</style\" } </style>"
+    "Skip test tests2  
+ "
+    "Skip test tests2 <!DOCTYPE html>  <html>"
+    "Skip test tests2 <!DOCTYPE html><script>
+</script>  <title>x</title>  </head>"
+    "Skip test tests2 <!DOCTYPE html>X</html> "
+    "Skip test tests2 <!DOCTYPE html><!--x--"
+    "Skip test tests21 <svg><![CDATA[foo]]>"
+    "Skip test tests21 <math><![CDATA[foo]]>"
+    "Skip test tests21 <svg><![CDATA[foo" "Skip test tests21 <svg><![CDATA[foo"
+    "Skip test tests21 <svg><![CDATA[]]>"
+    "Skip test tests21 <svg><![CDATA[]] >]]>"
+    "Skip test tests21 <svg><![CDATA[]] >]]>"
+    "Skip test tests21 <svg><![CDATA[]]" "Skip test tests21 <svg><![CDATA[]"
+    "Skip test tests21 <svg><![CDATA[]>a"
+    "Skip test tests21 <!DOCTYPE html><svg><![CDATA[foo]]]]]>"
+    "Skip test tests21 <svg><![CDATA[<svg>]]>"
+    "Skip test tests21 <svg><![CDATA[</svg>a]]>"
+    "Skip test tests21 <svg><![CDATA[<svg>a"
+    "Skip test tests21 <svg><![CDATA[</svg>a"
+    "Skip test tests21 <svg><![CDATA[<svg>]]><path>"
+    "Skip test tests21 <svg><![CDATA[<svg>]]></path>"
+    "Skip test tests21 <svg><![CDATA[<svg>]]><!--path-->"
+    "Skip test tests21 <svg><![CDATA[<svg>]]>path"
+    "Skip test tests21 <svg><![CDATA[<!--svg-->]]>"
+    "Skip test tests25 <!DOCTYPE html><body><meta>A"
+    "Skip test tests3 <!DOCTYPE html><html><head></head><body><pre>
+</pre></body></html>"
+    "Skip test tests3 <!DOCTYPE html><html><head></head><body><pre>
+foo</pre></body></html>"
+    "Skip test tests3 <!DOCTYPE html><html><head></head><body><pre>
+
+foo</pre></body></html>"
+    "Skip test tests3 <!DOCTYPE html><html><head></head><body><pre>
+foo
+</pre></body></html>"
+    "Skip test tests3 <!DOCTYPE html><pre>&#x0a;&#x0a;A</pre>"
+    "Skip test tests3 <!DOCTYPE html><HTML><META><HEAD></HEAD></HTML>"
+    "Skip test tests3 <!DOCTYPE html><textarea>
+</textarea>"
+    "Skip test tests3 <!DOCTYPE html><textarea>
+foo</textarea>"
+    "Skip test tests3 <!DOCTYPE html><textarea>
+
+foo</textarea>"
+    "Skip test tests5 <style> <!-- </style> --> </style>x"
+    "Skip test tests5 <script> <!-- </script> --> </script>x"
+    "Skip test tests5 <title> <!-- </title> --> </title>x"
+    "Skip test tests6 <!doctype html></head> <head>" "Skip test tests6 <!---x"
+    "Skip test tests6 <frameset></frameset>
+foo"
+    "Skip test tests6 <frameset></frameset>
+<noframes>"
+    "Skip test tests6 <frameset></frameset>
+<div>"
+    "Skip test tests6 <frameset></frameset>
+</html>"
+    "Skip test tests6 <frameset></frameset>
+</div>"
+    "Skip test tests6 <html><frameset></frameset></html> "
+    "Skip test tests7 <!doctype html><table><meta></table>"
+    "Skip test tests7 <!doctype html><table>X<tr><td><table> <meta></table></table>"
+    "Skip test tests7 <!doctype html><html> <head>"
+    "Skip test tests7 <!doctype html> <head>"
+    "Skip test tests7 <!doctype html><listing>
+X</listing>"
+    "Skip test tests9 <!DOCTYPE html><body xlink:href=foo xml:lang=en><math><mi xml:lang=en xlink:href=foo /></math>"
+    "Skip test tests9 <!DOCTYPE html><body xlink:href=foo xml:lang=en><math><mi xml:lang=en xlink:href=foo />bar</math>"
+    "Skip test tricky01 <html>
+<font color=red><i>Italic and Red<p>Italic and Red </font> Just italic.</p> Italic only.</i> Plain
+<p>I should not be red. <font color=red>Red. <i>Italic and red.</p>
+<p>Italic and red. </i> Red.</font> I should not be red.</p>
+<b>Bold <i>Bold and italic</b> Only Italic </i> Plain"
+    "Skip test tricky01 <html>
+<dl>
+<dt><b>Boo
+<dd>Goo?
+</dl>
+</html>"
+    "Skip test tricky01 <html>
+<body>
+<b><nobr><div>This text is in a div inside a nobr</nobr>More text that should not be in the nobr, i.e., the
+nobr should have closed the div inside it implicitly. </b><pre>A pre tag outside everything else.</pre>
+</body>
+</html>"
+    "Skip test webkit01 <head></head>
+<body></body>"
+    "Skip test webkit01 <head></head> <style></style>ddd"
+    "Skip test webkit01 <font></p><p><meta><title></title></font>"
     ))
 
 (defun run-html5-parser-tests ()
@@ -272,5 +456,5 @@
     (values (input-stream-tests)
             (test-tokenizer)
             (tree-builder-tests)
-            ;(test-parser)
+            (test-parser)
             )))
