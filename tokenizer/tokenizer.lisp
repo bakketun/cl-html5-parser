@@ -105,7 +105,6 @@
   (let (tokens)
     (let ((tokenizer (make-instance 'html-tokenizer
                                     :token-handler (lambda (token)
-                                                     (format *tokenizer-trace-output* "~&emit-token: ~S~&" token)
                                                      (push token tokens))
                                     :last-start-tag last-start-tag))
           (input-stream (make-input-stream)))
@@ -168,6 +167,7 @@
       (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-attributes))
     (when (tag-token-self-closing-flag token)
       (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-trailing-solidus)))
+  (format *tokenizer-trace-output* "~&emit-token: ~S~&" token)
   (funcall (tokenizer-token-handler tokenizer) token))
 
 

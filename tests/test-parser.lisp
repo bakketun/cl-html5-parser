@@ -122,6 +122,7 @@
                                           (getf test :description)
                                           e
                                           nil))))
+            (format t "~&~80@{-~}~%" 't)
             (apply #'do-parser-test :test-name test-name test)))))))
 
 
