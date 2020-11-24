@@ -910,9 +910,11 @@
                 (switch-state bogus-comment-state))))
 
     (t ;; Anything else
+     (consume-next-input-character)
+     ;; The consume above, reports potential invalid character in input stream error, before the error below.
      (this-is-a-parse-error :incorrectly-opened-comment)
      (create-new-comment-token)
-     (switch-state bogus-comment-state))))
+     (reconsume-in bogus-comment-state))))
 
 
 (define-state comment-start-state
