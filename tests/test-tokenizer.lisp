@@ -77,27 +77,13 @@
     (nreverse output-tokens)))
 
 
-(defparameter *simple-errors-check* t)
-
-
-(defun run-tokenizer-test (test-name initial-state test)
-  (with-simple-restart (skip "Skip test ~A ~A: ~A"
-                             test-name
-                             initial-state
-                             (getf test :description))
-    (let ((expected (getf test :output))
-          (expected-errors (mapcar (lambda (x) (getf x :code)) (getf test :errors))))
-      (multiple-value-bind (tokens got-errors)
-          (run-tokenizer-test-parser initial-state
-                                     (getf test :last-start-tag)
-                                     (getf test :input))
-        (let ((received (concatenate-character-tokens tokens)))
-          (unless (equal expected received)
-            (error "Test failed ~S ~%Expected: ~S~%Received: ~S" test expected received))
-          (unless (equal expected-errors got-errors)
-            (error "Test failed ~S ~%Expected errors: ~S~%Got errors: ~S"
-                   test expected-errors got-errors)))))))
-
+(defun run-tokenizer-test (input initial-state last-start-tag)
+  (multiple-value-bind (got-tokens got-errors)
+      (run-tokenizer-test-parser (find-state-symbol initial-state)
+                                 last-start-tag
+                                 input)
+    (list :output (concatenate-character-tokens got-tokens)
+          :errors got-errors)))
 
 
 (defun fix-output (output double-escaped)
@@ -185,9 +171,7 @@ Suppling more-keys will result in recursive application of jget with the result 
     (loop for test in (jget (json-streams:json-parse in) "tests" :array)
           for double-escaped = (jget test "doubleEscaped")
           collect (list :description (jget test "description")
-                        :initial-states (or (loop for string in (jget test "initialStates" :array)
-                                                  collect (find-state-symbol string))
-                                            '(html5-parser-tokenization-state:data-state))
+                        :initial-states (jget test "initialStates" :array)
                         :last-start-tag (jget test "lastStartTag")
                         :input (json-unescape (jget test "input") double-escaped)
                         :output (fix-output (jget test "output" :array) double-escaped)
@@ -196,26 +180,3 @@ Suppling more-keys will result in recursive application of jget with the result 
                                       collect (list :code (intern (string-upcase (jget error "code")) :keyword)
                                                     :line (jget error "line")
                                                     :col (jget error "col")))))))
-
-
-(defparameter *skip-tests* nil)
-
-
-(defun test-tokenizer ()
-  (loop for filename in (html5lib-test-files "tokenizer" :type "test")
-        for test-name = (pathname-name filename)
-        for skip = (cdr (assoc test-name *skip-tests* :test #'string=))
-        for skip-all = (eql (first skip) :skip)
-        for tests = (unless skip-all (load-tests filename))
-        do (dolist (test tests)
-             (unless (find (getf test :description) skip :test #'string=)
-               (princ "." *debug-io*)
-               (dolist (initial-state (getf test :initial-states))
-                 (handler-bind ((error (lambda (e)
-                                         (format t "~&~80@{=~}~%~A: ~A~% initial state: ~S~%~A~&~80@{=~}~%"
-                                                 test-name
-                                                 (getf test :description)
-                                                 initial-state
-                                                 e
-                                                 nil))))
-                   (run-tokenizer-test test-name initial-state test)))))))
