@@ -126,11 +126,10 @@
             (apply #'do-parser-test :test-name test-name test)))))))
 
 
-(in-root-suite)
-(defsuite parser-tests)
+(def-suite parser-tests :in html5-parser-tests)
 (in-suite parser-tests)
 
-(deftest test-parse-content-attr ()
+(test test-parse-content-attr
   (is (eql nil (html5-parser::parse-content-attr "garble")))
   (is (eql nil (html5-parser::parse-content-attr "charset")))
   (is (string= "utf-8" (html5-parser::parse-content-attr "charset=utf-8")))

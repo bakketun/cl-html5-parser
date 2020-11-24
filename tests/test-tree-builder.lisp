@@ -20,14 +20,13 @@
 
 (in-package :html5-parser-tests)
 
-(in-root-suite)
-(defsuite tree-builder-tests)
+(def-suite tree-builder-tests :in html5-parser-tests)
 (in-suite tree-builder-tests)
 
-(deftest test-make-document ()
+(test test-make-document
   (is (eq :document (node-type (make-document)))))
 
-(deftest test-append-child ()
+(test test-append-child
   (let* ((doc (make-document))
          (child (make-element doc "test" nil)))
     (node-append-child doc child)
@@ -35,7 +34,7 @@
                               (is (eq kid child)))
                           doc)))
 
-(deftest test-reappend-child ()
+(test test-reappend-child
   (let* ((doc (make-document))
          (parent1 (make-element doc "parent1" nil))
          (parent2 (make-element doc "parent2" nil))
@@ -48,7 +47,7 @@
                             (error "parent1 should not have children now ~S" kid))
                           parent1)))
 
-(deftest test-navigate ()
+(test test-navigate
   (let* ((doc (make-document))
          (parent (make-element doc "parent" nil))
          (child1 (make-element doc "child1" nil))
@@ -66,7 +65,7 @@
     (is (eq child1 (node-previous-sibling child2)))
     (is (eq nil (node-previous-sibling child1)))))
 
-(deftest test-remove-child ()
+(test test-remove-child
   (let* ((doc (make-document))
          (parent (make-element doc "parent" nil))
          (child1 (make-element doc "child1" nil))
@@ -81,13 +80,13 @@
     (node-remove-child parent child2)
     (is (eq child3 (node-next-sibling child1)))))
 
-(deftest test-set-attribute ()
+(test test-set-attribute
   (let* ((doc (make-document))
          (element (make-element doc "test" nil)))
     (setf (element-attribute element "hello") "world")
     (is (string= (element-attribute element "hello") "world"))))
 
-(deftest test-append-text ()
+(test test-append-text
   (let* ((doc (make-document))
          (parent (make-element doc "parent" nil)))
     (html5-parser::node-append-child* parent (make-text-node doc "hello"))

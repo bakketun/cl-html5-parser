@@ -50,3 +50,5 @@
          while test
          collect test)))
 
+
+(def-suite html5-parser-tests)

@@ -20,16 +20,15 @@
 
 (in-package :html5-parser-tests)
 
-(in-root-suite)
-(defsuite input-stream-tests)
+(def-suite input-stream-tests :in html5-parser-tests)
 (in-suite input-stream-tests)
 
-(deftest test-read-char ()
+(test test-read-char
   (let ((stream (html5-parser::make-html-input-stream "hello")))
     (is (eql #\h (html5-parser::html5-stream-char stream)))
     (is (eql #\e (html5-parser::html5-stream-char stream)))))
 
-(deftest test-unget ()
+(test test-unget
   (let ((stream (html5-parser::make-html-input-stream "hei")))
     (is (eql #\h (html5-parser::html5-stream-char stream)))
     (is (eql #\e (html5-parser::html5-stream-char stream)))
@@ -40,19 +39,19 @@
     (is (eql #\i (html5-parser::html5-stream-char stream)))
     (is (eql html5-parser-constants:+eof+ (html5-parser::html5-stream-char stream)))))
 
-(deftest test-chars-until ()
+(test test-chars-until
   (let ((stream (html5-parser::make-html-input-stream "hello<--__-->a")))
     (is (equal "hello" (html5-parser::html5-stream-chars-until stream "><")))
     (is (eql #\< (html5-parser::html5-stream-char stream)))
     (is (equal "--__-->" (html5-parser::html5-stream-chars-until stream "<>-_" t)))
     (is (eql #\a (html5-parser::html5-stream-char stream)))))
 
-(deftest test-chars-until-eof ()
+(test test-chars-until-eof
   (let ((stream (html5-parser::make-html-input-stream "hello")))
     (is (equal "hello" (html5-parser::html5-stream-chars-until stream "?")))
     (is (eql html5-parser-constants:+eof+ (html5-parser::html5-stream-char stream)))))
 
-(deftest test-line-ending-fix ()
+(test test-line-ending-fix
   (let ((stream (html5-parser::make-html-input-stream (coerce #(#\a #\Newline
                                                                 #\b #\Return
                                                                 #\c #\Return #\Newline
@@ -67,7 +66,7 @@
     (is (eql #\d (html5-parser::html5-stream-char stream)))
     (is (eql html5-parser-constants:+eof+ (html5-parser::html5-stream-char stream)))))
 
-(deftest test-line-ending-fix2 ()
+(test test-line-ending-fix2
   (let ((stream (html5-parser::make-html-input-stream (coerce #(#\< #\? #\Return)
                                                               'string))))
     (is (eql #\< (html5-parser::html5-stream-char stream)))
@@ -76,7 +75,7 @@
     (is (eql html5-parser-constants:+eof+ (html5-parser::html5-stream-char stream)))))
 
 
-(deftest test-bom ()
+(test test-bom
   (let ((stream (html5-parser::make-html-input-stream #(#xef #xbb #xbf 39))))
     (is (eql (car (html5-parser::html5-stream-encoding stream))
              :utf-8))
