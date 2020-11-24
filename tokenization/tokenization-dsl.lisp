@@ -20,7 +20,7 @@
            (block process-state
              ,@body
              t))))
-     (setf (aref *tokenization-states* ,number) #',name)))
+     (setf (aref *tokenization-states* ,number) ',name)))
 
 
 ;; Next and current input character
@@ -98,9 +98,17 @@
 
 ;; State
 
-(define-tokenizer-function-macro switch-state (new-state))
-(define-tokenizer-function-macro set-return-state (state))
-(define-tokenizer-function-macro switch-to-the-return-state ())
+
+(defmacro switch-state (new-state)
+  `(tokenizer-switch-state self ',new-state))
+
+
+(defmacro set-return-state (state)
+  `(tokenizer-set-return-state self ',state))
+
+
+(defmacro switch-to-the-return-state ()
+  `(tokenizer-switch-to-the-return-state self))
 
 
 (defmacro reconsume-in (new-state)
