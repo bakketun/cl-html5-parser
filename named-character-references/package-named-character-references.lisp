@@ -18,9 +18,11 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser-entities
+
+(defpackage #:html5-parser-named-character-references
   (:use
    #:common-lisp)
   (:export
-   #:entity-match
+   #:+named-character-references-table+
+   #:named-character-references-search
    ))

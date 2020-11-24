@@ -2,9 +2,11 @@
 ;;;; https://html.spec.whatwg.org/multipage/named-characters.html
 ;;;; https://html.spec.whatwg.org/entities.json
 
-(in-package :html5-parser-entities)
 
-(defparameter *entities*
+(in-package :html5-parser-named-character-references)
+
+
+(defparameter +named-character-references-table+
   '(
     ("AElig" 198)
     ("AElig;" 198)
@@ -2237,4 +2239,7 @@
     ("zscr;" 120015)
     ("zwj;" 8205)
     ("zwnj;" 8204)
-    ))
+    )
+    "List of the character reference names that are supported by HTML, and the code points to which they refer. Each element consists of two or three elements, the name as a string, followed by two or three code points as integers.
+
+https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references")

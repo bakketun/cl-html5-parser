@@ -27,11 +27,15 @@
   :serial t
   :components ((:file "package-constants")
                (:file "constants")
+
                (:file "package-infra")
                (:file "infra")
-               (:file "package-entities")
-               (:file "entities")
-               (:file "entities-functions")
+
+               (:module "named-character-references"
+                :components ((:file "package-named-character-references")
+                             (:file "named-character-references-table")
+                             (:file "named-character-references")))
+
                (:module "tokenizer"
                 :components ((:file "package-tokenizer-state")
                              (:file "package-tokenizer-dsl")
@@ -40,6 +44,7 @@
                              (:file "tokenizer")
                              (:file "tokenizer-dsl")
                              (:file "state")))
+
                (:file "package-html5-parser")
                (:file "inputstream")
                (:file "simple-tree")

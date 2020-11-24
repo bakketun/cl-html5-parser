@@ -68,9 +68,9 @@
    #:emit-character-tokens-from-temporary-buffer
    #:emit-current-token
    #:emit-end-of-file-token
-   #:entity-matched-p
    #:flush-code-points-consumed-as-a-character-reference
    #:lowercase-version-of
+   #:matched-named-character-reference
    #:next-input-character
    #:noncharacter-p
    #:numeric-version-of-current-input-character
@@ -84,7 +84,7 @@
    #:temporary-buffer-append
    #:temporary-buffer-append-code-point
    #:temporary-buffer-append-entity
-   #:temporary-buffer-append-matched-character-reference
+   #:temporary-buffer-append-matched-named-character-reference
    #:temporary-buffer-clear
    #:temporary-buffer-equal
    #:this-is-a-parse-error

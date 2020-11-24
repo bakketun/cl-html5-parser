@@ -286,12 +286,6 @@ pointer at the end."
     (vector-push-extend data temporary-buffer)))
 
 
-(defun tokenizer-temporary-buffer-append-entity (tokenizer data)
-  (with-slots (temporary-buffer) tokenizer
-    (loop :for char :across data :do
-      (vector-push-extend char temporary-buffer))))
-
-
 (defun tokenizer-temporary-buffer-append-code-point (tokenizer code-point)
   (with-slots (temporary-buffer) tokenizer
     (vector-push-extend (code-char code-point) temporary-buffer)))

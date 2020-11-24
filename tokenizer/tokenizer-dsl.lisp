@@ -130,19 +130,21 @@
 (define-tokenizer-function-macro temporary-buffer-equal (string))
 
 
-;; Entity reference
+;; Named character reference
 
 (defmacro with-matched-named-character-reference (&body body)
   `(with-peek-next-input-character
-     (multiple-value-bind (entity-matched-p matched-length)
-         (entity-match (lambda () (peek-next-input-character)))
-       (loop :repeat matched-length
+     (multiple-value-bind (matched-named-character-reference matched-name)
+         (named-character-references-search (lambda () (peek-next-input-character)))
+       (loop :repeat (length matched-name)
              :do (temporary-buffer-append (consume-next-input-character)))
        ,@body)))
 
 
-(defmacro temporary-buffer-append-matched-character-reference ()
-  `(temporary-buffer-append-entity entity-matched-p))
+(defmacro temporary-buffer-append-matched-named-character-reference ()
+  `(progn (temporary-buffer-append-code-point (car matched-named-character-reference))
+          (when (cdr matched-named-character-reference)
+            (temporary-buffer-append-code-point (cadr matched-named-character-reference)))))
 
 
 ;; Current token
