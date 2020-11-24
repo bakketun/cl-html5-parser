@@ -41,33 +41,6 @@
       (tokenizer-process tokenizer (make-input-stream :characters (car source))))))
 
 
-(defun token-as-plist (token)
-  (etypecase token
-    (doctype-token
-     (list :type :doctype
-           :name (doctype-token-name token)
-           :public-id (doctype-token-public-id token)
-           :system-id (doctype-token-system-id token)
-           :force-quirks (doctype-token-force-quirks-flag token)))
-    (start-tag-token
-     (list :type :start-tag
-           :name (tag-token-name token)
-           :data (tag-token-attributes token)
-           :self-closing (tag-token-self-closing-flag token)))
-    (end-tag-token
-     (list :type :end-tag
-           :name (tag-token-name token)))
-    (comment-token
-     (list :type :comment
-           :data (comment-token-data token)))
-    (character-token
-     (list :type :characters
-           :data (string (character-token-character token))))
-    (parse-error-token
-     (list :type :parse-error
-           :data (parse-error-token-code token)))))
-
-
 (defclass html-tokenizer ()
   ((source :initarg :source)
    (token-handler :initarg :token-handler
@@ -159,6 +132,33 @@
 (defstruct (start-tag-token (:include tag-token)))
 
 (defstruct (end-tag-token (:include tag-token)))
+
+
+(defun token-as-plist (token)
+  (etypecase token
+    (doctype-token
+     (list :type :doctype
+           :name (doctype-token-name token)
+           :public-id (doctype-token-public-id token)
+           :system-id (doctype-token-system-id token)
+           :force-quirks (doctype-token-force-quirks-flag token)))
+    (start-tag-token
+     (list :type :start-tag
+           :name (tag-token-name token)
+           :data (tag-token-attributes token)
+           :self-closing (tag-token-self-closing-flag token)))
+    (end-tag-token
+     (list :type :end-tag
+           :name (tag-token-name token)))
+    (comment-token
+     (list :type :comment
+           :data (comment-token-data token)))
+    (character-token
+     (list :type :characters
+           :data (string (character-token-character token))))
+    (parse-error-token
+     (list :type :parse-error
+           :data (parse-error-token-code token)))))
 
 
 (defun tokenizer-emit-token (tokenizer token)
