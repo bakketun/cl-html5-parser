@@ -18,7 +18,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :html5-parser)
+(in-package :html5-parser-tree)
 
 ;; A basic implementation of a DOM-core like thing
 
@@ -36,7 +36,11 @@
   (setf (last-child node) (last value)))
 
 (defclass document (node)
-  ((type :initform :document :allocation :class)))
+  ((type :initform :document :allocation :class)
+   (mode :initarg :mode
+         :initform :no-quirks
+         :type (member :no-quirks :quirks :limited-quirks)
+         :accessor document-mode)))
 
 (defclass document-fragment (document)
   ((type :initform :document-fragment :allocation :class)))
@@ -161,7 +165,7 @@
    (lambda (name namespace value)
      (funcall function
               (if namespace
-                  (format nil "~A:~A" (find-prefix namespace) name)
+                  (format nil "~A:~A" (html5-parser-constants:find-prefix namespace) name)
                   name)
               namespace
               value))

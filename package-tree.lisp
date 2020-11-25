@@ -18,24 +18,11 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser
+(defpackage #:html5-parser-tree
   (:use
    #:common-lisp
-   #:html5-parser-constants
-   #:html5-parser-infra
-   #:html5-parser-tokenization-state
-   #:html5-parser-tokenization
-   #:html5-parser-tree
-   #:cl-ppcre)
+   )
   (:export
-   #:parse-html5
-   #:parse-html5-fragment
-   #:transform-html5-dom
-
-   #:xml-escape-name
-   #:xml-unescape-name
-
-   ;; A simple DOM
    #:make-document
    #:make-fragment
    #:make-doctype
@@ -62,4 +49,6 @@
    #:node-next-sibling
    #:element-map-attributes
    #:element-map-attributes*
-   #:element-map-children))
+   #:element-map-children
+
+   #:document-mode))

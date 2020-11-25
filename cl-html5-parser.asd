@@ -45,9 +45,11 @@
                              (:file "tokenization-dsl")
                              (:file "tokenization-state")))
 
+               (:file "package-tree")
+               (:file "simple-tree")
+
                (:file "package-html5-parser")
                (:file "inputstream")
-               (:file "simple-tree")
                (:file "html5-parser-class")
                (:file "tree-help")
                (:file "html5-parser")
