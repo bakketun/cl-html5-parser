@@ -21,10 +21,11 @@
 (defsystem #:cl-html5-parser-tests
   :depends-on (:cl-html5-parser :json-streams :split-sequence :fiveam)
   :components ((:file "packages")
-               (:file "support")
+               (:file "run-tests")
                (:file "test-inputstream")
-               (:file "test-tokenizer")
-               (:file "fiveam-test-tokenizer")
                (:file "test-tree-builder")
                (:file "test-parser")
-               (:file "run-tests")))
+               (:module "html5lib"
+                :components ((:file "support")
+                             (:file "tokenizer-tests")
+                             (:file "tree-construction-tests")))))

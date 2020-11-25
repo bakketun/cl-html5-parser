@@ -441,17 +441,17 @@ nobr should have closed the div inside it implicitly. </b><pre>A pre tag outside
     "Skip test webkit01 <font></p><p><meta><title></title></font>"
     ))
 
+
+(def-suite html5-parser-tests)
+
+
+(defun run!! (test)
+  (let ((result-list (run test)))
+    (explain (make-instance 'it.bese.fiveam::simple-text-explainer)
+             result-list)
+    (nth-value 0 (results-status result-list))))
+
+
 (defun run-html5-parser-tests ()
-  (setf *skipped-errors* nil)
-  (handler-bind ((error (lambda (e)
-                          (declare (ignore e))
-                          (when (find-restart 'skip)
-                            (when (member (princ-to-string (find-restart 'skip))
-                                          *known-failures*
-                                          :test #'string=)
-                              (invoke-restart 'skip))
-                            (when *skip-all-errors*
-                              (pushnew (princ-to-string (find-restart 'skip)) *skipped-errors*)
-                              (invoke-restart 'skip))))))
-    (assert (run!! 'html5-parser-tests)
-            () "Some tests failed")))
+  (assert (run!! 'html5-parser-tests)
+          () "Some tests failed"))

@@ -18,7 +18,9 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
+
 (in-package :html5-parser-tests)
+
 
 (defun run-tokenizer-test-parser (initial-state last-start-tag source)
   (let ((tokens (html5-parser-tokenization::tokenizer-test source
@@ -173,3 +175,28 @@ Suppling more-keys will result in recursive application of jget with the result 
                                       collect (list :code (intern (string-upcase (jget error "code")) :keyword)
                                                     :line (jget error "line")
                                                     :col (jget error "col")))))))
+
+
+
+(defmacro define-html5lib-tokenizer-tests ()
+  `(progn
+     ,@(loop :for filename :in (html5lib-test-files "tokenizer" :type "test")
+             :for name := (intern (string-upcase (pathname-name filename)))
+             :collect `(test ,name
+                         (run-tokenizer-test-from-file ,filename)))))
+
+
+(defun run-tokenizer-test-from-file (filename)
+  (loop :for test :in (load-tests filename)
+        :append (loop :for initial-state :in (or (getf test :initial-states) '("Data state"))
+                      :for expected := (list :output (getf test :output)
+                                             :errors (mapcar (lambda (x) (getf x :code)) (getf test :errors)))
+                      :do (eval `(is (equal ',expected
+                                            (run-tokenizer-test ',(getf test :input)
+                                                                ',initial-state
+                                                                ,(getf test :last-start-tag))))))))
+
+
+(def-suite tokenizer-tests :in html5lib-tests)
+(in-suite tokenizer-tests)
+(define-html5lib-tokenizer-tests)

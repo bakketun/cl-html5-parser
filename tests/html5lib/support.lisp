@@ -18,13 +18,16 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
+
 (in-package :html5-parser-tests)
+
 
 (defun html5lib-test-files (subdirectory &key (type "dat"))
   (directory (merge-pathnames (make-pathname :directory `(:relative ,subdirectory)
                                              :name :wild
                                              :type type)
-                              (asdf:system-relative-pathname :cl-html5-parser-tests "html5lib-tests/"))))
+                              (asdf:system-relative-pathname :cl-html5-parser-tests "html5lib/html5lib-tests/"))))
+
 
 (defun parse-test-part (in)
   (let ((line (read-line in nil)))
@@ -44,6 +47,7 @@
      append part
      until (eql (car part) :document)))
 
+
 (defun parse-test-data (filename)
   (with-open-file (in filename)
     (loop for test = (parse-one-test in)
@@ -51,11 +55,4 @@
          collect test)))
 
 
-(def-suite html5-parser-tests)
-
-
-(defun run!! (test)
-  (let ((result-list (run test)))
-    (explain (make-instance 'it.bese.fiveam::simple-text-explainer)
-             result-list)
-    (nth-value 0 (results-status result-list))))
+(def-suite html5lib-tests :in html5-parser-tests)
