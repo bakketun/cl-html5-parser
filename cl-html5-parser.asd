@@ -52,7 +52,7 @@
                (:file "inputstream")
                (:file "html5-parser-class")
                (:file "tree-help")
-               (:file "html5-parser")
+               (:file "new-html5-parser")
                (:file "toxml")
                (:file "xmls")))
 

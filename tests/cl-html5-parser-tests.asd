@@ -24,7 +24,7 @@
                (:file "run-tests")
                (:file "test-inputstream")
                (:file "test-tree-builder")
-               (:file "test-parser")
+               ;;(:file "test-parser")
                (:module "html5lib"
                 :components ((:file "support")
                              (:file "tokenizer-tests")

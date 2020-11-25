@@ -11,7 +11,7 @@
   `(progn
      (defconstant ,name ',name)
      (defun ,name (self input-stream)
-       ,(format nil "13.2.~A ~A~&~A" number title url)
+       ,(format nil "13.2.5.~A ~A~&~A" number title url)
        (declare (ignorable input-stream))
        (with-slots (character-reference-code) self
          (let ((current-input-character nil)
@@ -92,7 +92,6 @@
   (let ((function-name (intern (format nil "~A-~A" 'tokenizer name)
                                (symbol-package 'define-tokenizer-function-macro))))
     `(defmacro ,name (,@args)
-
        (list ',function-name 'self ,@args))))
 
 

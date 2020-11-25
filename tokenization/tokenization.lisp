@@ -21,6 +21,13 @@
 (in-package :html5-parser-tokenization)
 
 
+(defun make-tokenizer (&key source encoding token-handler adjusted-current-node-not-in-HTML-namespace-p)
+  (make-instance 'html-tokenizer
+                 :source (cons source encoding)
+                 :adjusted-current-node-not-in-HTML-namespace-p adjusted-current-node-not-in-HTML-namespace-p
+                 :token-handler token-handler))
+
+
 (defun make-html-tokenizer (source &key encoding adjusted-current-node-not-in-HTML-namespace-p)
   (make-instance 'html-tokenizer
                  :source (cons source encoding)
@@ -39,6 +46,11 @@
   (with-slots (source) tokenizer
     (let ((*map-tokens-handler* function))
       (tokenizer-process tokenizer (make-input-stream :characters (car source))))))
+
+
+(defun tokenizer-run (tokenizer)
+  (with-slots (source) tokenizer
+    (tokenizer-process tokenizer (make-input-stream :characters (car source)))))
 
 
 (defclass html-tokenizer ()
@@ -133,6 +145,16 @@
 (defstruct (start-tag-token (:include tag-token)))
 
 (defstruct (end-tag-token (:include tag-token)))
+
+
+(defun token-error-code        (token) (parse-error-token-code token))
+(defun token-character         (token) (character-token-character token))
+(defun token-name              (token) (named-token-name token))
+(defun token-public-id         (token) (doctype-token-public-id token))
+(defun token-system-id         (token) (doctype-token-system-id token))
+(defun token-force-quirks-flag (token) (doctype-token-force-quirks-flag token))
+(defun token-attributes        (token) (tag-token-attributes token))
+(defun token-self-closing-flag (token) (tag-token-self-closing-flag token))
 
 
 (defun token-as-plist (token)
