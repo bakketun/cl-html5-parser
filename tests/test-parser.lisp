@@ -84,50 +84,57 @@
   node)
 
 
-(defparameter *parser-tests-to-skip*
-  ())
-
-(defun do-parser-test (&key test-name data errors new-errors document document-fragment script-on script-off)
-  (with-simple-restart (skip "Skip test ~A ~A"
-                             test-name
-                             data)
-    (setf document (string-right-trim '(#\Newline) document))
-    (when (member data *parser-tests-to-skip* :test #'string=)
-      (return-from do-parser-test))
-    (multiple-value-bind (result-document got-errors)
-        (if document-fragment
-            (parse-html5-fragment data :container document-fragment)
-            (parse-html5 data))
-      (let ((result (with-output-to-string (out)
-                      (print-tree result-document :stream out))))
-        (unless (string= document result)
-          (error "Input:~%~A~%Got:~%~A~%Expected:~%~A" data result document))
-        (setf errors (split-sequence:split-sequence #\Newline errors
-                                                    :remove-empty-subseqs t))
-        (unless (eq (not (not got-errors)) (not (not errors)))
-          (error "Errors mismatch~&Input:~%~A~%Got:~%~{~&~A~}~%Expected:~%~{~&~A~}"
-                 data got-errors errors)))
-      result-document)))
+(defun test-tree-construction (input &key context)
+  (multiple-value-bind (result-document got-errors)
+        (if context
+            (parse-html5-fragment input :container context)
+            (parse-html5 input))
+    (with-output-to-string (out)
+      (format out "#errors~%")
+      (when got-errors
+        (format out "TODO~%"))
+      (format out "#document~%")
+      (print-tree result-document :stream out)
+      (terpri out))))
 
 
-(defun test-parser ()
-  (let ((files (html5lib-test-files "tree-construction")))
-    (dolist (file files)
-      (let ((test-name (pathname-name file))
-            (tests (parse-test-data file)))
-        (dolist (test tests)
-          (handler-bind ((error (lambda (e)
-                                  (format t "~&~80@{=~}~%~A: ~A~%~A~&~80@{=~}~%"
-                                          test-name
-                                          (getf test :description)
-                                          e
-                                          nil))))
-            (format t "~&~80@{-~}~%" 't)
-            (apply #'do-parser-test :test-name test-name test)))))))
+(defun do-parser-test (&key data errors new-errors document document-fragment script-on script-off)
+  (declare (ignore new-errors script-on script-off))
+  (let ((input data)
+        (expected-tree document)
+        (expected-errors errors)
+        (context document-fragment))
+    (let ((test-form (if context
+                         `(test-tree-construction ,input :context ,context)
+                         `(test-tree-construction ,input)))
+          (expected (with-output-to-string (out)
+                      (format out "#errors~%")
+                      (when (plusp (length expected-errors))
+                        (format out "TODO~%"))
+                      (format out "#document~%~A~&" expected-tree))))
+      (eval `(is (equal ',expected ,test-form))))))
+
+
+(defun run-tree-construction-tests-from-file (pathname)
+  (dolist (test (parse-test-data pathname))
+    (if (member (format nil "Skip test ~A ~A" (pathname-name pathname) (getf test :data))
+                *known-failures* :test #'string=)
+        (skip "*known-failures*")
+        (apply #'do-parser-test test))))
+
+
+(defmacro define-tree-construction-tests ()
+  `(progn ,@(loop :for file :in (html5lib-test-files "tree-construction")
+                  :for name := (intern (string-upcase (pathname-name file)))
+                  :collect `(test ,name (run-tree-construction-tests-from-file ,file)))))
+(def-suite tree-construction :in html5-parser-tests)
+(in-suite tree-construction)
+(define-tree-construction-tests)
 
 
 (def-suite parser-tests :in html5-parser-tests)
 (in-suite parser-tests)
+
 
 (test test-parse-content-attr
   (is (eql nil (html5-parser::parse-content-attr "garble")))

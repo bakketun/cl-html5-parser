@@ -52,3 +52,10 @@
 
 
 (def-suite html5-parser-tests)
+
+
+(defun run!! (test)
+  (let ((result-list (run test)))
+    (explain (make-instance 'it.bese.fiveam::simple-text-explainer)
+             result-list)
+    (nth-value 0 (results-status result-list))))

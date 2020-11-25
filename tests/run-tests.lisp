@@ -453,6 +453,5 @@ nobr should have closed the div inside it implicitly. </b><pre>A pre tag outside
                             (when *skip-all-errors*
                               (pushnew (princ-to-string (find-restart 'skip)) *skipped-errors*)
                               (invoke-restart 'skip))))))
-    (values (assert (run! 'html5-parser-tests) () "Some tests failed")
-            (test-parser)
-            )))
+    (assert (run!! 'html5-parser-tests)
+            () "Some tests failed")))
