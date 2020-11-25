@@ -20,6 +20,7 @@
 
 (defsystem #:cl-html5-parser-tests
   :depends-on (:cl-html5-parser :json-streams :split-sequence :fiveam)
+  :serial t
   :components ((:file "packages")
                (:file "run-tests")
                (:file "test-inputstream")

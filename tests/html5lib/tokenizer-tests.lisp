@@ -181,7 +181,7 @@ Suppling more-keys will result in recursive application of jget with the result 
 (defmacro define-html5lib-tokenizer-tests ()
   `(progn
      ,@(loop :for filename :in (html5lib-test-files "tokenizer" :type "test")
-             :for name := (intern (string-upcase (pathname-name filename)))
+             :for name := (intern (string-upcase (format nil "html5lib/tokenizer/~A" (pathname-name filename))))
              :collect `(test ,name
                          (run-tokenizer-test-from-file ,filename)))))
 

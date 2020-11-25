@@ -124,7 +124,7 @@
 
 (defmacro define-tree-construction-tests ()
   `(progn ,@(loop :for file :in (html5lib-test-files "tree-construction")
-                  :for name := (intern (string-upcase (pathname-name file)))
+                  :for name := (intern (string-upcase (format nil "html5lib/tree-construction/~A" (pathname-name file))))
                   :unless (member name *ignore-tests*)
                     :collect `(test ,name (run-tree-construction-tests-from-file ,file)))))
 (def-suite tree-construction :in html5lib-tests)
