@@ -26,6 +26,7 @@
   ((type :initform :node :allocation :class :reader node-type)
    (name :initarg :name :initform nil :reader node-name)
    (namespace :initarg :namespace :initform nil :reader node-namespace)
+   (document :initarg :document :initform nil :reader node-document)
    (parent :initform nil :reader node-parent)
    (value :initform nil :initarg :value
           :accessor node-value)
@@ -68,24 +69,19 @@
   (make-instance 'document))
 
 (defun make-fragment (document)
-  (declare (ignore document))
-  (make-instance 'document-fragment))
+  (make-instance 'document-fragment :document document))
 
 (defun make-doctype (document name public-id system-id)
-  (declare (ignore document))
-  (make-instance 'document-type :name name :public-id public-id :system-id system-id))
+  (make-instance 'document-type :document document :name name :public-id public-id :system-id system-id))
 
 (defun make-comment (document data)
-  (declare (ignore document))
-  (make-instance 'comment-node :value data))
+  (make-instance 'comment-node :document document :value data))
 
-(defun make-element (document name namespace)
-  (declare (ignore document))
-  (make-instance 'element :name name :namespace namespace))
+(defun make-element (document local-name &optional namespace)
+  (make-instance 'element :document document :name local-name :namespace namespace))
 
 (defun make-text-node (document data)
-  (declare (ignore document))
-  (make-instance 'text-node :value data))
+  (make-instance 'text-node :document document :value data))
 
 ;;;
 ;;; Node methods
@@ -133,8 +129,8 @@
       (setf (%node-child-nodes node)
             (insert-before child-nodes)))))
 
-(defun element-attribute (node attribute &optional namespace)
-  (cdr (assoc (cons attribute namespace)
+(defun element-attribute (node local-name &optional namespace)
+  (cdr (assoc (cons local-name namespace)
               (%node-attributes node)
               :test #'equal)))
 

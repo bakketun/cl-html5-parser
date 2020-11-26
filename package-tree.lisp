@@ -42,6 +42,7 @@
    #:node-insert-before
    #:node-remove-child
 
+   #:node-document
    #:node-parent
    #:node-first-child
    #:node-last-child

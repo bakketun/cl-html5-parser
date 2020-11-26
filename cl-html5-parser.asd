@@ -50,9 +50,11 @@
 
                (:file "package-html5-parser")
                (:file "inputstream")
-               (:file "html5-parser-class")
                (:file "tree-help")
+
                (:file "new-html5-parser")
+               (:file "insertion-mode")
+
                (:file "toxml")
                (:file "xmls")))
 
