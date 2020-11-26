@@ -82,7 +82,7 @@
     )
 
   (A-comment-token
-    (node-append-child document (make-comment document (token-data token))))
+    (insert-a-comment token document))
 
   (A-DOCTYPE-token
     (flet ((the-name-is-not                    (what)  (not (equal (token-name token) what)))
@@ -196,7 +196,7 @@
     (parse-error))
 
   (A-comment-token
-    (node-append-child document (make-comment document (token-data token))))
+    (insert-a-comment token document))
 
   (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE ()
     ;; Ignore the token.
@@ -232,8 +232,7 @@
     )
 
   (A-comment-token
-    ;; TODO (insert-a-comment)
-    )
+    (insert-a-comment token))
 
   (A-DOCTYPE-token
     (parse-error))

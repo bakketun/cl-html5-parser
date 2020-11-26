@@ -65,7 +65,7 @@
          (with-slots (,@slots) parser
            ,@body))
        (defmacro ,name (,@args)
-         (list ',function-name 'parser ,@args)))))
+         (list ',function-name 'parser ,@(remove '&optional args))))))
 
 
 (define-parser-op switch-insertion-mode (new-mode)
@@ -165,3 +165,20 @@
       (node-insert-text adjusted-insertion-location-parent
                         (string char)
                         adjusted-insertion-location-before-node))))
+
+
+(define-parser-op insert-a-comment (token &optional parent-node before-node)
+  "https://html.spec.whatwg.org/multipage/parsing.html#insert-a-comment"
+  ;; 1
+  (let ((data (token-data token)))
+    ;; 2
+    (multiple-value-bind (adjusted-insertion-location-parent adjusted-insertion-location-before-node)
+        (if parent-node
+            (values parent-node before-node)
+            (appropriate-place-for-inserting-a-node))
+      ;; 3
+      (let ((comment-node (make-comment document data)))
+        ;; 4
+        (if adjusted-insertion-location-before-node
+            (node-insert-before adjusted-insertion-location-parent comment-node adjusted-insertion-location-before-node)
+            (node-append-child adjusted-insertion-location-parent comment-node))))))
