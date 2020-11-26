@@ -227,6 +227,31 @@
 (define-insertion-mode before-head-insertion-mode
     3 "before head"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-before-head-insertion-mode"
+  (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
+    ;; Ignore the token.
+    )
+
+  (A-comment-token
+    ;; TODO (insert-a-comment)
+    )
+
+  (A-DOCTYPE-token
+    (parse-error))
+
+  (A-start-tag-whose-tag-name-is ("html")
+    ;; TODO Process the token using the rules for the "in body" insertion mode.
+    )
+
+  (A-start-tag-whose-tag-name-is ("head")
+    (setf head-element-pointer (insert-an-html-element token))
+    (switch-insertion-mode 'in-head-insertion-mode))
+
+  (An-end-tag-whose-tag-name-is-one-of ("head" "body" "html" "br")
+    (act-as-anything-else))
+
+  (Any-other-end-tag
+    (parse-error))
+
   (Anything-else
    (setf head-element-pointer (insert-an-html-element (make-start-tag-token :name "head")))
    (switch-insertion-mode 'in-head-insertion-mode)
