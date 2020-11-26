@@ -27,7 +27,7 @@
     html5lib/tree-construction/adoption02
     html5lib/tree-construction/blocks
     html5lib/tree-construction/comments01
-    html5lib/tree-construction/doctype01
+    ;;html5lib/tree-construction/doctype01
     html5lib/tree-construction/domjs-unsafe
     html5lib/tree-construction/entities01
     html5lib/tree-construction/entities02
