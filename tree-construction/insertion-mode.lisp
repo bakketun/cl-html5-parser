@@ -1,3 +1,5 @@
+;;;; -*- mode: lisp; eval: (goto-address-mode) -*-
+;;;;
 ;;;;  HTML5 parser for Common Lisp
 ;;;;
 ;;;;  Copyright (C) 2020 Thomas Bakketun <thomas@bakketun.pro>
@@ -61,6 +63,12 @@
   :reprocess)
 
 
+(define-insertion-mode in-head-noscript-insertion-mode
+    5 "in head noscript"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inheadnoscript"
+  )
+
+
 (define-insertion-mode after-head-insertion-mode
     6 "after head"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-after-head-insertion-mode"
@@ -81,3 +89,99 @@
      (insert-a-character (token-character token)))
     ;; Set the frameset-ok flag to "not ok".
     ))
+
+
+(define-insertion-mode text-insertion-mode
+    8 "text"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incdata"
+  )
+
+
+(define-insertion-mode in-table-insertion-mode
+    9 "in table"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intable"
+  )
+
+
+(define-insertion-mode in-table-text-insertion-mode
+    10 "in table text"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intabletext"
+  )
+
+
+(define-insertion-mode in-caption-insertion-mode
+    11 "in caption"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incaption"
+  )
+
+
+(define-insertion-mode in-column-group-insertion-mode
+    12 "in column group"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incolgroup"
+  )
+
+
+(define-insertion-mode in-table-body-insertion-mode
+    13 "in table body"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intbody"
+  )
+
+
+(define-insertion-mode in-row-insertion-mode
+    14 "in row"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intr"
+  )
+
+
+(define-insertion-mode in-cell-insertion-mode
+    15 "in cell"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intd"
+  )
+
+
+(define-insertion-mode in-select-insertion-mode
+    16 "in select"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inselect"
+  )
+
+
+(define-insertion-mode in-select-in-table-insertion-mode
+    17 "in select in table"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inselectintable"
+  )
+
+
+(define-insertion-mode in-template-insertion-mode
+    18 "in template"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intemplate"
+  )
+
+
+(define-insertion-mode after-body-insertion-mode
+    19 "after body"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-afterbody"
+  )
+
+
+(define-insertion-mode in-frameset-insertion-mode
+    20 "in frameset"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inframeset"
+  )
+
+
+(define-insertion-mode after-frameset-insertion-mode
+    21 "after frameset"
+    "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-afterframeset"
+  )
+
+
+(define-insertion-mode after-after-body-insertion-mode
+    22 "after after body"
+    "https://html.spec.whatwg.org/multipage/parsing.html#the-after-after-body-insertion-mode"
+  )
+
+
+(define-insertion-mode after-after-frameset-insertion-mode
+    23 "after after frameset"
+    "https://html.spec.whatwg.org/multipage/parsing.html#the-after-after-frameset-insertion-mode"
+  )

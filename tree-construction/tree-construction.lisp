@@ -159,6 +159,7 @@
 
 (defmacro define-insertion-mode (name number title url &body body)
   `(defun ,name (parser token)
+     (declare (ignorable token))
      ,(format nil "13.2.6.~A ~A~&~A" number title url)
      (with-slots (document head-element-pointer)
          parser
