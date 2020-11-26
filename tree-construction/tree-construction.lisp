@@ -45,7 +45,7 @@
               parse-errors))))
 
 
-(defun tree-construction-dispatcher (parser token)
+(defun tree-construction-dispatcher (parser token &key using-rules-for)
   "https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher"
   (with-slots (insertion-mode ignore-next-token-if-line-feed) parser
     (cond (ignore-next-token-if-line-feed
@@ -53,7 +53,11 @@
            (unless (eql U+000A_LINE_FEED (token-character token))
              (tree-construction-dispatcher parser token)))
           (t
-           (loop :while (eql :reprocess (funcall insertion-mode parser token)))))))
+           (if using-rules-for
+               (format *trace-output* "~&process using rules for ~A ~S~&" using-rules-for token)
+               (format *trace-output* "~&process in ~A ~S~&" insertion-mode token))
+           (when (eql :reprocess (funcall (or using-rules-for insertion-mode) parser token))
+             (tree-construction-dispatcher parser token))))))
 
 
 (defmacro define-parser-op (name (&rest args) &body body)

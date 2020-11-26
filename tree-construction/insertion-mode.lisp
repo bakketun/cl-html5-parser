@@ -34,6 +34,10 @@
           ,@body)))))
 
 
+(defmacro process-token-using-rules-for (mode)
+  `(tree-construction-dispatcher parser token :using-rules-for ',mode))
+
+
 (defmacro token-cond (&rest clauses)
   (let ((anything-else-clause (assoc 'Anything-else clauses)))
     `(flet ((act-as-anything-else ()
@@ -238,8 +242,7 @@
     (parse-error))
 
   (A-start-tag-whose-tag-name-is ("html")
-    ;; TODO Process the token using the rules for the "in body" insertion mode.
-    )
+    (process-token-using-rules-for 'in-body-insertion-mode))
 
   (A-start-tag-whose-tag-name-is ("head")
     (setf head-element-pointer (insert-an-html-element token))
