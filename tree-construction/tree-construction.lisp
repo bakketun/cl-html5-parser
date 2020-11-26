@@ -23,25 +23,37 @@
 (defclass html5-parser ()
   ((context-element :initform nil)
    (insertion-mode :initform 'initial-insertion-mode)
+   (original-insertion-mode :initform nil)
    (document :initform (make-document))
+   (iframe-srcdoc-p :initform nil)
    (head-element-pointer :initform nil)
    (form-element-pointer :initform nil)
-   (stack-of-open-elements :initform (make-array 0 :fill-pointer 0 :adjustable t))))
+   (stack-of-open-elements :initform (make-array 0 :fill-pointer 0 :adjustable t))
+   (ignore-next-token-if-line-feed :initform nil)
+   (frameset-ok-flag :initform :ok)
+   (tokenizer)
+   (parse-errors :initform nil)))
 
 
 (defun parse-html5-from-source (source)
   (let ((parser (make-instance 'html5-parser)))
-    (let ((tokenizer (make-tokenizer :source source
-                                     :token-handler (lambda (token) (tree-construction-dispatcher parser token)))))
+    (with-slots (tokenizer document parse-errors) parser
+      (setf tokenizer (make-tokenizer :source source
+                                      :token-handler (lambda (token) (tree-construction-dispatcher parser token))))
       (tokenizer-run tokenizer)
-      (with-slots (document) parser
-        document))))
+      (values document
+              parse-errors))))
 
 
 (defun tree-construction-dispatcher (parser token)
   "https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher"
-  (with-slots (insertion-mode) parser
-    (loop :while (eql :reprocess (funcall insertion-mode parser token)))))
+  (with-slots (insertion-mode ignore-next-token-if-line-feed) parser
+    (cond (ignore-next-token-if-line-feed
+           (setf ignore-next-token-if-line-feed nil)
+           (unless (eql U+000A_LINE_FEED (token-character token))
+             (tree-construction-dispatcher parser token)))
+          (t
+           (loop :while (eql :reprocess (funcall insertion-mode parser token)))))))
 
 
 (defmacro define-parser-op (name (&rest args) &body body)
@@ -54,6 +66,11 @@
            ,@body))
        (defmacro ,name (,@args)
          (list ',function-name 'parser ,@args)))))
+
+
+(define-parser-op switch-insertion-mode (new-mode)
+  (format *trace-output* "~&~A → ~A~&" insertion-mode new-mode)
+  (setf insertion-mode new-mode))
 
 
 ;; 13.2.4.2 The stack of open elements
@@ -148,7 +165,3 @@
       (node-insert-text adjusted-insertion-location-parent
                         (string char)
                         adjusted-insertion-location-before-node))))
-
-
-(define-parser-op switch-insertion-mode (new-mode)
-  (setf insertion-mode new-mode))

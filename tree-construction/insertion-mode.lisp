@@ -24,9 +24,13 @@
   `(defun ,name (parser token)
      (declare (ignorable token))
      ,(format nil "13.2.6.~A ~A~&~A" number title url)
-     (with-slots (document head-element-pointer)
+     (with-slots (document head-element-pointer ignore-next-token-if-line-feed insertion-mode original-insertion-mode frameset-ok-flag tokenizer parse-errors iframe-srcdoc-p)
          parser
-       ,@body)))
+       (flet ((parse-error ()
+                (format *trace-output* "~&parse-error in ~A: token = ~S" insertion-mode token)
+                (push (cons insertion-mode token) parse-errors)))
+         (declare (ignorable (function parse-error)))
+         ,@body))))
 
 
 (define-insertion-mode initial-insertion-mode
@@ -37,12 +41,14 @@
          (node-append-child document (make-doctype document
                                                    (or (token-name token) "")
                                                    (or (token-public-id token) "")
-                                                   (or (token-system-id token) ""))))
+                                                   (or (token-system-id token) "")))
+         (switch-insertion-mode 'before-html-insertion-mode))
         (t
-         ;;If the document is not an iframe srcdoc document, then this is a parse error; set the Document to quirks mode.
+         (unless iframe-srcdoc-p
+           (parse-error)
+           (setf (document-mode document) :quirks-mode))
          (switch-insertion-mode 'before-html-insertion-mode)
-         :reprocess
-         )))
+         :reprocess)))
 
 
 (define-insertion-mode before-html-insertion-mode
@@ -90,19 +96,34 @@
 (define-insertion-mode in-body-insertion-mode
     7 "in body"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody"
-  (typecase token
-    (character-token
-     ;; Any other character token
+  (cond
+    ;; Any other character token
+    ((typep token 'character-token)
      ;; Reconstruct the active formatting elements, if any.
      ;; Insert the token's character.
-     (insert-a-character (token-character token)))
-    ;; Set the frameset-ok flag to "not ok".
-    ))
+     (insert-a-character (token-character token))
+     ;; Set the frameset-ok flag to "not ok".
+     )
+    ((equal "textarea" (token-name token))
+     "1." (insert-an-html-element token)
+     "2." (setf ignore-next-token-if-line-feed t)
+     "3." (tokenizer-switch-state tokenizer 'rcdata-state)
+     "4." (setf original-insertion-mode insertion-mode)
+     "5." (setf frameset-ok-flag :not-ok)
+     "6." (switch-insertion-mode 'text-insertion-mode))
+    )
+  )
 
 
 (define-insertion-mode text-insertion-mode
     8 "text"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incdata"
+  (cond
+    ((typep token 'character-token)
+     (insert-a-character (token-character token)))
+    ((typep token 'end-of-file-token)
+     (parse-error))
+    )
   )
 
 
