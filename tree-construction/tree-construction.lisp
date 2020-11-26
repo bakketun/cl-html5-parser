@@ -15,33 +15,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :html5-parser)
-
-
-(defun parse-html5 (source &key encoding strictp container dom)
-  (parse-html5-from-source source
-                           :encoding encoding
-                           :strictp strictp
-                           :container container
-                           :dom dom))
-
-
-(defun parse-html5-fragment (source &key encoding strictp (container "div") dom)
-  (parse-html5-from-source source
-                           :encoding encoding
-                           :strictp strictp
-                           :container container
-                           :dom dom))
-
-
-(defgeneric transform-html5-dom (to-type node &key)
-  (:method ((to-type cons) node &key)
-    (apply #'transform-html5-dom (car to-type) node (cdr to-type)))
-  (:method (to-type node &key &allow-other-keys)
-    (error "No TRANSFORM-HTML5-DOM method defined for dom type ~S." to-type)))
-
-
-;; internal
+(in-package :html5-parser-tree-construction)
 
 
 (defclass html5-parser ()
@@ -164,8 +138,7 @@
                         adjusted-insertion-location-before-node))))
 
 
-(defun parse-html5-from-source (source &key container encoding strictp dom)
-  (declare (ignore container encoding strictp dom))
+(defun parse-html5-from-source (source)
   (let ((parser (make-instance 'html5-parser)))
     (let ((tokenizer (make-tokenizer :source source
                                      :token-handler (lambda (token) (tree-construction-dispatcher parser token)))))

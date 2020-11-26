@@ -18,30 +18,15 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :html5-parser)
-
-(defvar *parser*)
-
-(defclass html-parser ()
-  ((html-namespace :initform (find-namespace "html"))
-   (strict :initarg :strict)
-   (inner-html-mode)
-   (container :initform "div")
-   (tokenizer)
-   (document :initform (make-document))
-   (errors :initform '())
-   (phase :accessor parser-phase)
-   first-start-tag
-   compat-mode
-   inner-html
-   last-phase
-   original-phase
-   before-rcdata-phase
-   (character-tokens :initform nil)
-   frameset-ok
-   open-elements
-   active-formatting-elements
-   head-pointer
-   form-pointer
-   insert-from-table
-   (in-body-process-space-characters-mode :initform :non-pre)))
+(defpackage #:html5-parser-tree-construction
+  (:use
+   #:common-lisp
+   #:html5-parser-constants
+   #:html5-parser-infra
+   #:html5-parser-tokenization-state
+   #:html5-parser-tokenization
+   #:html5-parser-tree
+   #:cl-ppcre)
+  (:export
+   #:parse-html5-from-source
+   ))

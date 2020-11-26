@@ -22,11 +22,9 @@
   (:use
    #:common-lisp
    #:html5-parser-constants
-   #:html5-parser-infra
-   #:html5-parser-tokenization-state
-   #:html5-parser-tokenization
    #:html5-parser-tree
-   #:cl-ppcre)
+   #:html5-parser-tree-construction
+   )
   (:export
    #:parse-html5
    #:parse-html5-fragment

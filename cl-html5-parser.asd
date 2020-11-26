@@ -36,6 +36,7 @@
                              (:file "named-character-references-table")
                              (:file "named-character-references")))
 
+
                (:module "tokenization"
                 :components ((:file "package-tokenization-state")
                              (:file "package-tokenization-dsl")
@@ -48,12 +49,14 @@
                (:file "package-tree")
                (:file "simple-tree")
 
-               (:file "package-html5-parser")
-               (:file "inputstream")
-               (:file "tree-help")
+               (:module "tree-construction"
+                :components ((:file "package-tree-construction")
+                             (:file "tree-help")
+                             (:file "tree-construction")
+                             (:file "insertion-mode")))
 
-               (:file "new-html5-parser")
-               (:file "insertion-mode")
+               (:file "package-html5-parser")
+               (:file "html5-parser")
 
                (:file "toxml")
                (:file "xmls")))

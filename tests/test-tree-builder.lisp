@@ -89,8 +89,8 @@
 (test test-append-text
   (let* ((doc (make-document))
          (parent (make-element doc "parent" nil)))
-    (html5-parser::node-append-child* parent (make-text-node doc "hello"))
-    (html5-parser::node-append-child* parent (make-text-node doc "world"))
+    (html5-parser-tree-construction::node-append-child* parent (make-text-node doc "hello"))
+    (html5-parser-tree-construction::node-append-child* parent (make-text-node doc "world"))
     (is (string= "helloworld" (node-value (node-first-child parent))))))
 
 ;; (deftest test-node-clone ()

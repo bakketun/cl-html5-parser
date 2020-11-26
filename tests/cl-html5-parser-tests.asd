@@ -23,7 +23,7 @@
   :serial t
   :components ((:file "packages")
                (:file "run-tests")
-               (:file "test-inputstream")
+               ;;(:file "test-inputstream")
                (:file "test-tree-builder")
                ;;(:file "test-parser")
                (:module "html5lib"
