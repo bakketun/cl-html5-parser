@@ -38,11 +38,15 @@
   `(tree-construction-dispatcher parser token :using-rules-for ',mode))
 
 
+(defmacro reprocess-the-token ()
+  `(return-from token-cond :reprocess))
+
+
 (defmacro token-cond (&rest clauses)
   (let ((anything-else-clause (assoc 'Anything-else clauses)))
-    `(flet ((act-as-anything-else ()
-              ,@(cdr anything-else-clause)))
-       (block token-cond
+    `(block token-cond
+       (flet ((act-as-anything-else ()
+                ,@(cdr anything-else-clause)))
          ,@(remove anything-else-clause clauses)
          (act-as-anything-else)))))
 
@@ -203,7 +207,7 @@
      (setf (document-mode document) :quirks))
 
    (switch-insertion-mode 'before-html-insertion-mode)
-   :reprocess))
+   (reprocess-the-token)))
 
 
 (define-insertion-mode before-html-insertion-mode
@@ -238,7 +242,7 @@
      (stack-of-open-elements-push element)
      ;; Not implemented: secure context
      (switch-insertion-mode 'before-head-insertion-mode)
-     :reprocess)))
+     (reprocess-the-token))))
 
 
 (define-insertion-mode before-head-insertion-mode
@@ -270,7 +274,7 @@
   (Anything-else
    (setf head-element-pointer (insert-an-html-element (make-start-tag-token :name "head")))
    (switch-insertion-mode 'in-head-insertion-mode)
-   :reprocess))
+   (reprocess-the-token)))
 
 
 (define-insertion-mode in-head-insertion-mode
@@ -279,7 +283,7 @@
   (Anything-else
    (stack-of-open-elements-pop)
    (switch-insertion-mode 'after-head-insertion-mode)
-   :reprocess))
+   (reprocess-the-token)))
 
 
 (define-insertion-mode in-head-noscript-insertion-mode
@@ -333,17 +337,39 @@
   (Anything-else
    (insert-an-html-element (make-start-tag-token :name "body"))
    (switch-insertion-mode 'in-body-insertion-mode)
-   :reprocess))
+   (reprocess-the-token)))
 
 
 (define-insertion-mode in-body-insertion-mode
     7 "in body"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody"
+  ;;TODO A character token that is U+0000 NULL
+  ;;Parse error. Ignore the token.
+
+  (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
+    ;; TODO Reconstruct the active formatting elements, if any.
+    (insert-a-character token))
+
   (Any-other-character-token
-   ;; Reconstruct the active formatting elements, if any.
-   ;; Insert the token's character.
+   ;; TODO Reconstruct the active formatting elements, if any.
    (insert-a-character (token-character token))
-   (setf frameset-ok-flag :not-ok))
+    (setf frameset-ok-flag :not-ok))
+
+  (A-comment-token
+    (insert-a-comment token))
+
+  (A-DOCTYPE-token
+    (parse-error))
+
+  ;; ...
+
+  (A-start-tag-whose-tag-name-is ("table")
+    ;; TODO If the Document is not set to quirks mode, and the stack of open elements has a p element in button scope, then close a p element.
+    (insert-an-html-element token)
+    (setf frameset-ok-flag :not-ok)
+    (switch-insertion-mode 'in-table-insertion-mode))
+
+  ;; ...
 
   (A-start-tag-whose-tag-name-is  ("textarea")
     "1." (insert-an-html-element token)
@@ -371,6 +397,13 @@
 (define-insertion-mode in-table-insertion-mode
     9 "in table"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intable"
+  ;; ...
+  (A-start-tag-whose-tag-name-is-one-of ("td" "th" "tr")
+    ;; TODO Clear the stack back to a table context. (See below.)
+    (insert-an-html-element (make-start-tag-token :name "tbody"))
+    (switch-insertion-mode 'in-table-body-insertion-mode)
+    (reprocess-the-token))
+  ;; ...
   )
 
 
@@ -395,12 +428,28 @@
 (define-insertion-mode in-table-body-insertion-mode
     13 "in table body"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intbody"
+  ;; ...
+  (A-start-tag-whose-tag-name-is-one-of ("th" "td")
+    (parse-error)
+    ;; TODO Clear the stack back to a table body context. (See below.)
+    (insert-an-html-element (make-start-tag-token :name "tr"))
+    (switch-insertion-mode 'in-row-insertion-mode)
+    (reprocess-the-token))
+  ;; ...
   )
 
 
 (define-insertion-mode in-row-insertion-mode
     14 "in row"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intr"
+
+  (A-start-tag-whose-tag-name-is-one-of ("th" "td")
+    ;; TODO Clear the stack back to a table body context. (See below.)
+    (insert-an-html-element token)
+    (switch-insertion-mode 'in-cell-insertion-mode)
+    ;; TODO Insert a marker at the end of the list of active formatting elements.
+    )
+  ;; ...
   )
 
 

@@ -118,7 +118,7 @@
 
 
 (defun run-tree-construction-tests-from-file (pathname)
-  (dolist (test (subseq (parse-test-data pathname) 0 2))
+  (dolist (test (subseq (parse-test-data pathname) 0 3))
     (apply #'do-parser-test test)))
 
 
