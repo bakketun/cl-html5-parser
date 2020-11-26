@@ -384,6 +384,7 @@
 (define-unicode-constant U+0009_CHARACTER_TABULATION)
 (define-unicode-constant U+000A_LINE_FEED)
 (define-unicode-constant U+000C_FORM_FEED)
+(define-unicode-constant U+000D_CARRIAGE_RETURN)
 (define-unicode-constant U+0020_SPACE)
 (define-unicode-constant U+0021_EXCLAMATION_MARK_!)
 (define-unicode-constant U+0022_QUOTATION_MARK_\")

@@ -36,19 +36,125 @@
 (define-insertion-mode initial-insertion-mode
     1 "initial"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode"
-  (cond ((typep token 'doctype-token)
-         ;; TODO lots of tests
-         (node-append-child document (make-doctype document
-                                                   (or (token-name token) "")
-                                                   (or (token-public-id token) "")
-                                                   (or (token-system-id token) "")))
-         (switch-insertion-mode 'before-html-insertion-mode))
-        (t
-         (unless iframe-srcdoc-p
-           (parse-error)
-           (setf (document-mode document) :quirks-mode))
-         (switch-insertion-mode 'before-html-insertion-mode)
-         :reprocess)))
+  (cond
+    ((and (typep token 'character-token)
+          (member (token-character token) '(U+0009_CHARACTER_TABULATION
+                                            U+000A_LINE_FEED
+                                            U+000C_FORM_FEED
+                                            U+000D_CARRIAGE_RETURN
+                                            U+0020_SPACE)))
+     ;; Ignoring the token
+     )
+
+    ;;A comment token
+    ((typep token 'comment-token)
+     (node-append-child document (make-comment document (token-data token))))
+
+    ;; A DOCTYPE token
+    ((typep token 'doctype-token)
+     (flet ((the-name-is-not                    (what)  (not (equal (token-name token) what)))
+            (the-force-quirks-flag-is-set-to-on ()      (token-force-quirks-flag token))
+            (the-public-identifier-is-missing   ()      (not (token-public-id token)))
+            (the-system-identifier-is-missing   ()      (not (token-system-id token)))
+            (the-public-identifier-is-set-to    (what)  (equalp (token-public-id token) what))
+            (the-system-identifier-is-set-to    (what)  (equalp (token-system-id token) what))
+            (the-public-identifier-starts-with  (what)  (= (length what)
+                                                           (or (mismatch what (token-public-id token) :test #'char-equal)
+                                                               (length what)))))
+       (when (or (the-name-is-not "html")
+                 (not (the-public-identifier-is-missing))
+                 (and (not (the-system-identifier-is-missing))
+                      (not (the-system-identifier-is-set-to "about:legacy-compat"))))
+         (parse-error))
+
+
+       (node-append-child document (make-doctype document
+                                                 (or (token-name token) "")
+                                                 (or (token-public-id token) "")
+                                                 (or (token-system-id token) "")))
+
+       (cond ((and (not iframe-srcdoc-p)
+                   (or (the-force-quirks-flag-is-set-to-on)
+                       (the-name-is-not "html")
+                       (the-public-identifier-is-set-to "-//W3O//DTD W3 HTML Strict 3.0//EN//")
+                       (the-public-identifier-is-set-to "-/W3C/DTD HTML 4.0 Transitional/EN")
+                       (the-public-identifier-is-set-to "HTML")
+                       (the-system-identifier-is-set-to "http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd")
+                       (the-public-identifier-starts-with "+//Silmaril//dtd html Pro v0r11 19970101//")
+                       (the-public-identifier-starts-with "-//AS//DTD HTML 3.0 asWedit + extensions//")
+                       (the-public-identifier-starts-with "-//AdvaSoft Ltd//DTD HTML 3.0 asWedit + extensions//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML 2.0 Level 1//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML 2.0 Level 2//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML 2.0 Strict Level 1//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML 2.0 Strict Level 2//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML 2.0 Strict//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML 2.0//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML 2.1E//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML 3.0//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML 3.2 Final//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML 3.2//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML 3//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML Level 0//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML Level 1//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML Level 2//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML Level 3//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML Strict Level 0//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML Strict Level 1//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML Strict Level 2//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML Strict Level 3//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML Strict//")
+                       (the-public-identifier-starts-with "-//IETF//DTD HTML//")
+                       (the-public-identifier-starts-with "-//Metrius//DTD Metrius Presentational//")
+                       (the-public-identifier-starts-with "-//Microsoft//DTD Internet Explorer 2.0 HTML Strict//")
+                       (the-public-identifier-starts-with "-//Microsoft//DTD Internet Explorer 2.0 HTML//")
+                       (the-public-identifier-starts-with "-//Microsoft//DTD Internet Explorer 2.0 Tables//")
+                       (the-public-identifier-starts-with "-//Microsoft//DTD Internet Explorer 3.0 HTML Strict//")
+                       (the-public-identifier-starts-with "-//Microsoft//DTD Internet Explorer 3.0 HTML//")
+                       (the-public-identifier-starts-with "-//Microsoft//DTD Internet Explorer 3.0 Tables//")
+                       (the-public-identifier-starts-with "-//Netscape Comm. Corp.//DTD HTML//")
+                       (the-public-identifier-starts-with "-//Netscape Comm. Corp.//DTD Strict HTML//")
+                       (the-public-identifier-starts-with "-//O'Reilly and Associates//DTD HTML 2.0//")
+                       (the-public-identifier-starts-with "-//O'Reilly and Associates//DTD HTML Extended 1.0//")
+                       (the-public-identifier-starts-with "-//O'Reilly and Associates//DTD HTML Extended Relaxed 1.0//")
+                       (the-public-identifier-starts-with "-//SQ//DTD HTML 2.0 HoTMetaL + extensions//")
+                       (the-public-identifier-starts-with "-//SoftQuad Software//DTD HoTMetaL PRO 6.0::19990601::extensions to HTML 4.0//")
+                       (the-public-identifier-starts-with "-//SoftQuad//DTD HoTMetaL PRO 4.0::19971010::extensions to HTML 4.0//")
+                       (the-public-identifier-starts-with "-//Spyglass//DTD HTML 2.0 Extended//")
+                       (the-public-identifier-starts-with "-//Sun Microsystems Corp.//DTD HotJava HTML//")
+                       (the-public-identifier-starts-with "-//Sun Microsystems Corp.//DTD HotJava Strict HTML//")
+                       (the-public-identifier-starts-with "-//W3C//DTD HTML 3 1995-03-24//")
+                       (the-public-identifier-starts-with "-//W3C//DTD HTML 3.2 Draft//")
+                       (the-public-identifier-starts-with "-//W3C//DTD HTML 3.2 Final//")
+                       (the-public-identifier-starts-with "-//W3C//DTD HTML 3.2//")
+                       (the-public-identifier-starts-with "-//W3C//DTD HTML 3.2S Draft//")
+                       (the-public-identifier-starts-with "-//W3C//DTD HTML 4.0 Frameset//")
+                       (the-public-identifier-starts-with "-//W3C//DTD HTML 4.0 Transitional//")
+                       (the-public-identifier-starts-with "-//W3C//DTD HTML Experimental 19960712//")
+                       (the-public-identifier-starts-with "-//W3C//DTD HTML Experimental 970421//")
+                       (the-public-identifier-starts-with "-//W3C//DTD W3 HTML//")
+                       (the-public-identifier-starts-with "-//W3O//DTD W3 HTML 3.0//")
+                       (the-public-identifier-starts-with "-//WebTechs//DTD Mozilla HTML 2.0//")
+                       (the-public-identifier-starts-with "-//WebTechs//DTD Mozilla HTML//")
+                       (and (the-system-identifier-is-missing) (the-public-identifier-starts-with "-//W3C//DTD HTML 4.01 Frameset//"))
+                       (and (the-system-identifier-is-missing) (the-public-identifier-starts-with "-//W3C//DTD HTML 4.01 Transitional//"))))
+              (setf (document-mode document) :quirks))
+             ((and (not iframe-srcdoc-p)
+                   (or (the-public-identifier-starts-with "-//W3C//DTD XHTML 1.0 Frameset//")
+                       (the-public-identifier-starts-with "-//W3C//DTD XHTML 1.0 Transitional//")
+                       (and (not (the-system-identifier-is-missing)) (the-public-identifier-starts-with "-//W3C//DTD HTML 4.01 Frameset//"))
+                       (and (not (the-system-identifier-is-missing)) (the-public-identifier-starts-with "-//W3C//DTD HTML 4.01 Transitional//"))))
+              (setf (document-mode document) :limited-quirks)))
+
+       (switch-insertion-mode 'before-html-insertion-mode)))
+
+    ;; Anything else
+    (t
+     (unless iframe-srcdoc-p
+       (parse-error)
+       (setf (document-mode document) :quirks))
+
+     (switch-insertion-mode 'before-html-insertion-mode)
+     :reprocess)))
 
 
 (define-insertion-mode before-html-insertion-mode

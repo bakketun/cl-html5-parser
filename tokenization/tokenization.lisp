@@ -149,6 +149,7 @@
 
 (defun token-error-code        (token) (parse-error-token-code token))
 (defun token-character         (token) (character-token-character token))
+(defun token-data              (token) (comment-token-data token))
 (defun token-name              (token) (named-token-name token))
 (defun token-public-id         (token) (doctype-token-public-id token))
 (defun token-system-id         (token) (doctype-token-system-id token))

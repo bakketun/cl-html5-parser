@@ -25,6 +25,7 @@
    ;; Token readers
    #:token-error-code
    #:token-character
+   #:token-data
    #:token-name
    #:token-public-id
    #:token-system-id
