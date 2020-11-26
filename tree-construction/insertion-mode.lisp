@@ -57,6 +57,9 @@
 (define-token-test A-comment-token () `(typep token 'comment-token))
 (define-token-test A-DOCTYPE-token () `(typep token 'doctype-token))
 (define-token-test Any-other-end-tag () `(typep token 'end-tag-token))
+(define-token-test A-character-token () `(typep token 'character-token))
+(define-token-test Any-other-character-token () `(typep token 'character-token))
+(define-token-test An-end-of-file-token () `(typep token 'end-of-file-token))
 (define-token-test A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE ()
   `(and (typep token 'character-token)
         (member (token-character token) '(U+0009_CHARACTER_TABULATION
@@ -71,11 +74,21 @@
         (equal ,name (token-name token))))
 
 
+(define-token-test An-end-tag-whose-tag-name-is (name)
+  `(and (typep token 'end-tag-token)
+        (equal ,name (token-name token))))
+
+
+(define-token-test A-start-tag-whose-tag-name-is-one-of (&rest names)
+  `(and (typep token 'start-tag-token)
+        (or ,@(loop :for name :in names
+                    :collect `(equal ,name (token-name token))))))
+
+
 (define-token-test An-end-tag-whose-tag-name-is-one-of (&rest names)
   `(and (typep token 'end-tag-token)
         (or ,@(loop :for name :in names
                     :collect `(equal ,name (token-name token))))))
-
 
 
 (define-insertion-mode initial-insertion-mode
@@ -278,6 +291,45 @@
 (define-insertion-mode after-head-insertion-mode
     6 "after head"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-after-head-insertion-mode"
+  (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
+    (insert-a-character (token-character token)))
+
+  (A-comment-token
+    (insert-a-comment token))
+
+  (A-DOCTYPE-token
+    (parse-error))
+
+  (A-start-tag-whose-tag-name-is ("html")
+    (process-token-using-rules-for 'in-body-insertion-mode))
+
+  (A-start-tag-whose-tag-name-is ("body")
+    (insert-an-html-element token)
+    (setf frameset-ok-flag :not-ok)
+    (switch-insertion-mode 'in-body-insertion-mode))
+
+  (A-start-tag-whose-tag-name-is ("frameset")
+    (insert-an-html-element token)
+    (switch-insertion-mode 'in-frameset-insertion-mode))
+
+  (A-start-tag-whose-tag-name-is-one-of ("base" "basefont" "bgsound" "link" "meta" "noframes" "script" "style" "template" "title")
+    (parse-error)
+    (stack-of-open-elements-push head-element-pointer)
+    (process-token-using-rules-for 'in-head-insertion-mode)
+    ;; TODO Remove the node pointed to by the head element pointer from the stack of open elements. (It might not be the current node at this point.)
+    )
+
+  (An-end-tag-whose-tag-name-is ("template")
+    (process-token-using-rules-for 'in-head-insertion-mode))
+
+  (An-end-tag-whose-tag-name-is-one-of ("body" "html" "br")
+    (act-as-anything-else))
+
+  (A-start-tag-whose-tag-name-is ("head")
+    (parse-error))
+  (Any-other-end-tag
+    (parse-error))
+
   (Anything-else
    (insert-an-html-element (make-start-tag-token :name "body"))
    (switch-insertion-mode 'in-body-insertion-mode)
@@ -287,36 +339,32 @@
 (define-insertion-mode in-body-insertion-mode
     7 "in body"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody"
-  (Anything-else
-   (cond
-     ;; Any other character token
-     ((typep token 'character-token)
-      ;; Reconstruct the active formatting elements, if any.
-      ;; Insert the token's character.
-      (insert-a-character (token-character token))
-      ;; Set the frameset-ok flag to "not ok".
-      )
-     ((equal "textarea" (token-name token))
-      "1." (insert-an-html-element token)
-      "2." (setf ignore-next-token-if-line-feed t)
-      "3." (tokenizer-switch-state tokenizer 'rcdata-state)
-      "4." (setf original-insertion-mode insertion-mode)
-      "5." (setf frameset-ok-flag :not-ok)
-      "6." (switch-insertion-mode 'text-insertion-mode))
-     ))
-  )
+  (Any-other-character-token
+   ;; Reconstruct the active formatting elements, if any.
+   ;; Insert the token's character.
+   (insert-a-character (token-character token))
+   (setf frameset-ok-flag :not-ok))
+
+  (A-start-tag-whose-tag-name-is  ("textarea")
+    "1." (insert-an-html-element token)
+    "2." (setf ignore-next-token-if-line-feed t)
+    "3." (tokenizer-switch-state tokenizer 'rcdata-state)
+    "4." (setf original-insertion-mode insertion-mode)
+    "5." (setf frameset-ok-flag :not-ok)
+    "6." (switch-insertion-mode 'text-insertion-mode)))
 
 
 (define-insertion-mode text-insertion-mode
     8 "text"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incdata"
-  (Anything-else
-   (cond
-     ((typep token 'character-token)
-      (insert-a-character (token-character token)))
-     ((typep token 'end-of-file-token)
-      (parse-error))
-     ))
+  (A-character-token
+    (insert-a-character (token-character token)))
+
+  (An-end-of-file-token
+    (parse-error)
+    ;; TODO stuff
+    )
+  ;; TODO more
   )
 
 
