@@ -1,3 +1,5 @@
+;;;; -*- mode: lisp; eval: (goto-address-mode) -*-
+;;;;
 ;;;;  HTML5 parser for Common Lisp
 ;;;;
 ;;;;  Copyright (C) 2020 Thomas Bakketun <thomas@bakketun.pro>
@@ -27,6 +29,21 @@
    (stack-of-open-elements :initform (make-array 0 :fill-pointer 0 :adjustable t))))
 
 
+(defun parse-html5-from-source (source)
+  (let ((parser (make-instance 'html5-parser)))
+    (let ((tokenizer (make-tokenizer :source source
+                                     :token-handler (lambda (token) (tree-construction-dispatcher parser token)))))
+      (tokenizer-run tokenizer)
+      (with-slots (document) parser
+        document))))
+
+
+(defun tree-construction-dispatcher (parser token)
+  "https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher"
+  (with-slots (insertion-mode) parser
+    (loop :while (eql :reprocess (funcall insertion-mode parser token)))))
+
+
 (defmacro define-parser-function-macro (name (&rest args))
   (let ((function-name (intern (format nil "~A-~A" 'parser name)
                                (symbol-package 'define-parser-function-macro))))
@@ -52,11 +69,14 @@
 (define-parser-op stack-of-open-elements-push (node)
   (vector-push-extend node stack-of-open-elements))
 
+
 (define-parser-op stack-of-open-elements-pop ()
   (vector-pop stack-of-open-elements))
 
+
 (define-parser-op current-node ()
   (aref stack-of-open-elements (1- (length stack-of-open-elements))))
+
 
 (define-parser-op adjusted-current-node ()
   (if (and context-element
@@ -98,7 +118,6 @@
     element))
 
 
-
 (define-parser-op insert-foreign-element (token namespace)
   "https://html.spec.whatwg.org/multipage/parsing.html#insert-a-foreign-element"
   ;; 1
@@ -138,29 +157,5 @@
                         adjusted-insertion-location-before-node))))
 
 
-(defun parse-html5-from-source (source)
-  (let ((parser (make-instance 'html5-parser)))
-    (let ((tokenizer (make-tokenizer :source source
-                                     :token-handler (lambda (token) (tree-construction-dispatcher parser token)))))
-      (tokenizer-run tokenizer)
-      (with-slots (document) parser
-        document))))
-
-
-(defun tree-construction-dispatcher (parser token)
-  "https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher"
-  (with-slots (insertion-mode) parser
-    (loop :while (eql :reprocess (funcall insertion-mode parser token)))))
-
-
 (define-parser-op switch-insertion-mode (new-mode)
   (setf insertion-mode new-mode))
-
-
-(defmacro define-insertion-mode (name number title url &body body)
-  `(defun ,name (parser token)
-     (declare (ignorable token))
-     ,(format nil "13.2.6.~A ~A~&~A" number title url)
-     (with-slots (document head-element-pointer)
-         parser
-       ,@body)))
