@@ -44,17 +44,10 @@
     (loop :while (eql :reprocess (funcall insertion-mode parser token)))))
 
 
-(defmacro define-parser-function-macro (name (&rest args))
-  (let ((function-name (intern (format nil "~A-~A" 'parser name)
-                               (symbol-package 'define-parser-function-macro))))
-    `(defmacro ,name (,@args)
-       (list ',function-name 'parser ,@args))))
-
-
 (defmacro define-parser-op (name (&rest args) &body body)
   (let ((slots '(context-element insertion-mode document stack-of-open-elements))
         (function-name (intern (format nil "~A-~A" 'parser name)
-                               (symbol-package 'define-parser-function-macro))))
+                               (symbol-package 'define-parser-op))))
     `(progn
        (defun ,function-name (parser ,@args)
          (with-slots (,@slots) parser
