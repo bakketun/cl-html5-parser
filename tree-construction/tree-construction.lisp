@@ -47,8 +47,10 @@
 
 (defun tree-construction-dispatcher (parser token &key using-rules-for)
   "https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher"
-  (with-slots (insertion-mode ignore-next-token-if-line-feed) parser
-    (cond (ignore-next-token-if-line-feed
+  (with-slots (insertion-mode ignore-next-token-if-line-feed parse-errors) parser
+    (cond ((typep token 'parse-error-token)
+           (push token parse-errors))
+          (ignore-next-token-if-line-feed
            (setf ignore-next-token-if-line-feed nil)
            (unless (eql U+000A_LINE_FEED (token-character token))
              (tree-construction-dispatcher parser token)))
