@@ -188,3 +188,8 @@
         (if adjusted-insertion-location-before-node
             (node-insert-before adjusted-insertion-location-parent comment-node adjusted-insertion-location-before-node)
             (node-append-child adjusted-insertion-location-parent comment-node))))))
+
+
+(define-parser-op generate-implied-end-tags ()
+  (loop :while (member (node-name (current-node)) '("dd" "dt" "li" "optgroup" "option" "p" "rb" "rp" "rt" "rtc"))
+        :do (stack-of-open-elements-pop)))

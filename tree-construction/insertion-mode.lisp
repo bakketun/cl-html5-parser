@@ -35,7 +35,7 @@
 
 
 (defmacro process-token-using-rules-for (mode)
-  `(tree-construction-dispatcher parser token :using-rules-for ',mode))
+  `(tree-construction-dispatcher parser token :using-rules-for ,mode))
 
 
 (defmacro reprocess-the-token ()
@@ -456,6 +456,23 @@
 (define-insertion-mode in-cell-insertion-mode
     15 "in cell"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intd"
+  (An-end-tag-whose-tag-name-is-one-of ("td" "th")
+    ;; TODO
+    )
+
+  (A-start-tag-whose-tag-name-is-one-of ("caption" "col" "colgroup" "tbody" "td" "tfoot" "th" "thead" "tr")
+    ;; TODO
+    )
+
+  (An-end-tag-whose-tag-name-is-one-of ("body" "caption" "col" "colgroup" "html")
+    (parse-error))
+
+  (An-end-tag-whose-tag-name-is-one-of ("table" "tbody" "tfoot" "thead" "tr")
+    ;; TODO
+    )
+
+  (Anything-else
+   (process-token-using-rules-for 'in-body-insertion-mode))
   )
 
 
