@@ -1,6 +1,9 @@
 (in-package #:html5-parser-infra)
 
-;; https://infra.spec.whatwg.org/
+;;;; https://infra.spec.whatwg.org/
+
+
+;;; 4.5. Code points
 
 (defun surrogate-p (code-point)
   (<= #xD800 code-point #xDFFF))
@@ -31,3 +34,13 @@
       (= #x000C code-point)
       (= #x000D code-point)
       (= #x0020 code-point)))
+
+
+;;; 8. Namespaces
+
+(defconstant +HTML-namespace+   :|http://www.w3.org/1999/xhtml|)
+(defconstant +MathML-namespace+ :|http://www.w3.org/1998/Math/MathML|)
+(defconstant +SVG-namespace+    :|http://www.w3.org/2000/svg|)
+(defconstant +XLink-namespace+  :|http://www.w3.org/1999/xlink|)
+(defconstant +XML-namespace+    :|http://www.w3.org/XML/1998/namespace|)
+(defconstant +XMLNS-namespace+  :|http://www.w3.org/2000/xmlns/|)

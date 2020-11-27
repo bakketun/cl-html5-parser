@@ -159,7 +159,7 @@
 
 
 (define-parser-op insert-an-html-element (token)
-  (insert-foreign-element token (find-namespace "html")))
+  (insert-foreign-element token +HTML-namespace+))
 
 
 (define-parser-op insert-a-character (char)

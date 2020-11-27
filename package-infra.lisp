@@ -22,6 +22,12 @@
   (:use
    #:common-lisp)
   (:export
+   #:+HTML-namespace+
+   #:+MathML-namespace+
+   #:+SVG-namespace+
+   #:+XLink-namespace+
+   #:+XML-namespace+
+   #:+XMLNS-namespace+
    #:ascii-whitespace-p
    #:c0-control-or-space-p
    #:c0-control-p

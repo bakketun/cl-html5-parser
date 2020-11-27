@@ -224,7 +224,7 @@
     )
 
   (A-start-tag-whose-tag-name-is ("html")
-    (let ((element (create-element-for-token token (find-namespace "html") document)))
+    (let ((element (create-element-for-token token +HTML-namespace+ document)))
       (node-append-child document element)
       (stack-of-open-elements-push element))
     ;; Not implemented: secure context
@@ -237,7 +237,7 @@
     (parse-error))
 
   (Anything-else
-   (let ((element (make-element document "html" (find-namespace "html"))))
+   (let ((element (make-element document "html" +HTML-namespace+)))
      (node-append-child document element)
      (stack-of-open-elements-push element)
      ;; Not implemented: secure context
