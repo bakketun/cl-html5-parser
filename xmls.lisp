@@ -26,54 +26,54 @@
   "Convert a node into an XMLS-compatible tree of conses, starting
 at. If the node is a document-fragement a list of XMLS trees is returned."
   (labels ((node-to-xmls (node parent-ns xlink-defined)
-           (ecase (node-type node)
-             (:document
-              (let (root)
-                (element-map-children (lambda (n)
-                                        (when (string= (node-name n) "html")
-                                          (setf root n)))
-                                      node)
-                (assert root)
-                (node-to-xmls root parent-ns xlink-defined)))
-             (:document-fragment
-              (let (xmls-nodes)
-                (element-map-children (lambda (node)
-                                        (push (node-to-xmls node parent-ns xlink-defined)
-                                              xmls-nodes))
-                                      node)
-                (nreverse xmls-nodes)))
-             (:element
-              (let (attrs children)
-                (element-map-attributes (lambda (name node-namespace value)
-                                          (when (and namespace
-                                                     (not xlink-defined)
-                                                     (equal node-namespace (find-namespace "xlink")))
-                                            (push '#.(list "xmlns:xlink" (find-namespace "xlink")) attrs)
-                                            (setf xlink-defined t))
-                                          (push (list (if node-namespace
-                                                          name
-                                                          (xml-escape-name name))
-                                                      value)
-                                                attrs))
-                                        node)
-                (element-map-children (lambda (c)
-                                        (push c children))
-                                      node)
+             (ecase (node-type node)
+               (+DOCUMENT-NODE+
+                (let (root)
+                  (node-map-children (lambda (n)
+                                       (when (string= (node-name n) "html")
+                                         (setf root n)))
+                                     node)
+                  (assert root)
+                  (node-to-xmls root parent-ns xlink-defined)))
+               (+DOCUMENT-FRAGMENT-NODE+
+                (let (xmls-nodes)
+                  (node-map-children (lambda (node)
+                                       (push (node-to-xmls node parent-ns xlink-defined)
+                                             xmls-nodes))
+                                     node)
+                  (nreverse xmls-nodes)))
+               (+ELEMENT-NODE+
+                (let (attrs children)
+                  (element-map-attributes-ns (lambda (node-namespace name value)
+                                               (when (and namespace
+                                                          (not xlink-defined)
+                                                          (equal node-namespace (find-namespace "xlink")))
+                                                 (push '#.(list "xmlns:xlink" (find-namespace "xlink")) attrs)
+                                                 (setf xlink-defined t))
+                                               (push (list (if node-namespace
+                                                               name
+                                                               (xml-escape-name name))
+                                                           value)
+                                                     attrs))
+                                             node)
+                  (node-map-children (lambda (c)
+                                       (push c children))
+                                     node)
 
-                (apply #'list
-                       (if (and namespace
-                                (not (equal parent-ns (node-namespace node))))
-                           (cons (node-name node) (node-namespace node))
-                           (xml-escape-name (node-name node)))
-                       attrs
-                       (mapcar (lambda (c)
-                                 (node-to-xmls c (node-namespace node) xlink-defined))
-                               (nreverse children)))))
-             (:text
-              (node-value node))
-             (:comment
-              (when comments
-                (list :comment nil (node-value node)))))))
+                  (apply #'list
+                         (if (and namespace
+                                  (not (equal parent-ns (element-namespace-uri node))))
+                             (cons (node-name node) (element-namespace-uri node))
+                             (xml-escape-name (node-name node)))
+                         attrs
+                         (mapcar (lambda (c)
+                                   (node-to-xmls c (element-namespace-uri node) xlink-defined))
+                                 (nreverse children)))))
+               (+TEXT-NODE+
+                (node-value node))
+               (+COMMENT-NODE+
+                (when comments
+                  (list :comment nil (node-value node)))))))
     (node-to-xmls node nil nil)))
 
 

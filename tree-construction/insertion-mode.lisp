@@ -191,20 +191,20 @@
                       (the-public-identifier-starts-with "-//WebTechs//DTD Mozilla HTML//")
                       (and (the-system-identifier-is-missing) (the-public-identifier-starts-with "-//W3C//DTD HTML 4.01 Frameset//"))
                       (and (the-system-identifier-is-missing) (the-public-identifier-starts-with "-//W3C//DTD HTML 4.01 Transitional//"))))
-             (setf (document-mode document) :quirks))
+             (setf (document-associated-mode document) :quirks))
             ((and (not iframe-srcdoc-p)
                   (or (the-public-identifier-starts-with "-//W3C//DTD XHTML 1.0 Frameset//")
                       (the-public-identifier-starts-with "-//W3C//DTD XHTML 1.0 Transitional//")
                       (and (not (the-system-identifier-is-missing)) (the-public-identifier-starts-with "-//W3C//DTD HTML 4.01 Frameset//"))
                       (and (not (the-system-identifier-is-missing)) (the-public-identifier-starts-with "-//W3C//DTD HTML 4.01 Transitional//"))))
-             (setf (document-mode document) :limited-quirks)))
+             (setf (document-associated-mode document) :limited-quirks)))
 
       (switch-insertion-mode 'before-html-insertion-mode)))
 
   (Anything-else
    (unless iframe-srcdoc-p
      (parse-error)
-     (setf (document-mode document) :quirks))
+     (setf (document-associated-mode document) :quirks))
 
    (switch-insertion-mode 'before-html-insertion-mode)
    (reprocess-the-token)))
@@ -237,7 +237,7 @@
     (parse-error))
 
   (Anything-else
-   (let ((element (make-element document "html" +HTML-namespace+)))
+   (let ((element (document-create-element-ns document +HTML-namespace+ "html")))
      (node-append-child document element)
      (stack-of-open-elements-push element)
      ;; Not implemented: secure context

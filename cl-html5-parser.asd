@@ -51,7 +51,6 @@
 
                (:module "tree-construction"
                 :components ((:file "package-tree-construction")
-                             (:file "tree-help")
                              (:file "tree-construction")
                              (:file "insertion-mode")))
 

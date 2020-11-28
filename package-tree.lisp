@@ -23,33 +23,87 @@
    #:common-lisp
    )
   (:export
-   #:make-document
-   #:make-fragment
-   #:make-doctype
-   #:make-comment
-   #:make-element
-   #:make-text-node
+   #:+ELEMENT-NODE+
+   #:+ATTRIBUTE-NODE+
+   #:+TEXT-NODE+
+   #:+CDATA-SECTION-NODE+
+   #:+ENTITY-REFERENCE-NODE+
+   #:+ENTITY-NODE+
+   #:+PROCESSING-INSTRUCTION-NODE+
+   #:+COMMENT-NODE+
+   #:+DOCUMENT-NODE+
+   #:+DOCUMENT-TYPE-NODE+
+   #:+DOCUMENT-FRAGMENT-NODE+
+   #:+NOTATION-NODE+
+
+   #:element-node-p
+   #:text-node-p
+   #:comment-node-p
+   #:document-node-p
+   #:document-type-node-p
+   #:document-fragment-node-p
 
    #:node-type
    #:node-name
-   #:node-namespace
-   #:node-value
-   #:node-public-id
-   #:node-system-id
-   #:element-attribute
-
-   #:node-append-child
-   #:node-insert-before
-   #:node-remove-child
-
-   #:node-document
-   #:node-parent
+   #:node-owner-document
+   #:node-parent-node
    #:node-first-child
    #:node-last-child
    #:node-previous-sibling
    #:node-next-sibling
-   #:element-map-attributes
-   #:element-map-attributes*
-   #:element-map-children
+   #:node-insert-before
+   #:node-append-child
+   #:node-remove-child
+   #:node-value
+   #:node-text-content
 
-   #:document-mode))
+   #:document-implementation
+   #:document-doctype
+   #:document-document-element
+   #:document-create-element
+   #:document-create-element-ns
+   #:document-create-document-fragment
+   #:document-create-text-node
+   #:document-create-comment
+   #:document-create-attribute
+   #:document-create-attribute-ns
+
+   #:document-type-name
+   #:document-type-public-id
+   #:document-type-system-id
+
+   #:element-namespace-uri
+   #:element-prefix
+   #:element-local-name
+   #:element-attributes
+   #:element-get-attribute
+   #:element-get-attribute-ns
+   #:element-set-attribute
+   #:element-set-attribute-ns
+   #:element-remove-attribute
+   #:element-remove-attribute-ns
+   #:element-has-attribute
+   #:element-has-attribute-ns
+
+   #:attr-namespace-uri
+   #:attr-prefix
+   #:attr-local-name
+   #:attr-name
+   #:attr-value
+   #:attr-owner-element
+
+   #:character-data-data
+   #:character-data-length
+   #:character-data-substring-data
+   #:character-data-append-data
+   #:character-data-insert-data
+   #:character-data-delete-data
+   #:character-data-replace-data
+
+   #:make-document
+   #:make-doctype
+
+   #:node-map-children
+   #:element-map-attributes-ns
+
+   #:document-associated-mode))

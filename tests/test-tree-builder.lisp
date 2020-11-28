@@ -24,36 +24,63 @@
 (in-suite tree-builder-tests)
 
 (test test-make-document
-  (is (eq :document (node-type (make-document)))))
+  (is (eq '+DOCUMENT-NODE+ (node-type (make-document)))))
 
 (test test-append-child
   (let* ((doc (make-document))
-         (child (make-element doc "test" nil)))
+         (child (document-create-element doc "test")))
     (node-append-child doc child)
-    (element-map-children (lambda (kid)
+    (node-map-children (lambda (kid)
                               (is (eq kid child)))
                           doc)))
 
 (test test-reappend-child
   (let* ((doc (make-document))
-         (parent1 (make-element doc "parent1" nil))
-         (parent2 (make-element doc "parent2" nil))
-         (child (make-element doc "child" nil)))
+         (parent1 (document-create-element doc "parent1"))
+         (parent2 (document-create-element doc "parent2"))
+         (child (document-create-element doc "child")))
     (node-append-child parent1 child)
-    (is (eq parent1 (node-parent child)))
+    (is (eq parent1 (node-parent-node child)))
     (node-append-child parent2 child)
-    (is (eq parent2 (node-parent child)))
-    (element-map-children (lambda (kid)
+    (is (eq parent2 (node-parent-node child)))
+    (node-map-children (lambda (kid)
                             (error "parent1 should not have children now ~S" kid))
-                          parent1)))
+                       parent1)))
+
+(test test-insert-child
+  (let* ((doc (make-document))
+         (parent (document-create-element doc "parent"))
+         (child1 (document-create-element doc "child1"))
+         (child2 (document-create-element doc "child2"))
+         (child3 (document-create-element doc "child3"))
+         (child4 (document-create-element doc "child4")))
+    (node-insert-before parent child3 nil)
+    (node-insert-before parent child1 child3)
+    (node-insert-before parent child4 nil)
+    (node-insert-before parent child2 child3)
+
+    (is (eq child1 (node-first-child parent)))
+    (is (eq child4 (node-last-child parent)))
+
+    (is (null (node-previous-sibling child1)))
+    (is (eq (node-next-sibling child1) child2))
+
+    (is (eq child1 (node-previous-sibling child2)))
+    (is (eq (node-next-sibling child2) child3))
+
+    (is (eq child2 (node-previous-sibling child3)))
+    (is (eq (node-next-sibling child3) child4))
+
+    (is (eq child3 (node-previous-sibling child4)))
+    (is (null (node-next-sibling child4)))))
 
 (test test-navigate
   (let* ((doc (make-document))
-         (parent (make-element doc "parent" nil))
-         (child1 (make-element doc "child1" nil))
-         (child2 (make-element doc "child2" nil))
-         (child3 (make-element doc "child3" nil))
-         (child4 (make-element doc "child4" nil)))
+         (parent (document-create-element doc "parent"))
+         (child1 (document-create-element doc "child1"))
+         (child2 (document-create-element doc "child2"))
+         (child3 (document-create-element doc "child3"))
+         (child4 (document-create-element doc "child4")))
     (node-append-child parent child1)
     (node-append-child parent child2)
     (node-append-child parent child3)
@@ -67,11 +94,11 @@
 
 (test test-remove-child
   (let* ((doc (make-document))
-         (parent (make-element doc "parent" nil))
-         (child1 (make-element doc "child1" nil))
-         (child2 (make-element doc "child2" nil))
-         (child3 (make-element doc "child3" nil))
-         (child4 (make-element doc "child4" nil)))
+         (parent (document-create-element doc "parent"))
+         (child1 (document-create-element doc "child1"))
+         (child2 (document-create-element doc "child2"))
+         (child3 (document-create-element doc "child3"))
+         (child4 (document-create-element doc "child4")))
     (node-append-child parent child1)
     (node-append-child parent child2)
     (node-append-child parent child3)
@@ -82,15 +109,15 @@
 
 (test test-set-attribute
   (let* ((doc (make-document))
-         (element (make-element doc "test" nil)))
-    (setf (element-attribute element "hello") "world")
-    (is (string= (element-attribute element "hello") "world"))))
+         (element (document-create-element doc "test")))
+    (element-set-attribute element "hello" "world")
+    (is (string= (attr-value (element-get-attribute element "hello")) "world"))))
 
 (test test-append-text
   (let* ((doc (make-document))
-         (parent (make-element doc "parent" nil)))
-    (html5-parser-tree-construction::node-append-child* parent (make-text-node doc "hello"))
-    (html5-parser-tree-construction::node-append-child* parent (make-text-node doc "world"))
+         (parent (document-create-element doc "parent")))
+    (node-append-child parent (document-create-text-node doc "hello"))
+    (character-data-append-data (node-first-child parent) "world")
     (is (string= "helloworld" (node-value (node-first-child parent))))))
 
 ;; (deftest test-node-clone ()

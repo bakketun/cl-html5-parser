@@ -104,31 +104,43 @@
 ;; 13.2.6.1 Creating and inserting nodes
 ;; https://html.spec.whatwg.org/multipage/parsing.html#insert-a-foreign-element
 
-(define-parser-op appropriate-place-for-inserting-a-node ()
-  "https://html.spec.whatwg.org/multipage/parsing.html#appropriate-place-for-inserting-a-node"
-  (let (parent before)
+(define-parser-op appropriate-place-for-inserting-a-node (&optional override-target)
+  "<https://html.spec.whatwg.org/multipage/parsing.html#appropriate-place-for-inserting-a-node>"
+  (let (target
+        adjusted-insertion-location-parent
+        adjusted-insertion-location-next-sibling
+        adjusted-insertion-location-previous-sibling)
     ;; 1
-    (let ((target (current-node)))
-      ;; 2 TODO
-      ;; Otherwise
-      (setf parent target
-            before nil)
-      ;; 3 TODO
-      ;; 4 return location
-      (values parent before))))
+    (setf target (or override-target
+                     (current-node)))
+    ;; 2
+    ;; TODO forster parenting
+    ;; Otherwise
+    ;; Inside target, after it's last child
+    (setf adjusted-insertion-location-parent target
+          adjusted-insertion-location-next-sibling nil
+          adjusted-insertion-location-previous-sibling (node-last-child target))
+
+    ;; 3
+    ;; TODO template
+
+    ;; 4
+    (values adjusted-insertion-location-parent
+            adjusted-insertion-location-next-sibling
+            adjusted-insertion-location-previous-sibling)))
 
 
 (define-parser-op create-element-for-token (token given-namespace intended-parent)
   (let* (;; 1. Let document be intended parent's node document.
-         (document (node-document intended-parent))
+         (document (node-owner-document intended-parent))
          ;; 2. Let local name be the tag name of the token.
          (local-name (token-name token))
          ;; 7.
-         (element (make-element document local-name given-namespace))
+         (element (document-create-element-ns document given-namespace local-name))
          )
     ;; 8.
     (loop :for (name . value) :in (token-attributes token)
-          :do (setf (element-attribute element name) value))
+          :do (element-set-attribute element name value))
     ;; 12. TODO
     ;; 13.
     element))
@@ -145,12 +157,9 @@
       (when t ;; TODO If it is possible to insert element at the adjusted insertion location, then:
         ;; 3.1 Not implemented: custom element reactions stack
         ;; 3.2
-        (if adjusted-insertion-location-before-node
-            (node-insert-before adjusted-insertion-location-parent
-                                element
-                                adjusted-insertion-location-before-node)
-            (node-append-child adjusted-insertion-location-parent
-                               element)))
+        (node-insert-before adjusted-insertion-location-parent
+                            element
+                            adjusted-insertion-location-before-node))
       ;; 3.3 Not implemented: custom element reactions stack
       ;; 4
       (stack-of-open-elements-push element)
@@ -164,13 +173,14 @@
 
 (define-parser-op insert-a-character (char)
   "https://html.spec.whatwg.org/multipage/parsing.html#insert-a-character"
-  (multiple-value-bind (adjusted-insertion-location-parent adjusted-insertion-location-before-node)
-      (appropriate-place-for-inserting-a-node)
-    ;;TODO
-    (let ((*parser* parser))
-      (node-insert-text adjusted-insertion-location-parent
-                        (string char)
-                        adjusted-insertion-location-before-node))))
+  (let ((data (string char)))
+    (multiple-value-bind (adjusted-insertion-location-parent adjusted-insertion-location-next-sibling adjusted-insertion-location-previous-sibling)
+        (appropriate-place-for-inserting-a-node)
+      (if (text-node-p adjusted-insertion-location-previous-sibling)
+          (character-data-append-data adjusted-insertion-location-previous-sibling data)
+          (node-insert-before adjusted-insertion-location-parent
+                              (document-create-text-node (node-owner-document adjusted-insertion-location-parent) data)
+                              adjusted-insertion-location-next-sibling)))))
 
 
 (define-parser-op insert-a-comment (token &optional parent-node before-node)
@@ -183,7 +193,7 @@
             (values parent-node before-node)
             (appropriate-place-for-inserting-a-node))
       ;; 3
-      (let ((comment-node (make-comment document data)))
+      (let ((comment-node (document-create-comment document data)))
         ;; 4
         (if adjusted-insertion-location-before-node
             (node-insert-before adjusted-insertion-location-parent comment-node adjusted-insertion-location-before-node)

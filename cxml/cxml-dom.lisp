@@ -34,11 +34,11 @@
                                                                 (node-public-id node)
                                                                 (node-system-id node))))
                  (:document
-                  (element-map-children #'walk node))
+                  (node-map-children #'walk node))
                  (:document-fragment
                   (setf document (dom:create-document 'rune-dom:implementation nil nil nil))
                   (setf document-fragment (dom:create-document-fragment document))
-                  (element-map-children (lambda (c) (walk c document-fragment xlink-defined)) node))
+                  (node-map-children (lambda (c) (walk c document-fragment xlink-defined)) node))
                  (:element
                   (let ((element
                           (if document
@@ -60,7 +60,7 @@
                                                   (dom:set-attribute-ns element namespace name value)
                                                   (dom:set-attribute element (xml-escape-name name) value)))
                                             node)
-                    (element-map-children (lambda (c) (walk c element xlink-defined)) node)
+                    (node-map-children (lambda (c) (walk c element xlink-defined)) node)
                     (dom:append-child (or parent document) element)))
                  (:text
                   (dom:append-child (or parent document)

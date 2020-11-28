@@ -25,44 +25,44 @@
 
 (defun print-node (node stream)
   (ecase (node-type node)
-    (:document-type
+    (+DOCUMENT-TYPE-NODE+
      (format stream "<!DOCTYPE ~A" (node-name node))
-     (when (or (plusp (length (node-public-id node)))
-               (plusp (length (node-system-id node))))
+     (when (or (plusp (length (document-type-public-id node)))
+               (plusp (length (document-type-system-id node))))
        (format stream " \"~A\" \"~A\""
-               (or (node-public-id node) "")
-               (or (node-system-id node) "")))
+               (or (document-type-public-id node) "")
+               (or (document-type-system-id node) "")))
      (format stream ">"))
-    (:comment
+    (+COMMENT-NODE+
      (format stream "<!-- ~A -->" (node-value node)))
-    (:element
-     (if (and (node-namespace node)
-              (string/= (node-namespace node)
+    (+ELEMENT-NODE+
+     (if (and (element-namespace-uri node)
+              (string/= (element-namespace-uri node)
                         (html5-parser-constants:find-namespace "html")))
          (format stream "<~A ~A>"
-                 (html5-parser-constants:find-prefix (node-namespace node))
+                 (html5-parser-constants:find-prefix (element-namespace-uri node))
                  (node-name node))
          (format stream "<~A>" (node-name node))))
-    (:text
+    (+TEXT-NODE+
      (format stream "\"~A\"" (node-value node)))))
 
 
 (defun print-tree (node &key (stream *standard-output*) (indent 0))
   (ecase (node-type node)
-    ((:document :document-fragment)
-     (element-map-children (lambda (child)
-                             (print-tree child
-                                         :stream stream
-                                         :indent (+ indent 2)))
-                           node))
-    (:element
+    ((+DOCUMENT-NODE+ +DOCUMENT-FRAGMENT-NODE+)
+     (node-map-children (lambda (child)
+                          (print-tree child
+                                      :stream stream
+                                      :indent (+ indent 2)))
+                        node))
+    (+ELEMENT-NODE+
      (format stream "~&|~vT" indent)
      (print-node node stream)
      (incf indent 2)
      (let ((attributes))
-       (element-map-attributes* (lambda (name namespace value)
-                                  (push (cons (cons name namespace) value) attributes))
-                                node)
+       (element-map-attributes-ns (lambda (namespace name value)
+                                    (push (cons (cons name namespace) value) attributes))
+                                  node)
        (when attributes
          (loop for (name . value) in (sort attributes #'string<
                                            :key (lambda (attr)
@@ -70,19 +70,19 @@
                                                       (caar attr)
                                                       (car attr))))
                do
-               (format stream "~&|~vT" indent)
-               (if (cdr name)
-                   (format stream "~A ~A" (html5-parser-constants:find-prefix (cdr name)) (car name))
-                   (format stream "~A" (car name)))
-               (format stream "=\"~A\"" value)))
-       (element-map-children (lambda (child)
-                               (print-tree child
-                                           :stream stream
-                                           :indent indent))
+                  (format stream "~&|~vT" indent)
+                  (if (cdr name)
+                      (format stream "~A ~A" (html5-parser-constants:find-prefix (cdr name)) (car name))
+                      (format stream "~A" (car name)))
+                  (format stream "=\"~A\"" value)))
+       (node-map-children (lambda (child)
+                            (print-tree child
+                                        :stream stream
+                                        :indent indent))
                           node)))
-     ((:text :comment :document-type)
-      (format stream "~&|~vT" indent)
-      (print-node node stream)))
+    ((+TEXT-NODE+ +COMMENT-NODE+ +DOCUMENT-TYPE-NODE+)
+     (format stream "~&|~vT" indent)
+     (print-node node stream)))
   node)
 
 
