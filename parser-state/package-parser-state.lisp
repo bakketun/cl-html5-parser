@@ -37,6 +37,8 @@
 
    #:parser
    #:define-parser-op
+   #:this-is-a-parse-error
+   #:parser-parse-errors
    #:switch-insertion-mode
 
    #:stack-of-open-elements-push

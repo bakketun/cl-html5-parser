@@ -14,7 +14,6 @@
    #:tokenizer-switch-state
    ;; Token types
    #:end-of-file-token
-   #:parse-error-token
    #:character-token
    #:comment-token
    #:start-tag-token
@@ -23,7 +22,6 @@
    ;;
    #:make-start-tag-token
    ;; Token readers
-   #:token-error-code
    #:token-character
    #:token-data
    #:token-name

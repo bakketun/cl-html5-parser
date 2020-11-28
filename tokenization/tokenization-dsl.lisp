@@ -10,10 +10,10 @@
 (defmacro define-state (name number title url &body body)
   `(progn
      (defconstant ,name ',name)
-     (defun ,name (self input-stream)
+     (defun ,name (parser input-stream)
        ,(format nil "13.2.5.~A ~A~&~A" number title url)
        (declare (ignorable input-stream))
-       (with-slots (character-reference-code) self
+       (with-slots (character-reference-code) parser
          (let ((current-input-character nil)
                (peek-offset nil))
            (declare (ignorable current-input-character peek-offset))
@@ -92,26 +92,26 @@
   (let ((function-name (intern (format nil "~A-~A" 'tokenizer name)
                                (symbol-package 'define-tokenizer-function-macro))))
     `(defmacro ,name (,@args)
-       (list ',function-name 'self ,@args))))
+       (list ',function-name 'parser ,@args))))
 
 
 ;; State
 
 
 (defmacro switch-state (new-state)
-  `(tokenizer-switch-state self ',new-state))
+  `(tokenizer-switch-state parser ',new-state))
 
 
 (defmacro set-return-state (state)
-  `(tokenizer-set-return-state self ',state))
+  `(tokenizer-set-return-state parser ',state))
 
 
 (defmacro switch-to-the-return-state ()
-  `(tokenizer-switch-to-the-return-state self))
+  `(tokenizer-switch-to-the-return-state parser))
 
 
 (defmacro reconsume-in (new-state)
-  `(progn (tokenizer-switch-state self ',new-state :reconsume-character current-input-character)
+  `(progn (tokenizer-switch-state parser ',new-state :reconsume-character current-input-character)
           (input-stream-unconsume-character input-stream current-input-character)))
 
 
@@ -121,7 +121,6 @@
 
 ;; Emit tokens
 
-(define-tokenizer-function-macro this-is-a-parse-error (error-name))
 (define-tokenizer-function-macro emit-current-token ())
 (define-tokenizer-function-macro emit-end-of-file-token ())
 (define-tokenizer-function-macro emit-character-token (char))

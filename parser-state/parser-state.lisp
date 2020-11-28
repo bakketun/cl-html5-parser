@@ -48,7 +48,10 @@
 
 
 (defmacro define-parser-op (name (&rest args) &body body)
-  (let ((slots '(context-element insertion-mode document stack-of-open-elements))
+  (let ((slots '(parse-errors
+                 insertion-mode
+                 context-element
+                 stack-of-open-elements))
         (function-name (intern (format nil "~A-~A" 'parser name)
                                (symbol-package 'define-parser-op))))
     `(progn
@@ -57,6 +60,14 @@
            ,@body))
        (defmacro ,name (,@args)
          (list ',function-name 'parser ,@(remove '&optional args))))))
+
+
+(define-parser-op this-is-a-parse-error (code)
+  (push code parse-errors))
+
+
+(defun parser-parse-errors (parser)
+  (reverse (slot-value parser 'parse-errors)))
 
 
 (define-parser-op switch-insertion-mode (new-mode)

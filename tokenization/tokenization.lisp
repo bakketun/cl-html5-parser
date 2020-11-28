@@ -88,7 +88,10 @@
       (input-stream-close input-stream)
       (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
       (tokenizer-process tokenizer input-stream))
-    (values (reverse (slot-value tokenizer 'tokens)) tokenizer input-stream)))
+    (values (reverse (slot-value tokenizer 'tokens))
+            (parser-parse-errors tokenizer)
+            tokenizer
+            input-stream)))
 
 
 (defun tokenizer-process (tokenizer input-stream)
@@ -105,9 +108,6 @@
 (defstruct token)
 
 (defstruct (end-of-file-token (:include token)))
-
-(defstruct (parse-error-token (:include token))
-  (code))
 
 (defstruct (character-token (:include token))
   (character))
@@ -132,7 +132,6 @@
 (defstruct (end-tag-token (:include tag-token)))
 
 
-(defun token-error-code        (token) (parse-error-token-code token))
 (defun token-character         (token) (character-token-character token))
 (defun token-data              (token) (comment-token-data token))
 (defun token-name              (token) (named-token-name token))
@@ -164,20 +163,17 @@
            :data (comment-token-data token)))
     (character-token
      (list :type :characters
-           :data (string (character-token-character token))))
-    (parse-error-token
-     (list :type :parse-error
-           :data (parse-error-token-code token)))))
+           :data (string (character-token-character token))))))
 
 
-(defun tokenizer-emit-token (tokenizer token)
+(defun tokenizer-emit-token (parser token)
   (when (end-tag-token-p token)
     (when (tag-token-attributes token)
-      (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-attributes))
+      (this-is-a-parse-error :end-tag-with-attributes))
     (when (tag-token-self-closing-flag token)
-      (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-trailing-solidus)))
+      (this-is-a-parse-error :end-tag-with-trailing-solidus)))
   (do-tokenizer-trace (format *tokenizer-trace-output* "~&emit-token: ~S~&" token))
-  (tree-construction-dispatcher tokenizer token))
+  (tree-construction-dispatcher parser token))
 
 
 (defun make-growable-string (&optional (init ""))
@@ -256,10 +252,6 @@ pointer at the end."
 
 
 ;; Emit tokens
-
-(defun tokenizer-this-is-a-parse-error (tokenizer code)
-  (tokenizer-emit-token tokenizer (make-parse-error-token :code code)))
-
 
 (defun tokenizer-emit-current-token (tokenizer)
   (with-slots (current-token last-start-tag) tokenizer
@@ -396,8 +388,8 @@ pointer at the end."
     (add-to-attr-value current-attribute char)))
 
 
-(defun tokenizer-check-for-duplicate-attribute (tokenizer)
-  (with-slots (current-token current-attribute) tokenizer
+(defun tokenizer-check-for-duplicate-attribute (parser)
+  (with-slots (current-token current-attribute) parser
     (let ((other-attribute (assoc (car current-attribute)
                                   (tag-token-attributes current-token)
                                   :test #'equal)))
@@ -406,7 +398,7 @@ pointer at the end."
         (setf (tag-token-attributes current-token)
               (remove current-attribute
                       (tag-token-attributes current-token)))
-        (tokenizer-this-is-a-parse-error tokenizer :duplicate-attribute)))))
+        (this-is-a-parse-error :duplicate-attribute)))))
 
 
 ;; Other functions

@@ -5,7 +5,8 @@
    #:html5-parser-tokenization-state
    )
   (:import-from #:html5-parser-state
-                #:adjusted-current-node-not-in-HTML-namespace-p)
+                #:adjusted-current-node-not-in-HTML-namespace-p
+                #:this-is-a-parse-error)
   (:import-from  #:common-lisp
                  #:*
                  #:<

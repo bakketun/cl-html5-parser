@@ -32,6 +32,7 @@
                (:file "infra")
 
                (:module "named-character-references"
+                :serial t
                 :components ((:file "package-named-character-references")
                              (:file "named-character-references-table")
                              (:file "named-character-references")))
@@ -44,6 +45,7 @@
                              (:file "parser-state")))
 
                (:module "tokenization"
+                :serial t
                 :components ((:file "package-tokenization-state")
                              (:file "package-tokenization-dsl")
                              (:file "package-tokenization")
@@ -53,6 +55,7 @@
                              (:file "tokenization-state")))
 
                (:module "tree-construction"
+                :serial t
                 :components ((:file "package-tree-construction")
                              (:file "tree-construction")
                              (:file "insertion-mode")))
