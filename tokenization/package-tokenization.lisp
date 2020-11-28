@@ -8,7 +8,7 @@
    #:html5-parser-tokenization-state
    #:html5-parser-tokenization-dsl)
   (:export
-   #:make-html-tokenizer
+   #:html-tokenizer
    #:map-tokens
    #:tokenizer-run
    #:tokenizer-switch-state

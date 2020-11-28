@@ -21,13 +21,6 @@
 (in-package :html5-parser-tokenization)
 
 
-(defun make-html-tokenizer (&key source encoding parser)
-  (setf (parser-tokenizer parser)
-        (make-instance 'html-tokenizer
-                       :source (cons source encoding)
-                       :parser parser)))
-
-
 (defvar *map-tokens-handler*)
 
 
@@ -38,18 +31,16 @@
 (defun map-tokens (tokenizer function)
   (with-slots (source) tokenizer
     (let ((*map-tokens-handler* function))
-      (tokenizer-process tokenizer (make-input-stream :characters (car source))))))
+      (tokenizer-process tokenizer (make-input-stream :characters source)))))
 
 
 (defun tokenizer-run (tokenizer)
   (with-slots (source) tokenizer
-    (tokenizer-process tokenizer (make-input-stream :characters (car source)))))
+    (tokenizer-process tokenizer (make-input-stream :characters source))))
 
 
-(defclass html-tokenizer ()
-  ((parser :initarg :parser
-           :reader tokenizer-parser)
-   (source :initarg :source)
+(defclass html-tokenizer (html5-parser-state)
+  ((source :initarg :source)
    (last-start-tag :initarg :last-start-tag
                    :initform nil)
    (state :accessor tokenizer-state
@@ -78,15 +69,14 @@
      ,@body))
 
 
-(defclass tokenizer-test-html5-parser (html5-parser)
+(defclass test-html-tokenizer (html-tokenizer)
   ((tokens :initform nil)))
 
-(defmethod tree-construction-dispatcher ((parser tokenizer-test-html5-parser) token)
+(defmethod tree-construction-dispatcher ((parser test-html-tokenizer) token &key &allow-other-keys)
   (push token (slot-value parser 'tokens)))
 
 (defun tokenizer-test (data &key (initial-state 'data-state) last-start-tag (end-of-file-p t))
-  (let ((tokenizer (make-instance 'html-tokenizer
-                                  :parser (make-instance 'tokenizer-test-html5-parser)
+  (let ((tokenizer (make-instance 'test-html-tokenizer
                                   :last-start-tag last-start-tag))
         (input-stream (make-input-stream)))
     (tokenizer-switch-state tokenizer initial-state)
@@ -98,7 +88,7 @@
       (input-stream-close input-stream)
       (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
       (tokenizer-process tokenizer input-stream))
-    (values (reverse (slot-value (tokenizer-parser tokenizer) 'tokens)) tokenizer input-stream)))
+    (values (reverse (slot-value tokenizer 'tokens)) tokenizer input-stream)))
 
 
 (defun tokenizer-process (tokenizer input-stream)
@@ -187,7 +177,7 @@
     (when (tag-token-self-closing-flag token)
       (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-trailing-solidus)))
   (do-tokenizer-trace (format *tokenizer-trace-output* "~&emit-token: ~S~&" token))
-  (tree-construction-dispatcher (tokenizer-parser tokenizer) token))
+  (tree-construction-dispatcher tokenizer token))
 
 
 (defun make-growable-string (&optional (init ""))
@@ -422,7 +412,7 @@ pointer at the end."
 ;; Other functions
 
 (defun tokenizer-adjusted-current-node-not-in-HTML-namespace-p (tokenizer)
-  (parser-adjusted-current-node-not-in-HTML-namespace-p (tokenizer-parser tokenizer)))
+  (parser-adjusted-current-node-not-in-HTML-namespace-p tokenizer))
 
 
 (defun tokenizer-consumed-as-part-of-an-attribute-p (tokenizer)

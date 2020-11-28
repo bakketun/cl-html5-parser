@@ -22,25 +22,22 @@
    #:html5-parser-infra
    #:html5-parser-tree)
   (:export
-   #:html5-parser
-   #:parser
-   #:tokenizer
-   #:parser-tokenizer
-   #:tree-construction-dispatcher
-   #:define-parser-op
-   #:switch-insertion-mode
-
-   #:context-element
+   #:html5-parser-state
+   #:parse-errors
    #:insertion-mode
    #:original-insertion-mode
-   #:document
-   #:iframe-srcdoc-p
+   #:stack-of-open-elements
+   #:context-element
    #:head-element-pointer
    #:form-element-pointer
-   #:stack-of-open-elements
-   #:ignore-next-token-if-line-feed
+   #:scripting-flag
    #:frameset-ok-flag
-   #:parse-errors
+
+   #:tree-construction-dispatcher
+
+   #:parser
+   #:define-parser-op
+   #:switch-insertion-mode
 
    #:stack-of-open-elements-push
    #:stack-of-open-elements-pop

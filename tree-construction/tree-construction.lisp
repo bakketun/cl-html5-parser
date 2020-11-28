@@ -20,21 +20,21 @@
 (in-package :html5-parser-tree-construction)
 
 
+(defclass html5-parser (html-tokenizer)
+  ((document :initform (make-document))
+   (iframe-srcdoc-p :initform nil)
+   (ignore-next-token-if-line-feed :initform nil)))
+
+
 (defun parse-html5-from-source (source)
-  (let* ((parser (make-instance 'html5-parser))
-         (tokenizer (make-html-tokenizer :source source :parser parser)))
+  (let* ((parser (make-instance 'html5-parser :source source)))
     (with-slots (document parse-errors) parser
-      (tokenizer-run tokenizer)
+      (tokenizer-run parser)
       (values document
               parse-errors))))
 
 
-(defmethod tree-construction-dispatcher ((parser html5-parser) token)
-  "https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher"
-  (tree-construction-dispatcher* parser token))
-
-
-(defun tree-construction-dispatcher* (parser token &key using-rules-for)
+(defmethod tree-construction-dispatcher ((parser html5-parser) token &key using-rules-for)
   "https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher"
   (with-slots (insertion-mode ignore-next-token-if-line-feed parse-errors) parser
     (cond ((typep token 'parse-error-token)
@@ -42,13 +42,13 @@
           (ignore-next-token-if-line-feed
            (setf ignore-next-token-if-line-feed nil)
            (unless (eql U+000A_LINE_FEED (token-character token))
-             (tree-construction-dispatcher* parser token)))
+             (tree-construction-dispatcher parser token)))
           (t
            (if using-rules-for
                (format *trace-output* "~&process using rules for ~A ~S~&" using-rules-for token)
                (format *trace-output* "~&process in ~A ~S~&" insertion-mode token))
            (when (eql :reprocess (funcall (or using-rules-for insertion-mode) parser token))
-             (tree-construction-dispatcher* parser token))))))
+             (tree-construction-dispatcher parser token))))))
 
 
 ;; 13.2.6.1 Creating and inserting nodes

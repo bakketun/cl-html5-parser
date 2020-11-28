@@ -34,8 +34,12 @@
           ,@body)))))
 
 
+(defmacro switch-tokenizer-state (new-state)
+  `(tokenizer-switch-state parser ,new-state))
+
+
 (defmacro process-token-using-rules-for (mode)
-  `(tree-construction-dispatcher* parser token :using-rules-for ,mode))
+  `(tree-construction-dispatcher parser token :using-rules-for ,mode))
 
 
 (defmacro reprocess-the-token ()
@@ -374,7 +378,7 @@
   (A-start-tag-whose-tag-name-is  ("textarea")
     "1." (insert-an-html-element token)
     "2." (setf ignore-next-token-if-line-feed t)
-    "3." (tokenizer-switch-state tokenizer 'rcdata-state)
+    "3." (switch-tokenizer-state 'rcdata-state)
     "4." (setf original-insertion-mode insertion-mode)
     "5." (setf frameset-ok-flag :not-ok)
     "6." (switch-insertion-mode 'text-insertion-mode)))

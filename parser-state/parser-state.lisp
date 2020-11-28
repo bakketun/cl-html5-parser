@@ -23,22 +23,29 @@
 (in-package :html5-parser-state)
 
 
-(defclass html5-parser ()
-  ((tokenizer :accessor parser-tokenizer)
-   (context-element :initform nil)
+(defclass html5-parser-state ()
+  (;; 13.2.2 Parse errors
+   (parse-errors :initform nil)
+   ;; 13.2.4.1 The insertion mode
    (insertion-mode :initform 'initial-insertion-mode)
    (original-insertion-mode :initform nil)
-   (document :initform (make-document))
-   (iframe-srcdoc-p :initform nil)
+   ;; 13.2.4.2 The stack of open elements
+   (stack-of-open-elements :initform (make-array 0 :fill-pointer 0 :adjustable t))
+   (context-element :initform nil)
+   ;; 13.2.4.3 The list of active formatting elements
+   ;; TODO
+   ;; 13.2.4.4 The element pointers
    (head-element-pointer :initform nil)
    (form-element-pointer :initform nil)
-   (stack-of-open-elements :initform (make-array 0 :fill-pointer 0 :adjustable t))
-   (ignore-next-token-if-line-feed :initform nil)
-   (frameset-ok-flag :initform :ok)
-   (parse-errors :initform nil)))
+   ;; 13.2.4.5 Other parsing state flags
+   (scripting-flag :initform :disabled
+                   :type (member :enabled :disabled))
+   (frameset-ok-flag :initform :ok
+                     :type (member :ok :not-ok))))
 
 
-(defmethod tree-construction-dispatcher (parser token))
+(defgeneric tree-construction-dispatcher (parser token &key using-rules-for))
+
 
 (defmacro define-parser-op (name (&rest args) &body body)
   (let ((slots '(context-element insertion-mode document stack-of-open-elements))
