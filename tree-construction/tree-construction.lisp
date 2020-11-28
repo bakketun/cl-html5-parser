@@ -29,7 +29,7 @@
 (defun parse-html5-from-source (source)
   (let* ((parser (make-instance 'html5-parser :source source)))
     (with-slots (document parse-errors) parser
-      (tokenizer-run parser)
+      (tokenizer-run)
       (values document
               parse-errors))))
 

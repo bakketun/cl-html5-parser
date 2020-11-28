@@ -29,8 +29,7 @@
   ((source :initarg :source)
    (last-start-tag :initarg :last-start-tag
                    :initform nil)
-   (state :accessor tokenizer-state
-          :initform 'data-state)
+   (state :initform 'data-state)
    (return-state)
    (current-token)
    (current-attribute)
@@ -38,9 +37,9 @@
    (character-reference-code)))
 
 
-(defun tokenizer-run (tokenizer)
-  (with-slots (source) tokenizer
-    (tokenizer-process tokenizer (make-input-stream :characters source))))
+(define-parser-op tokenizer-run ()
+    (source)
+  (tokenizer-process (make-input-stream :characters source)))
 
 
 (defmethod print-object ((tokenizer html-tokenizer) stream)
@@ -67,57 +66,61 @@
   (push token (slot-value parser 'tokens)))
 
 (defun tokenizer-test (data &key (initial-state 'data-state) last-start-tag (end-of-file-p t))
-  (let ((tokenizer (make-instance 'test-html-tokenizer
-                                  :last-start-tag last-start-tag))
+  (let ((parser (make-instance 'test-html-tokenizer
+                               :last-start-tag last-start-tag))
         (input-stream (make-input-stream)))
-    (tokenizer-switch-state tokenizer initial-state)
+    (switch-tokenization-state initial-state)
     (loop :for char :across data
           :do (input-stream-append input-stream (string char))
           :do (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
-          :do (tokenizer-process tokenizer input-stream))
+          :do (tokenizer-process input-stream))
     (when end-of-file-p
       (input-stream-close input-stream)
       (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
-      (tokenizer-process tokenizer input-stream))
-    (values (reverse (slot-value tokenizer 'tokens))
-            (parser-parse-errors tokenizer)
-            tokenizer
+      (tokenizer-process input-stream))
+    (values (reverse (slot-value parser 'tokens))
+            (parser-parse-errors parser)
+            parser
             input-stream)))
 
 
-(defun tokenizer-process (tokenizer input-stream)
-  (loop :for continuep := (tokenizer-process1-in-state tokenizer input-stream)
+(define-parser-op tokenizer-process (input-stream)
+    ()
+  (loop :for continuep := (tokenizer-process1-in-state input-stream)
         :while (and continuep (not (input-stream-empty-p input-stream)))))
 
 
-(defun tokenizer-process1-in-state (tokenizer input-stream)
-  (funcall (tokenizer-state tokenizer) tokenizer input-stream))
+(define-parser-op tokenizer-process1-in-state (input-stream)
+    (state)
+  (funcall state parser input-stream))
 
 
 ;; State
 
-(defun tokenizer-switch-state (tokenizer new-state &key reconsume-character)
+(define-parser-op switch-tokenization-state (new-state &optional reconsume-character)
+    (state return-state)
   (let ((return-state-p (eql 'return-state new-state)))
     (when return-state-p
-      (setf new-state (slot-value tokenizer 'return-state)))
+      (setf new-state return-state))
     (do-tokenizer-trace (format *tokenizer-trace-output* "~&state: ~A →~:[~; the return state~] ~A ~@[ reconsume ~S~]~&"
-                                (tokenizer-state tokenizer) return-state-p new-state reconsume-character))
-    (setf (tokenizer-state tokenizer) new-state)))
+                                state return-state-p new-state reconsume-character))
+    (setf state new-state)))
 
 
-(defun tokenizer-set-return-state (tokenizer state)
-  (with-slots (return-state) tokenizer
-    (setf return-state state)))
+(define-parser-op set-tokenization-return-state (new-state)
+    (return-state)
+  (setf return-state new-state))
 
 
-(defun tokenizer-switch-to-the-return-state (tokenizer)
-  (with-slots (return-state) tokenizer
-    (tokenizer-switch-state tokenizer return-state)))
+(define-parser-op tokenization-switch-to-the-return-state ()
+    (return-state)
+  (switch-state return-state))
 
 
 ;; Emit tokens
 
-(defun tokenizer-emit-token (parser token)
+(define-parser-op emit-token (token)
+    ()
   (when (end-tag-token-p token)
     (when (tag-token-attributes token)
       (this-is-a-parse-error :end-tag-with-attributes))
@@ -127,171 +130,168 @@
   (tree-construction-dispatcher parser token))
 
 
-(defun tokenizer-emit-current-token (tokenizer)
-  (with-slots (current-token last-start-tag) tokenizer
-    (progn
-      (when (start-tag-token-p current-token)
-        (setf last-start-tag (tag-token-name current-token)))
-      (tokenizer-emit-token tokenizer current-token))))
+(define-parser-op emit-current-token ()
+    (current-token last-start-tag)
+  (when (start-tag-token-p current-token)
+    (setf last-start-tag (tag-token-name current-token)))
+  (emit-token current-token))
 
 
-(defun tokenizer-emit-end-of-file-token (tokenizer)
-  (tokenizer-emit-token tokenizer (make-end-of-file-token)))
+(define-parser-op emit-end-of-file-token ()
+    ()
+  (emit-token (make-end-of-file-token)))
 
 
-(defun tokenizer-emit-character-token (tokenizer character)
-  (tokenizer-emit-token tokenizer (make-character-token :character character)))
+(define-parser-op emit-character-token (character)
+    ()
+  (emit-token (make-character-token :character character)))
 
 
 ;; The temporary buffer
 
-(defun tokenizer-emit-character-tokens-from-temporary-buffer (tokenizer)
-  (with-slots (temporary-buffer) tokenizer
-    (loop :for char :across temporary-buffer
-          :do (tokenizer-emit-character-token tokenizer char))))
+(define-parser-op emit-character-tokens-from-temporary-buffer ()
+    (temporary-buffer)
+  (loop :for char :across temporary-buffer
+        :do (emit-character-token char)))
 
 
-(defun tokenizer-temporary-buffer-clear (tokenizer)
-  (with-slots (temporary-buffer) tokenizer
-    (setf (fill-pointer temporary-buffer) 0)))
+(define-parser-op temporary-buffer-clear ()
+    (temporary-buffer)
+  (setf (fill-pointer temporary-buffer) 0))
 
 
-(defun tokenizer-temporary-buffer-append (tokenizer data)
-  (with-slots (temporary-buffer) tokenizer
-    (vector-push-extend data temporary-buffer)))
+(define-parser-op temporary-buffer-append (data)
+    (temporary-buffer)
+  (vector-push-extend data temporary-buffer))
 
 
-(defun tokenizer-temporary-buffer-append-code-point (tokenizer code-point)
-  (with-slots (temporary-buffer) tokenizer
-    (vector-push-extend (code-char code-point) temporary-buffer)))
+(define-parser-op temporary-buffer-append-code-point (code-point)
+    (temporary-buffer)
+  (vector-push-extend (code-char code-point) temporary-buffer))
 
 
-(defun tokenizer-temporary-buffer-equal (tokenizer string)
-  (with-slots (temporary-buffer) tokenizer
-    (equal temporary-buffer string)))
+(define-parser-op temporary-buffer-equal (string)
+    (temporary-buffer)
+  (equal temporary-buffer string))
 
 
 ;; Current token
 
-(defun tokenizer-create-new-start-tag-token (tokenizer)
-  (with-slots (current-token) tokenizer
-    (setf current-token (make-start-tag-token))))
+(define-parser-op create-new-start-tag-token ()
+    (current-token)
+  (setf current-token (make-start-tag-token)))
 
 
-(defun tokenizer-create-new-end-tag-token (tokenizer)
-  (with-slots (current-token) tokenizer
-    (setf current-token (make-end-tag-token))))
+(define-parser-op create-new-end-tag-token ()
+    (current-token)
+  (setf current-token (make-end-tag-token)))
 
 
-(defun tokenizer-create-new-comment-token (tokenizer)
-  (with-slots (current-token) tokenizer
-    (setf current-token (make-comment-token))))
+(define-parser-op create-new-comment-token ()
+    (current-token)
+  (setf current-token (make-comment-token)))
 
 
-(defun tokenizer-create-new-doctype-token (tokenizer)
-  (with-slots (current-token) tokenizer
-    (setf current-token (make-doctype-token))))
+(define-parser-op create-new-doctype-token ()
+    (current-token)
+  (setf current-token (make-doctype-token)))
 
 
-(defun tokenizer-current-token-appropriate-end-tag-p (tokenizer)
-  (with-slots (current-token last-start-tag) tokenizer
-    (equal (tag-token-name current-token) last-start-tag)))
+(define-parser-op current-token-appropriate-end-tag-p ()
+    (current-token last-start-tag)
+  (equal (tag-token-name current-token) last-start-tag))
 
 
-(defun tokenizer-current-token-name-append (tokenizer char)
-  (with-slots (current-token) tokenizer
-    (unless (named-token-name current-token)
-      (setf (named-token-name current-token) (make-growable-string)))
-    (vector-push-extend char (named-token-name current-token))))
+(define-parser-op current-token-name-append (char)
+    (current-token)
+  (unless (named-token-name current-token)
+    (setf (named-token-name current-token) (make-growable-string)))
+  (vector-push-extend char (named-token-name current-token)))
 
 
-(defun tokenizer-current-token-data-append (tokenizer data)
-  (with-slots (current-token) tokenizer
-    (etypecase data
-      (character
-       (vector-push-extend data (comment-token-data current-token)))
-      (string
-       (loop :for char :across data :do
-         (vector-push-extend char (comment-token-data current-token)))))))
+(define-parser-op current-token-data-append (data)
+    (current-token)
+  (etypecase data
+    (character
+     (vector-push-extend data (comment-token-data current-token)))
+    (string
+     (loop :for char :across data :do
+       (vector-push-extend char (comment-token-data current-token))))))
 
 
-(defun tokenizer-current-token-public-id-append (tokenizer char)
-  (with-slots (current-token) tokenizer
-    (vector-push-extend char (doctype-token-public-id current-token))))
+(define-parser-op current-token-public-id-append (char)
+    (current-token)
+  (vector-push-extend char (doctype-token-public-id current-token)))
 
 
-(defun tokenizer-current-token-system-id-append (tokenizer char)
-  (with-slots (current-token) tokenizer
-    (vector-push-extend char (doctype-token-system-id current-token))))
+(define-parser-op current-token-system-id-append (char)
+    (current-token)
+  (vector-push-extend char (doctype-token-system-id current-token)))
 
 
-(defun tokenizer-current-token-set-public-id-not-missing (tokenizer)
-  (with-slots (current-token) tokenizer
-    (setf (doctype-token-public-id current-token) (make-growable-string))))
+(define-parser-op current-token-set-public-id-not-missing ()
+    (current-token)
+  (setf (doctype-token-public-id current-token) (make-growable-string)))
 
 
-(defun tokenizer-current-token-set-system-id-not-missing (tokenizer)
-  (with-slots (current-token) tokenizer
-    (setf (doctype-token-system-id current-token) (make-growable-string))))
+(define-parser-op current-token-set-system-id-not-missing ()
+    (current-token)
+  (setf (doctype-token-system-id current-token) (make-growable-string)))
 
 
-(defun tokenizer-current-token-set-self-closing-flag (tokenizer)
-  (with-slots (current-token) tokenizer
-    (setf (tag-token-self-closing-flag current-token) t)))
+(define-parser-op current-token-set-self-closing-flag ()
+    (current-token)
+  (setf (tag-token-self-closing-flag current-token) t))
 
 
-(defun tokenizer-current-token-set-force-quirks-flag (tokenizer)
-  (with-slots (current-token) tokenizer
-    (setf (doctype-token-force-quirks-flag current-token) t)))
+(define-parser-op current-token-set-force-quirks-flag ()
+    (current-token)
+  (setf (doctype-token-force-quirks-flag current-token) t))
 
 
 ;; Current attribute
 
-(defun tokenizer-create-new-attribute (tokenizer)
-  (with-slots (current-token current-attribute) tokenizer
-    (setf current-attribute (add-attribute current-token))))
+(define-parser-op create-new-attribute ()
+    (current-token current-attribute)
+  (setf current-attribute (add-attribute current-token)))
 
 
-(defun tokenizer-current-attribute-name-append (tokenizer char)
-  (with-slots (current-attribute) tokenizer
-    (add-to-attr-name current-attribute char)))
+(define-parser-op current-attribute-name-append (char)
+    (current-attribute)
+  (add-to-attr-name current-attribute char))
 
 
-(defun tokenizer-current-attribute-value-append (tokenizer char)
-  (with-slots (current-attribute) tokenizer
-    (add-to-attr-value current-attribute char)))
+(define-parser-op current-attribute-value-append (char)
+    (current-attribute)
+  (add-to-attr-value current-attribute char))
 
 
-(defun tokenizer-check-for-duplicate-attribute (parser)
-  (with-slots (current-token current-attribute) parser
-    (let ((other-attribute (assoc (car current-attribute)
-                                  (tag-token-attributes current-token)
-                                  :test #'equal)))
-      (when (and other-attribute
-                 (not (eq other-attribute current-attribute)))
-        (setf (tag-token-attributes current-token)
-              (remove current-attribute
-                      (tag-token-attributes current-token)))
-        (this-is-a-parse-error :duplicate-attribute)))))
+(define-parser-op check-for-duplicate-attribute ()
+    (current-token current-attribute)
+  (let ((other-attribute (assoc (car current-attribute)
+                                (tag-token-attributes current-token)
+                                :test #'equal)))
+    (when (and other-attribute
+               (not (eq other-attribute current-attribute)))
+      (setf (tag-token-attributes current-token)
+            (remove current-attribute
+                    (tag-token-attributes current-token)))
+      (this-is-a-parse-error :duplicate-attribute))))
 
 
 ;; Other functions
 
-(defun tokenizer-adjusted-current-node-not-in-HTML-namespace-p (tokenizer)
-  (parser-adjusted-current-node-not-in-HTML-namespace-p tokenizer))
+(define-parser-op consumed-as-part-of-an-attribute-p ()
+    (return-state)
+  (or (eq 'attribute-value-\(double-quoted\)-state return-state)
+      (eq 'attribute-value-\(single-quoted\)-state return-state)
+      (eq 'attribute-value-\(unquoted\)-state return-state)))
 
 
-(defun tokenizer-consumed-as-part-of-an-attribute-p (tokenizer)
-  (with-slots (return-state) tokenizer
-    (or (eq 'attribute-value-\(double-quoted\)-state return-state)
-        (eq 'attribute-value-\(single-quoted\)-state return-state)
-        (eq 'attribute-value-\(unquoted\)-state return-state))))
-
-
-(defun tokenizer-flush-code-points-consumed-as-a-character-reference (tokenizer)
-  (with-slots (temporary-buffer) tokenizer
-    (if (tokenizer-consumed-as-part-of-an-attribute-p tokenizer)
-        (loop :for char :across temporary-buffer
-              :do (tokenizer-current-attribute-value-append tokenizer char))
-        (loop :for char :across temporary-buffer
-              :do (tokenizer-emit-character-token tokenizer char)))))
+(define-parser-op flush-code-points-consumed-as-a-character-reference ()
+    (temporary-buffer)
+  (if (consumed-as-part-of-an-attribute-p)
+      (loop :for char :across temporary-buffer
+            :do (current-attribute-value-append char))
+      (loop :for char :across temporary-buffer
+            :do (emit-character-token char))))

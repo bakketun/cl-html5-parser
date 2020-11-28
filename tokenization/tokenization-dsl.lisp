@@ -88,52 +88,27 @@
                                     forms)))))))
 
 
-(defmacro define-tokenizer-function-macro (name (&rest args))
-  (let ((function-name (intern (format nil "~A-~A" 'tokenizer name)
-                               (symbol-package 'define-tokenizer-function-macro))))
-    `(defmacro ,name (,@args)
-       (list ',function-name 'parser ,@args))))
-
-
 ;; State
 
-
 (defmacro switch-state (new-state)
-  `(tokenizer-switch-state parser ',new-state))
+  `(switch-tokenization-state ',new-state))
 
 
 (defmacro set-return-state (state)
-  `(tokenizer-set-return-state parser ',state))
+  `(set-tokenization-return-state ',state))
 
 
 (defmacro switch-to-the-return-state ()
-  `(tokenizer-switch-to-the-return-state parser))
+  `(tokenization-switch-to-the-return-state))
 
 
 (defmacro reconsume-in (new-state)
-  `(progn (tokenizer-switch-state parser ',new-state :reconsume-character current-input-character)
+  `(progn (switch-tokenization-state ',new-state current-input-character)
           (input-stream-unconsume-character input-stream current-input-character)))
 
 
 (defmacro reconsume-in-return-state ()
   `(reconsume-in return-state))
-
-
-;; Emit tokens
-
-(define-tokenizer-function-macro emit-current-token ())
-(define-tokenizer-function-macro emit-end-of-file-token ())
-(define-tokenizer-function-macro emit-character-token (char))
-
-
-;; The temporary buffer
-
-(define-tokenizer-function-macro emit-character-tokens-from-temporary-buffer ())
-(define-tokenizer-function-macro temporary-buffer-clear ())
-(define-tokenizer-function-macro temporary-buffer-append (data))
-(define-tokenizer-function-macro temporary-buffer-append-entity (data))
-(define-tokenizer-function-macro temporary-buffer-append-code-point (code-point))
-(define-tokenizer-function-macro temporary-buffer-equal (string))
 
 
 ;; Named character reference
@@ -151,38 +126,6 @@
   `(progn (temporary-buffer-append-code-point (car matched-named-character-reference))
           (when (cdr matched-named-character-reference)
             (temporary-buffer-append-code-point (cadr matched-named-character-reference)))))
-
-
-;; Current token
-
-(define-tokenizer-function-macro create-new-start-tag-token ())
-(define-tokenizer-function-macro create-new-end-tag-token ())
-(define-tokenizer-function-macro create-new-comment-token ())
-(define-tokenizer-function-macro create-new-doctype-token ())
-
-(define-tokenizer-function-macro current-token-appropriate-end-tag-p ())
-(define-tokenizer-function-macro current-token-name-append (char))
-(define-tokenizer-function-macro current-token-data-append (char))
-(define-tokenizer-function-macro current-token-public-id-append (char))
-(define-tokenizer-function-macro current-token-system-id-append (char))
-(define-tokenizer-function-macro current-token-set-public-id-not-missing ())
-(define-tokenizer-function-macro current-token-set-system-id-not-missing ())
-(define-tokenizer-function-macro current-token-set-self-closing-flag ())
-(define-tokenizer-function-macro current-token-set-force-quirks-flag ())
-
-
-;; Current attribute
-
-(define-tokenizer-function-macro create-new-attribute ())
-(define-tokenizer-function-macro current-attribute-name-append (char))
-(define-tokenizer-function-macro current-attribute-value-append (char))
-(define-tokenizer-function-macro check-for-duplicate-attribute ())
-
-;; Other helpers
-
-(define-tokenizer-function-macro adjusted-current-node-not-in-HTML-namespace-p ())
-(define-tokenizer-function-macro consumed-as-part-of-an-attribute-p ())
-(define-tokenizer-function-macro flush-code-points-consumed-as-a-character-reference ())
 
 
 (defun lowercase-version-of (char)

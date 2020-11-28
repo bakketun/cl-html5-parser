@@ -10,7 +10,7 @@
   (:export
    #:html-tokenizer
    #:tokenizer-run
-   #:tokenizer-switch-state
+   #:switch-tokenization-state
    ;; Token types
    #:end-of-file-token
    #:character-token

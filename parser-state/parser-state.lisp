@@ -49,7 +49,7 @@
 
 (defmacro define-parser-op (name (&rest args) (&rest slots) &body body)
   (let ((function-name (intern (format nil "~A-~A" 'parser name)
-                               (symbol-package 'define-parser-op))))
+                               (symbol-package name))))
     `(progn
        (defun ,function-name (parser ,@args)
          (with-slots (,@slots) parser

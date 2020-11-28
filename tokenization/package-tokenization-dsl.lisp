@@ -85,7 +85,6 @@
    #:switch-to-the-return-state
    #:temporary-buffer-append
    #:temporary-buffer-append-code-point
-   #:temporary-buffer-append-entity
    #:temporary-buffer-append-matched-named-character-reference
    #:temporary-buffer-clear
    #:temporary-buffer-equal
