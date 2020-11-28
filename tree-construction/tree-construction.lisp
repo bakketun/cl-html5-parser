@@ -20,32 +20,21 @@
 (in-package :html5-parser-tree-construction)
 
 
-(defclass html5-parser ()
-  ((context-element :initform nil)
-   (insertion-mode :initform 'initial-insertion-mode)
-   (original-insertion-mode :initform nil)
-   (document :initform (make-document))
-   (iframe-srcdoc-p :initform nil)
-   (head-element-pointer :initform nil)
-   (form-element-pointer :initform nil)
-   (stack-of-open-elements :initform (make-array 0 :fill-pointer 0 :adjustable t))
-   (ignore-next-token-if-line-feed :initform nil)
-   (frameset-ok-flag :initform :ok)
-   (tokenizer)
-   (parse-errors :initform nil)))
-
-
 (defun parse-html5-from-source (source)
-  (let ((parser (make-instance 'html5-parser)))
-    (with-slots (tokenizer document parse-errors) parser
-      (setf tokenizer (make-tokenizer :source source
-                                      :token-handler (lambda (token) (tree-construction-dispatcher parser token))))
+  (let* ((parser (make-instance 'html5-parser))
+         (tokenizer (make-html-tokenizer :source source :parser parser)))
+    (with-slots (document parse-errors) parser
       (tokenizer-run tokenizer)
       (values document
               parse-errors))))
 
 
-(defun tree-construction-dispatcher (parser token &key using-rules-for)
+(defmethod tree-construction-dispatcher ((parser html5-parser) token)
+  "https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher"
+  (tree-construction-dispatcher* parser token))
+
+
+(defun tree-construction-dispatcher* (parser token &key using-rules-for)
   "https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher"
   (with-slots (insertion-mode ignore-next-token-if-line-feed parse-errors) parser
     (cond ((typep token 'parse-error-token)
@@ -53,52 +42,13 @@
           (ignore-next-token-if-line-feed
            (setf ignore-next-token-if-line-feed nil)
            (unless (eql U+000A_LINE_FEED (token-character token))
-             (tree-construction-dispatcher parser token)))
+             (tree-construction-dispatcher* parser token)))
           (t
            (if using-rules-for
                (format *trace-output* "~&process using rules for ~A ~S~&" using-rules-for token)
                (format *trace-output* "~&process in ~A ~S~&" insertion-mode token))
            (when (eql :reprocess (funcall (or using-rules-for insertion-mode) parser token))
-             (tree-construction-dispatcher parser token))))))
-
-
-(defmacro define-parser-op (name (&rest args) &body body)
-  (let ((slots '(context-element insertion-mode document stack-of-open-elements))
-        (function-name (intern (format nil "~A-~A" 'parser name)
-                               (symbol-package 'define-parser-op))))
-    `(progn
-       (defun ,function-name (parser ,@args)
-         (with-slots (,@slots) parser
-           ,@body))
-       (defmacro ,name (,@args)
-         (list ',function-name 'parser ,@(remove '&optional args))))))
-
-
-(define-parser-op switch-insertion-mode (new-mode)
-  (format *trace-output* "~&~A → ~A~&" insertion-mode new-mode)
-  (setf insertion-mode new-mode))
-
-
-;; 13.2.4.2 The stack of open elements
-;; https://html.spec.whatwg.org/multipage/parsing.html#the-stack-of-open-elements
-
-(define-parser-op stack-of-open-elements-push (node)
-  (vector-push-extend node stack-of-open-elements))
-
-
-(define-parser-op stack-of-open-elements-pop ()
-  (vector-pop stack-of-open-elements))
-
-
-(define-parser-op current-node ()
-  (aref stack-of-open-elements (1- (length stack-of-open-elements))))
-
-
-(define-parser-op adjusted-current-node ()
-  (if (and context-element
-           (= 1 (length stack-of-open-elements)))
-      context-element
-      (current-node)))
+             (tree-construction-dispatcher* parser token))))))
 
 
 ;; 13.2.6.1 Creating and inserting nodes

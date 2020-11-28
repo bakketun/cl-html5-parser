@@ -35,7 +35,7 @@
 
 
 (defmacro process-token-using-rules-for (mode)
-  `(tree-construction-dispatcher parser token :using-rules-for ,mode))
+  `(tree-construction-dispatcher* parser token :using-rules-for ,mode))
 
 
 (defmacro reprocess-the-token ()

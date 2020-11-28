@@ -4,11 +4,11 @@
    #:html5-parser-constants
    #:html5-parser-infra
    #:html5-parser-named-character-references
+   #:html5-parser-state
    #:html5-parser-tokenization-state
    #:html5-parser-tokenization-dsl)
   (:export
    #:make-html-tokenizer
-   #:make-tokenizer
    #:map-tokens
    #:tokenizer-run
    #:tokenizer-switch-state

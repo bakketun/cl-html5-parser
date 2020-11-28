@@ -4,6 +4,8 @@
    #:html5-parser-infra
    #:html5-parser-tokenization-state
    )
+  (:import-from #:html5-parser-state
+                #:adjusted-current-node-not-in-HTML-namespace-p)
   (:import-from  #:common-lisp
                  #:*
                  #:<
@@ -35,7 +37,6 @@
    #:ASCII_upper_alpha
    #:ASCII_upper_hex_digit
    #:Anything_else
-   #:adjusted-current-node-not-in-HTML-namespace-p
    #:anything_else-clause
    #:ascii-alphanumeric-p
    #:ascii-whitespace-p

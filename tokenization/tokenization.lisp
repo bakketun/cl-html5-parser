@@ -21,18 +21,11 @@
 (in-package :html5-parser-tokenization)
 
 
-(defun make-tokenizer (&key source encoding token-handler adjusted-current-node-not-in-HTML-namespace-p)
-  (make-instance 'html-tokenizer
-                 :source (cons source encoding)
-                 :adjusted-current-node-not-in-HTML-namespace-p adjusted-current-node-not-in-HTML-namespace-p
-                 :token-handler token-handler))
-
-
-(defun make-html-tokenizer (source &key encoding adjusted-current-node-not-in-HTML-namespace-p)
-  (make-instance 'html-tokenizer
-                 :source (cons source encoding)
-                 :adjusted-current-node-not-in-HTML-namespace-p adjusted-current-node-not-in-HTML-namespace-p
-                 :token-handler #'map-tokens-handler))
+(defun make-html-tokenizer (&key source encoding parser)
+  (setf (parser-tokenizer parser)
+        (make-instance 'html-tokenizer
+                       :source (cons source encoding)
+                       :parser parser)))
 
 
 (defvar *map-tokens-handler*)
@@ -54,11 +47,9 @@
 
 
 (defclass html-tokenizer ()
-  ((source :initarg :source)
-   (token-handler :initarg :token-handler
-                  :accessor tokenizer-token-handler)
-   (adjusted-current-node-not-in-HTML-namespace-p :initarg :adjusted-current-node-not-in-HTML-namespace-p
-                                                  :initform (constantly nil))
+  ((parser :initarg :parser
+           :reader tokenizer-parser)
+   (source :initarg :source)
    (last-start-tag :initarg :last-start-tag
                    :initform nil)
    (state :accessor tokenizer-state
@@ -87,23 +78,27 @@
      ,@body))
 
 
+(defclass tokenizer-test-html5-parser (html5-parser)
+  ((tokens :initform nil)))
+
+(defmethod tree-construction-dispatcher ((parser tokenizer-test-html5-parser) token)
+  (push token (slot-value parser 'tokens)))
+
 (defun tokenizer-test (data &key (initial-state 'data-state) last-start-tag (end-of-file-p t))
-  (let (tokens)
-    (let ((tokenizer (make-instance 'html-tokenizer
-                                    :token-handler (lambda (token)
-                                                     (push token tokens))
-                                    :last-start-tag last-start-tag))
-          (input-stream (make-input-stream)))
-      (tokenizer-switch-state tokenizer initial-state)
-      (loop :for char :across data
-            :do (input-stream-append input-stream (string char))
-            :do (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
-            :do (tokenizer-process tokenizer input-stream))
-      (when end-of-file-p
-        (input-stream-close input-stream)
-        (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
-        (tokenizer-process tokenizer input-stream))
-      (values (reverse tokens) tokenizer input-stream))))
+  (let ((tokenizer (make-instance 'html-tokenizer
+                                  :parser (make-instance 'tokenizer-test-html5-parser)
+                                  :last-start-tag last-start-tag))
+        (input-stream (make-input-stream)))
+    (tokenizer-switch-state tokenizer initial-state)
+    (loop :for char :across data
+          :do (input-stream-append input-stream (string char))
+          :do (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
+          :do (tokenizer-process tokenizer input-stream))
+    (when end-of-file-p
+      (input-stream-close input-stream)
+      (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
+      (tokenizer-process tokenizer input-stream))
+    (values (reverse (slot-value (tokenizer-parser tokenizer) 'tokens)) tokenizer input-stream)))
 
 
 (defun tokenizer-process (tokenizer input-stream)
@@ -192,7 +187,7 @@
     (when (tag-token-self-closing-flag token)
       (tokenizer-this-is-a-parse-error tokenizer :end-tag-with-trailing-solidus)))
   (do-tokenizer-trace (format *tokenizer-trace-output* "~&emit-token: ~S~&" token))
-  (funcall (tokenizer-token-handler tokenizer) token))
+  (tree-construction-dispatcher (tokenizer-parser tokenizer) token))
 
 
 (defun make-growable-string (&optional (init ""))
@@ -427,7 +422,7 @@ pointer at the end."
 ;; Other functions
 
 (defun tokenizer-adjusted-current-node-not-in-HTML-namespace-p (tokenizer)
-  (funcall (slot-value tokenizer 'adjusted-current-node-not-in-HTML-namespace-p)))
+  (parser-adjusted-current-node-not-in-HTML-namespace-p (tokenizer-parser tokenizer)))
 
 
 (defun tokenizer-consumed-as-part-of-an-attribute-p (tokenizer)

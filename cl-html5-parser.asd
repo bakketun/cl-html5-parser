@@ -36,6 +36,12 @@
                              (:file "named-character-references-table")
                              (:file "named-character-references")))
 
+               (:file "package-tree")
+               (:file "simple-tree")
+
+               (:module "parser-state"
+                :components ((:file "package-parser-state")
+                             (:file "parser-state")))
 
                (:module "tokenization"
                 :components ((:file "package-tokenization-state")
@@ -46,8 +52,6 @@
                              (:file "tokenization-dsl")
                              (:file "tokenization-state")))
 
-               (:file "package-tree")
-               (:file "simple-tree")
 
                (:module "tree-construction"
                 :components ((:file "package-tree-construction")
