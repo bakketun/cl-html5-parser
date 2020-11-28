@@ -37,11 +37,6 @@
    (character-reference-code)))
 
 
-(define-parser-op tokenizer-run ()
-    (source)
-  (tokenizer-process (make-input-stream :characters source)))
-
-
 (defmethod print-object ((tokenizer html-tokenizer) stream)
   (print-unreadable-object (tokenizer stream :type t :identity t)
     (loop :for slot :in '(state last-start-tag return-state current-token)
@@ -59,29 +54,9 @@
      ,@body))
 
 
-(defclass test-html-tokenizer (html-tokenizer)
-  ((tokens :initform nil)))
-
-(defmethod tree-construction-dispatcher ((parser test-html-tokenizer) token &key &allow-other-keys)
-  (push token (slot-value parser 'tokens)))
-
-(defun tokenizer-test (data &key (initial-state 'data-state) last-start-tag (end-of-file-p t))
-  (let ((parser (make-instance 'test-html-tokenizer
-                               :last-start-tag last-start-tag))
-        (input-stream (make-input-stream)))
-    (switch-tokenization-state initial-state)
-    (loop :for char :across data
-          :do (input-stream-append input-stream (string char))
-          :do (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
-          :do (tokenizer-process input-stream))
-    (when end-of-file-p
-      (input-stream-close input-stream)
-      (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
-      (tokenizer-process input-stream))
-    (values (reverse (slot-value parser 'tokens))
-            (parser-parse-errors parser)
-            parser
-            input-stream)))
+(define-parser-op tokenizer-process1-in-state (input-stream)
+    (state)
+  (funcall state parser input-stream))
 
 
 (define-parser-op tokenizer-process (input-stream)
@@ -90,10 +65,9 @@
         :while (and continuep (not (input-stream-empty-p input-stream)))))
 
 
-(define-parser-op tokenizer-process1-in-state (input-stream)
-    (state)
-  (funcall state parser input-stream))
-
+(define-parser-op tokenizer-run ()
+    (source)
+  (tokenizer-process (make-input-stream :characters source)))
 
 ;; State
 
@@ -114,7 +88,7 @@
 
 (define-parser-op tokenization-switch-to-the-return-state ()
     (return-state)
-  (switch-state return-state))
+  (switch-tokenization-state return-state))
 
 
 ;; Emit tokens
@@ -295,3 +269,31 @@
             :do (current-attribute-value-append char))
       (loop :for char :across temporary-buffer
             :do (emit-character-token char))))
+
+
+
+;; Testing
+
+(defclass test-html-tokenizer (html-tokenizer)
+  ((tokens :initform nil)))
+
+(defmethod tree-construction-dispatcher ((parser test-html-tokenizer) token &key &allow-other-keys)
+  (push token (slot-value parser 'tokens)))
+
+(defun tokenizer-test (data &key (initial-state 'data-state) last-start-tag (end-of-file-p t))
+  (let ((parser (make-instance 'test-html-tokenizer
+                               :last-start-tag last-start-tag))
+        (input-stream (make-input-stream)))
+    (switch-tokenization-state initial-state)
+    (loop :for char :across data
+          :do (input-stream-append input-stream (string char))
+          :do (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
+          :do (tokenizer-process input-stream))
+    (when end-of-file-p
+      (input-stream-close input-stream)
+      (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
+      (tokenizer-process input-stream))
+    (values (reverse (slot-value parser 'tokens))
+            (parser-parse-errors parser)
+            parser
+            input-stream)))
