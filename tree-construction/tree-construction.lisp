@@ -53,6 +53,7 @@
 ;; https://html.spec.whatwg.org/multipage/parsing.html#insert-a-foreign-element
 
 (define-parser-op appropriate-place-for-inserting-a-node (&optional override-target)
+    ()
   "<https://html.spec.whatwg.org/multipage/parsing.html#appropriate-place-for-inserting-a-node>"
   (let (target
         adjusted-insertion-location-parent
@@ -79,6 +80,7 @@
 
 
 (define-parser-op create-element-for-token (token given-namespace intended-parent)
+    ()
   (let* (;; 1. Let document be intended parent's node document.
          (document (node-owner-document intended-parent))
          ;; 2. Let local name be the tag name of the token.
@@ -95,6 +97,7 @@
 
 
 (define-parser-op insert-foreign-element (token namespace)
+    ()
   "https://html.spec.whatwg.org/multipage/parsing.html#insert-a-foreign-element"
   ;; 1
   (multiple-value-bind (adjusted-insertion-location-parent adjusted-insertion-location-before-node)
@@ -116,10 +119,12 @@
 
 
 (define-parser-op insert-an-html-element (token)
+    ()
   (insert-foreign-element token +HTML-namespace+))
 
 
 (define-parser-op insert-a-character (char)
+    ()
   "https://html.spec.whatwg.org/multipage/parsing.html#insert-a-character"
   (let ((data (string char)))
     (multiple-value-bind (adjusted-insertion-location-parent adjusted-insertion-location-next-sibling adjusted-insertion-location-previous-sibling)
@@ -132,6 +137,7 @@
 
 
 (define-parser-op insert-a-comment (token &optional parent-node before-node)
+    (document)
   "https://html.spec.whatwg.org/multipage/parsing.html#insert-a-comment"
   ;; 1
   (let ((data (token-data token)))
@@ -149,5 +155,6 @@
 
 
 (define-parser-op generate-implied-end-tags ()
+    ()
   (loop :while (member (node-name (current-node)) '("dd" "dt" "li" "optgroup" "option" "p" "rb" "rp" "rt" "rtc"))
         :do (stack-of-open-elements-pop)))

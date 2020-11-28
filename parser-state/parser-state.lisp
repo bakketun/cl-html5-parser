@@ -47,12 +47,8 @@
 (defgeneric tree-construction-dispatcher (parser token &key using-rules-for))
 
 
-(defmacro define-parser-op (name (&rest args) &body body)
-  (let ((slots '(parse-errors
-                 insertion-mode
-                 context-element
-                 stack-of-open-elements))
-        (function-name (intern (format nil "~A-~A" 'parser name)
+(defmacro define-parser-op (name (&rest args) (&rest slots) &body body)
+  (let ((function-name (intern (format nil "~A-~A" 'parser name)
                                (symbol-package 'define-parser-op))))
     `(progn
        (defun ,function-name (parser ,@args)
@@ -63,6 +59,7 @@
 
 
 (define-parser-op this-is-a-parse-error (code)
+    (parse-errors)
   (push code parse-errors))
 
 
@@ -71,6 +68,7 @@
 
 
 (define-parser-op switch-insertion-mode (new-mode)
+    (insertion-mode)
   (format *trace-output* "~&~A → ~A~&" insertion-mode new-mode)
   (setf insertion-mode new-mode))
 
@@ -79,18 +77,22 @@
 ;; https://html.spec.whatwg.org/multipage/parsing.html#the-stack-of-open-elements
 
 (define-parser-op stack-of-open-elements-push (node)
+    (stack-of-open-elements)
   (vector-push-extend node stack-of-open-elements))
 
 
 (define-parser-op stack-of-open-elements-pop ()
+    (stack-of-open-elements)
   (vector-pop stack-of-open-elements))
 
 
 (define-parser-op current-node ()
+    (stack-of-open-elements)
   (aref stack-of-open-elements (1- (length stack-of-open-elements))))
 
 
 (define-parser-op adjusted-current-node ()
+    (context-element stack-of-open-elements)
   (if (and context-element
            (= 1 (length stack-of-open-elements)))
       context-element
