@@ -286,7 +286,7 @@
 (defgeneric named-node-map-remove-named-item-ns (namespace local-name))
 
 (defclass named-node-map ()
-  ((items :initform (make-array 0 :adjustable t))))
+  ((items :initform (make-array 0 :adjustable t :fill-pointer 0))))
 
 (defmethod named-node-map-length ((this named-node-map))
   (length (slot-value this 'items)))
