@@ -21,6 +21,10 @@
 (in-package :html5-parser-tokenization)
 
 
+(defun make-growable-string (&optional (size 0))
+  (make-array size :adjustable t :fill-pointer 0 :element-type 'character))
+
+
 (defclass html-tokenizer (html5-parser-state)
   ((source :initarg :source)
    (last-start-tag :initarg :last-start-tag
@@ -90,70 +94,6 @@
   (funcall (tokenizer-state tokenizer) tokenizer input-stream))
 
 
-(defun tokenizer-emit-token (parser token)
-  (when (end-tag-token-p token)
-    (when (tag-token-attributes token)
-      (this-is-a-parse-error :end-tag-with-attributes))
-    (when (tag-token-self-closing-flag token)
-      (this-is-a-parse-error :end-tag-with-trailing-solidus)))
-  (do-tokenizer-trace (format *tokenizer-trace-output* "~&emit-token: ~S~&" token))
-  (tree-construction-dispatcher parser token))
-
-
-(defun make-growable-string (&optional (init ""))
-  "Make an adjustable string with a fill pointer.
-Given INIT, a string, return an adjustable version of it with the fill
-pointer at the end."
-  (let ((string
-          (make-array (max 5 (length init))
-                      :element-type 'character
-                      :adjustable t
-                      :fill-pointer (length init))))
-    (when init
-      (replace string init))
-    string))
-
-(defun nconcat (string &rest data)
-  "Destructively concatenate DATA, string designators, to STRING."
-  (unless (array-has-fill-pointer-p string)
-    (setf string (make-growable-string string)))
-  (labels ((conc (string x)
-             (typecase x
-               (character
-                (vector-push-extend x string))
-               (string
-                (let ((len (length x)))
-                  (loop for c across x do
-                    (vector-push-extend c string len))))
-               (symbol (conc string (string x))))))
-    (dolist (x data string)
-      (conc string x))))
-(define-modify-macro nconcatf (&rest data) nconcat)
-
-(defun add-attribute (token name)
-  (let ((attr (cons (make-growable-string (string name))
-                    (make-growable-string))))
-    (setf (tag-token-attributes token)
-          (append (tag-token-attributes token) (list attr)))
-    attr))
-
-
-(defun add-to-attr-name (attr &rest data)
-  (setf (car attr)
-        (apply #'nconcat
-               (car attr)
-               data)))
-
-
-(defun add-to-attr-value (attr &rest data)
-  (setf (cdr attr)
-        (apply #'nconcat
-               (cdr attr)
-               data)))
-
-;; -------------------
-
-
 ;; State
 
 (defun tokenizer-switch-state (tokenizer new-state &key reconsume-character)
@@ -176,6 +116,16 @@ pointer at the end."
 
 
 ;; Emit tokens
+
+(defun tokenizer-emit-token (parser token)
+  (when (end-tag-token-p token)
+    (when (tag-token-attributes token)
+      (this-is-a-parse-error :end-tag-with-attributes))
+    (when (tag-token-self-closing-flag token)
+      (this-is-a-parse-error :end-tag-with-trailing-solidus)))
+  (do-tokenizer-trace (format *tokenizer-trace-output* "~&emit-token: ~S~&" token))
+  (tree-construction-dispatcher parser token))
+
 
 (defun tokenizer-emit-current-token (tokenizer)
   (with-slots (current-token last-start-tag) tokenizer
@@ -299,7 +249,7 @@ pointer at the end."
 
 (defun tokenizer-create-new-attribute (tokenizer)
   (with-slots (current-token current-attribute) tokenizer
-    (setf current-attribute (add-attribute current-token (make-growable-string)))))
+    (setf current-attribute (add-attribute current-token))))
 
 
 (defun tokenizer-current-attribute-name-append (tokenizer char)

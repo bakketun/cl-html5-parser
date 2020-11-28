@@ -29,7 +29,7 @@
   (character))
 
 (defstruct (comment-token (:include token))
-  (data (make-growable-string)))
+  (data (make-array 0 :adjustable t :fill-pointer 0 :element-type 'character)))
 
 (defstruct (named-token (:include token))
   (name))
@@ -56,6 +56,22 @@
 (defun token-force-quirks-flag (token) (doctype-token-force-quirks-flag token))
 (defun token-attributes        (token) (tag-token-attributes token))
 (defun token-self-closing-flag (token) (tag-token-self-closing-flag token))
+
+
+(defun add-attribute (token)
+  (let ((attr (cons (make-array 10 :adjustable t :fill-pointer 0 :element-type 'character)
+                    (make-array 10 :adjustable t :fill-pointer 0 :element-type 'character))))
+    (setf (tag-token-attributes token)
+          (append (tag-token-attributes token) (list attr)))
+    attr))
+
+
+(defun add-to-attr-name (attr char)
+  (vector-push-extend char (car attr)))
+
+
+(defun add-to-attr-value (attr char)
+  (vector-push-extend char (cdr attr)))
 
 
 (defun token-as-plist (token)
