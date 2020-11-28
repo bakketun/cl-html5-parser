@@ -103,69 +103,6 @@
   (funcall (tokenizer-state tokenizer) tokenizer input-stream))
 
 
-;; Tokens
-
-(defstruct token)
-
-(defstruct (end-of-file-token (:include token)))
-
-(defstruct (character-token (:include token))
-  (character))
-
-(defstruct (comment-token (:include token))
-  (data (make-growable-string)))
-
-(defstruct (named-token (:include token))
-  (name))
-
-(defstruct (doctype-token (:include named-token))
-  (public-id nil)
-  (system-id nil)
-  (force-quirks-flag nil))
-
-(defstruct (tag-token (:include named-token))
-  (attributes nil)
-  (self-closing-flag nil))
-
-(defstruct (start-tag-token (:include tag-token)))
-
-(defstruct (end-tag-token (:include tag-token)))
-
-
-(defun token-character         (token) (character-token-character token))
-(defun token-data              (token) (comment-token-data token))
-(defun token-name              (token) (named-token-name token))
-(defun token-public-id         (token) (doctype-token-public-id token))
-(defun token-system-id         (token) (doctype-token-system-id token))
-(defun token-force-quirks-flag (token) (doctype-token-force-quirks-flag token))
-(defun token-attributes        (token) (tag-token-attributes token))
-(defun token-self-closing-flag (token) (tag-token-self-closing-flag token))
-
-
-(defun token-as-plist (token)
-  (etypecase token
-    (doctype-token
-     (list :type :doctype
-           :name (doctype-token-name token)
-           :public-id (doctype-token-public-id token)
-           :system-id (doctype-token-system-id token)
-           :force-quirks (doctype-token-force-quirks-flag token)))
-    (start-tag-token
-     (list :type :start-tag
-           :name (tag-token-name token)
-           :data (tag-token-attributes token)
-           :self-closing (tag-token-self-closing-flag token)))
-    (end-tag-token
-     (list :type :end-tag
-           :name (tag-token-name token)))
-    (comment-token
-     (list :type :comment
-           :data (comment-token-data token)))
-    (character-token
-     (list :type :characters
-           :data (string (character-token-character token))))))
-
-
 (defun tokenizer-emit-token (parser token)
   (when (end-tag-token-p token)
     (when (tag-token-attributes token)

@@ -50,6 +50,7 @@
                              (:file "package-tokenization-dsl")
                              (:file "package-tokenization")
                              (:file "character-input-stream")
+                             (:file "token")
                              (:file "tokenization")
                              (:file "tokenization-dsl")
                              (:file "tokenization-state")))
