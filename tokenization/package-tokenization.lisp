@@ -9,7 +9,6 @@
    #:html5-parser-tokenization-dsl)
   (:export
    #:html-tokenizer
-   #:map-tokens
    #:tokenizer-run
    #:tokenizer-switch-state
    ;; Token types

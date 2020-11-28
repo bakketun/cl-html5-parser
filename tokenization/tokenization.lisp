@@ -21,24 +21,6 @@
 (in-package :html5-parser-tokenization)
 
 
-(defvar *map-tokens-handler*)
-
-
-(defun map-tokens-handler (token)
-  (funcall *map-tokens-handler* (token-as-plist token)))
-
-
-(defun map-tokens (tokenizer function)
-  (with-slots (source) tokenizer
-    (let ((*map-tokens-handler* function))
-      (tokenizer-process tokenizer (make-input-stream :characters source)))))
-
-
-(defun tokenizer-run (tokenizer)
-  (with-slots (source) tokenizer
-    (tokenizer-process tokenizer (make-input-stream :characters source))))
-
-
 (defclass html-tokenizer (html5-parser-state)
   ((source :initarg :source)
    (last-start-tag :initarg :last-start-tag
@@ -50,6 +32,11 @@
    (current-attribute)
    (temporary-buffer :initform (make-growable-string))
    (character-reference-code)))
+
+
+(defun tokenizer-run (tokenizer)
+  (with-slots (source) tokenizer
+    (tokenizer-process tokenizer (make-input-stream :characters source))))
 
 
 (defmethod print-object ((tokenizer html-tokenizer) stream)
