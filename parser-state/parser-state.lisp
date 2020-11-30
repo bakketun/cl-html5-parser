@@ -30,7 +30,7 @@
    (insertion-mode :initform 'initial-insertion-mode)
    (original-insertion-mode :initform nil)
    ;; 13.2.4.2 The stack of open elements
-   (stack-of-open-elements :initform (make-array 0 :fill-pointer 0 :adjustable t))
+   (stack-of-open-elements :initform nil)
    (context-element :initform nil)
    ;; 13.2.4.3 The list of active formatting elements
    ;; TODO
@@ -78,23 +78,23 @@
 
 (define-parser-op stack-of-open-elements-push (node)
     (stack-of-open-elements)
-  (vector-push-extend node stack-of-open-elements))
+  (push node stack-of-open-elements))
 
 
 (define-parser-op stack-of-open-elements-pop ()
     (stack-of-open-elements)
-  (vector-pop stack-of-open-elements))
+  (pop stack-of-open-elements))
 
 
 (define-parser-op current-node ()
     (stack-of-open-elements)
-  (aref stack-of-open-elements (1- (length stack-of-open-elements))))
+  (car stack-of-open-elements))
 
 
 (define-parser-op adjusted-current-node ()
     (context-element stack-of-open-elements)
   (if (and context-element
-           (= 1 (length stack-of-open-elements)))
+           (null (cdr stack-of-open-elements)))
       context-element
       (current-node)))
 
@@ -102,3 +102,103 @@
 (define-parser-op adjusted-current-node-not-in-HTML-namespace-p ()
   ;; TODO
   nil)
+
+
+;; Element type as (cons namespace-uri local-name)
+
+(defmethod element-namespace-uri ((element cons))
+  (car element))
+
+
+(defmethod element-local-name ((element cons))
+  (cdr element))
+
+
+;; Element type as just a string is an HTML element.
+
+(defmethod element-namespace-uri ((element string))
+  +HTML-namespace+)
+
+
+(defmethod element-local-name ((element string))
+  element)
+
+
+(defun element-equal (elt1 elt2)
+  (or (eq elt1 elt2)
+      (and (equal (element-namespace-uri elt1) (element-namespace-uri elt2))
+           (equal (element-local-name elt1) (element-local-name elt2)))))
+
+
+(define-parser-op element-in-specific-scope-p (target-node scope-test)
+    (stack-of-open-elements)
+  (prog (node
+         (stack stack-of-open-elements))
+   1. (setf node (current-node))
+   2. (when (element-equal node target-node)
+        (return t))
+   3. (when (funcall scope-test node)
+        (return nil))
+   4. (setf node (pop stack))
+     (go 2)))
+
+
+(define-parser-op element-in-scope-p (element)
+    ()
+  (element-in-specific-scope-p element
+                               (lambda (element)
+                                 (or (member (element-local-name element)
+                                             '("applet"
+                                               "caption"
+                                               "html"
+                                               "table"
+                                               "td"
+                                               "th"
+                                               "marquee"
+                                               "object"
+                                               "template")
+                                             :test #'equal)
+                                     (member element '((+MathML-namespace+ . "mi")
+                                                       (+MathML-namespace+ . "mo")
+                                                       (+MathML-namespace+ . "mn")
+                                                       (+MathML-namespace+ . "ms")
+                                                       (+MathML-namespace+ . "mtext")
+                                                       (+MathML-namespace+ . "annotation-xml")
+                                                       (+SVG-namespace+ . "foreignObject")
+                                                       (+SVG-namespace+ . "desc")
+                                                       (+SVG-namespace+ . "title"))
+                                             :test #'element-equal)))))
+
+
+(define-parser-op element-in-list-item-scope-p (element)
+    ()
+  (or (element-in-scope-p element)
+      (element-in-specific-scope-p element
+                                   (lambda (element)
+                                     (or (element-equal '(+HTML-namespace+ . "ol") element)
+                                         (element-equal '(+HTML-namespace+ . "ul") element))))))
+
+
+(define-parser-op element-in-button-scope-p (element)
+    ()
+  (or (element-in-scope-p element)
+      (element-in-specific-scope-p element
+                                   (lambda (element)
+                                     (element-equal '(+HTML-namespace+ . "button") element)))))
+
+
+(define-parser-op element-in-table-scope-p (element)
+    ()
+    (element-in-specific-scope-p element (lambda (element)
+                                           (or
+                                            (element-equal '(+HTML-namespace+ . "html") element)
+                                            (element-equal '(+HTML-namespace+ . "table") element)
+                                            (element-equal '(+HTML-namespace+ . "template") element)))))
+
+
+(define-parser-op element-in-select-scope-p (element)
+    ()
+    (element-in-specific-scope-p element (lambda (element)
+                                           (not  (or
+                                                  (element-equal '(+HTML-namespace+ . "optgroup") element)
+                                                  (element-equal '(+HTML-namespace+ . "option") element))))))
