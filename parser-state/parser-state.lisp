@@ -29,6 +29,7 @@
    ;; 13.2.4.1 The insertion mode
    (insertion-mode :initform 'initial-insertion-mode)
    (original-insertion-mode :initform nil)
+   (stack-of-template-insertion-modes :initform nil)
    ;; 13.2.4.2 The stack of open elements
    (stack-of-open-elements :initform nil)
    (context-element :initform nil)
@@ -67,14 +68,114 @@
   (reverse (slot-value parser 'parse-errors)))
 
 
+;; 13.2.4.1 The insertion mode
+;; <https://html.spec.whatwg.org/multipage/parsing.html#the-insertion-mode>
+
 (define-parser-op switch-insertion-mode (new-mode)
-    (insertion-mode)
-  (format *trace-output* "~&~A → ~A~&" insertion-mode new-mode)
-  (setf insertion-mode new-mode))
+    (insertion-mode original-insertion-mode)
+  (cond ((eq new-mode 'original-insertion-mode)
+         (format *trace-output* "~&~A → original insertion mode ~A~&" insertion-mode original-insertion-mode)
+         (setf insertion-mode original-insertion-mode))
+        (t
+         (format *trace-output* "~&~A → ~A~&" insertion-mode new-mode)
+         (setf insertion-mode new-mode))))
+
+
+(define-parser-op let-the-original-insertion-mode-be-the-current-insertion-mode ()
+    (insertion-mode original-insertion-mode)
+  (setf original-insertion-mode insertion-mode))
+
+
+(define-parser-op stack-of-template-insertion-modes-push (mode)
+    (stack-of-template-insertion-modes)
+  (push mode stack-of-template-insertion-modes))
+
+
+(define-parser-op stack-of-template-insertion-modes-pop ()
+    (stack-of-template-insertion-modes)
+  (pop stack-of-template-insertion-modes))
+
+
+(define-parser-op stack-of-template-insertion-modes-empty-p ()
+    (stack-of-template-insertion-modes)
+  (not (null stack-of-template-insertion-modes)))
+
+
+(define-parser-op reset-the-insertion-mode-appropriately ()
+    (stack-of-open-elements
+     context-element
+     head-element-pointer)
+  (block reset
+    (macrolet ((switch-insertion-mode-and-return (new-mode)
+                 `(progn (switch-insertion-mode ,new-mode)
+                         (return-from reset))))
+      (prog ((first-node-in-stack-of-open-elements (car (last stack-of-open-elements)))
+             last node)
+       1. (setf last nil)
+       2. (setf node (car stack-of-open-elements))
+       3. Loop
+         (when (eq node first-node-in-stack-of-open-elements)
+           (setf last t))
+         (when context-element
+           (setf node context-element))
+       4. (when (element-equal node "select")
+            (prog (ancestor)
+             1. (when last (go done))
+             2. (setf ancestor node)
+             3. Loop (when (eq ancestor first-node-in-stack-of-open-elements) (go done))
+             4. (setf ancestor (stack-of-open-elements-node-before ancestor))
+             5. (when (element-equal ancestor "template") (go done))
+             6. (when (element-equal ancestor "table")
+                  (switch-insertion-mode-and-return 'in-select-in-table-insertion-mode))
+             7. (go loop)
+             8. Done
+               (switch-insertion-mode 'in-select-in-table-insertion-mode)
+               (return-from reset)))
+       5. (when (and (or (element-equal node "td")
+                         (element-equal node "th"))
+                     (not last))
+            (switch-insertion-mode-and-return 'in-cell-insertion-mode))
+       6. (when (element-equal node "tr")
+            (switch-insertion-mode-and-return 'in-row-insertion-mode))
+       7. (when (or (element-equal node "tbody")
+                    (element-equal node "thead")
+                    (element-equal node "tfoot"))
+            (switch-insertion-mode-and-return 'in-table-body-insertion-mode))
+       8. (when (element-equal node "caption")
+            (switch-insertion-mode-and-return 'in-caption-insertion-mode))
+       9. (when (element-equal node "colgroup")
+            (switch-insertion-mode-and-return 'in-column-group-insertion-mode))
+       10. (when (element-equal node "table")
+             (switch-insertion-mode-and-return 'in-table-insertion-mode))
+       11. (when (element-equal node "template")
+             (switch-insertion-mode-and-return 'current-template-insertion-mode))
+       12. (when (and (element-equal node "head")
+                      (not last))
+             (switch-insertion-mode-and-return 'in-head-insertion-mode))
+       13. (when (element-equal node "body")
+             (switch-insertion-mode-and-return 'in-body-insertion-mode))
+       14. (when (element-equal node "frameset")
+             (switch-insertion-mode-and-return 'in-frameset-insertion-mode))
+       15. (when (element-equal node "html")
+             (prog ()
+              1. (when (null head-element-pointer)
+                   (switch-insertion-mode-and-return 'before-head-insertion-mode))
+              2. (switch-insertion-mode-and-return 'after-head-insertion-mode)))
+       16. (when last
+             (switch-insertion-mode-and-return 'in-body-insertion-mode))
+       17. (setf node (stack-of-open-elements-node-before node))
+       18. (go loop)))))
 
 
 ;; 13.2.4.2 The stack of open elements
-;; https://html.spec.whatwg.org/multipage/parsing.html#the-stack-of-open-elements
+;; <https://html.spec.whatwg.org/multipage/parsing.html#the-stack-of-open-elements>
+
+(define-parser-op stack-of-open-elements-node-before (node)
+    (stack-of-open-elements)
+  (loop :for (after before) :on stack-of-open-elements
+        :when (eq node after)
+          :do (return before)))
+
 
 (define-parser-op stack-of-open-elements-push (node)
     (stack-of-open-elements)
