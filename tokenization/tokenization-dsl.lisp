@@ -130,3 +130,9 @@
 
 (defun lowercase-version-of (char)
   (char-downcase char))
+
+
+(defmacro adjusted-current-node-not-in-HTML-namespace-p ()
+  `(let ((adjusted-current-node (adjusted-current-node)))
+     (and adjusted-current-node
+          (not (eql +HTML-namespace+ (element-namespace-uri adjusted-current-node))))))

@@ -18,7 +18,7 @@
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;;; 13.2.4 Parse state
-;;;; https://html.spec.whatwg.org/multipage/parsing.html#parse-state
+;;;; <https://html.spec.whatwg.org/multipage/parsing.html#parse-state>
 
 (in-package :html5-parser-state)
 
@@ -198,11 +198,6 @@
            (null (cdr stack-of-open-elements)))
       context-element
       (current-node)))
-
-
-(define-parser-op adjusted-current-node-not-in-HTML-namespace-p ()
-  ;; TODO
-  nil)
 
 
 ;; Element type as (cons namespace-uri local-name)

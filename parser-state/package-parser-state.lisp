@@ -45,8 +45,6 @@
    #:stack-of-open-elements-pop
    #:current-node
    #:adjusted-current-node
-   #:adjusted-current-node-not-in-HTML-namespace-p
-   #:parser-adjusted-current-node-not-in-HTML-namespace-p
 
    #:initial-insertion-mode
    ))
