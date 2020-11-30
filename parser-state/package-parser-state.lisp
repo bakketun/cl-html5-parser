@@ -46,4 +46,6 @@
    #:stack-of-open-elements-pop
    #:current-node
    #:adjusted-current-node
+
+   #:parser-insert-an-html-element
    ))

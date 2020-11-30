@@ -85,6 +85,15 @@
    #:element-has-attribute
    #:element-has-attribute-ns
 
+   #:named-node-map-length
+   #:named-node-map-item
+   #:named-node-map-get-named-item
+   #:named-node-map-get-named-item-ns
+   #:named-node-map-set-named-item
+   #:named-node-map-set-named-item-ns
+   #:named-node-map-remove-named-item
+   #:named-node-map-remove-named-item-ns
+
    #:attr-namespace-uri
    #:attr-prefix
    #:attr-local-name

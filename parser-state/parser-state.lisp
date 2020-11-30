@@ -34,7 +34,7 @@
    (stack-of-open-elements :initform nil)
    (context-element :initform nil)
    ;; 13.2.4.3 The list of active formatting elements
-   ;; TODO
+   (list-of-active-formatting-elements :initform nil)
    ;; 13.2.4.4 The element pointers
    (head-element-pointer :initform nil)
    (form-element-pointer :initform nil)
@@ -298,3 +298,95 @@
                                            (not  (or
                                                   (element-equal '(+HTML-namespace+ . "optgroup") element)
                                                   (element-equal '(+HTML-namespace+ . "option") element))))))
+
+
+;; 13.2.4.3 The list of active formatting elements
+;; <https://html.spec.whatwg.org/multipage/parsing.html#the-list-of-active-formatting-elements>
+
+(defun make-entry (token element)
+  (cons token element))
+
+
+(defun entry-element (entry)
+  (and (consp entry)
+       (cdr entry)))
+
+
+(defun entry-token (entry)
+  (and (consp entry)
+       (car entry)))
+
+
+(defun entry-marker-p (entry)
+  (eq :marker entry))
+
+
+(define-parser-op insert-a-marker-at-the-end-of-the-list-of-active-formatting-elements ()
+    (list-of-active-formatting-elements)
+  (push :marker list-of-active-formatting-elements))
+
+
+(defun element-equal-attributes (elt1 elt2)
+  (let ((attrs1 (element-attributes elt1))
+        (attrs2 (element-attributes elt2)))
+    (and (= (named-node-map-length attrs1)
+            (named-node-map-length attrs2))
+         (loop :for i :from 0 :below (named-node-map-length attrs1)
+               :for attr1 := (named-node-map-item attrs1 i)
+               :for attr2 := (named-node-map-get-named-item-ns attrs2 (attr-namespace-uri attr1) (attr-local-name attr1))
+               :always (and attr2
+                            (equal (attr-value attr1)
+                                   (attr-value attr2)))))))
+
+
+(define-parser-op push-onto-the-list-of-active-formatting-elements (token element)
+    (list-of-active-formatting-elements)
+  1. (loop :for previous :on (cons nil list-of-active-formatting-elements)
+           :for entry := (cadr previous)
+           :while entry
+           :until (entry-marker-p entry)
+           :for entry-element := (entry-element entry)
+           :when (and (equal (element-namespace-uri entry-element) (element-namespace-uri element))
+                      (equal (element-local-name entry-element) (element-local-name element))
+                      (element-equal-attributes entry-element element))
+             :count it :into matched
+           :when (= 3 matched)
+             ;; Remove the matched
+             :do (setf (cdr previous) (cddr previous))
+                 (return))
+  2. (push (make-entry token element) list-of-active-formatting-elements))
+
+
+;; Implemented in tree-construction
+(declaim (ftype (function (html5-parser-state t) t) parser-insert-an-html-element))
+
+
+(define-parser-op reconstruct-the-active-formatting-elements ()
+    (list-of-active-formatting-elements
+     stack-of-open-elements)
+  (prog (entry-cons entry
+         new-element)
+   1. (unless list-of-active-formatting-elements
+        (return))
+   2. (when (or (entry-marker-p (car list-of-active-formatting-elements))
+                (member (entry-element (car list-of-active-formatting-elements))
+                        stack-of-open-elements))
+        (return))
+   3. (setf entry-cons list-of-active-formatting-elements
+            entry (car entry-cons))
+   4. rewind
+     (when (null (cdr entry-cons))
+       (go create))
+   5. (setf entry-cons (cdr entry-cons)
+            entry (car entry-cons))
+   6. (when (and (not (entry-marker-p entry))
+                 (not (member (entry-element entry) stack-of-open-elements)))
+        (go rewind))
+   7. advance
+     (setf entry-cons (cdr entry-cons)
+           entry (car entry-cons))
+   8. create
+     (setf new-element (insert-an-html-element (entry-token entry)))
+   9. (setf (car entry-cons) (make-entry (entry-token entry) new-element))
+   10. (unless (eq (car entry-cons) (car list-of-active-formatting-elements))
+         (go advance))))
