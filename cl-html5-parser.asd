@@ -41,7 +41,8 @@
                (:file "simple-tree")
 
                (:module "parser-state"
-                :components ((:file "package-parser-state")
+                :components ((:file "package-insertion-mode")
+                             (:file "package-parser-state")
                              (:file "parser-state")))
 
                (:module "tokenization"

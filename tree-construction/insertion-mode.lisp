@@ -95,7 +95,7 @@
                     :collect `(equal ,name (token-name token))))))
 
 
-(define-insertion-mode initial-insertion-mode
+(define-insertion-mode initial
     1 "initial"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode"
   (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
@@ -199,18 +199,18 @@
                       (and (not (the-system-identifier-is-missing)) (the-public-identifier-starts-with "-//W3C//DTD HTML 4.01 Transitional//"))))
              (setf (document-associated-mode document) :limited-quirks)))
 
-      (switch-insertion-mode 'before-html-insertion-mode)))
+      (switch-insertion-mode 'before-html)))
 
   (Anything-else
    (unless iframe-srcdoc-p
      (parse-error)
      (setf (document-associated-mode document) :quirks))
 
-   (switch-insertion-mode 'before-html-insertion-mode)
+   (switch-insertion-mode 'before-html)
    (reprocess-the-token)))
 
 
-(define-insertion-mode before-html-insertion-mode
+(define-insertion-mode before-html
     2 "before html"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-before-html-insertion-mode"
   (A-DOCTYPE-token
@@ -228,7 +228,7 @@
       (node-append-child document element)
       (stack-of-open-elements-push element))
     ;; Not implemented: secure context
-    (switch-insertion-mode 'before-head-insertion-mode))
+    (switch-insertion-mode 'before-head))
 
   (An-end-tag-whose-tag-name-is-one-of ("head" "body" "html" "br")
     (act-as-anything-else))
@@ -241,11 +241,11 @@
      (node-append-child document element)
      (stack-of-open-elements-push element)
      ;; Not implemented: secure context
-     (switch-insertion-mode 'before-head-insertion-mode)
+     (switch-insertion-mode 'before-head)
      (reprocess-the-token))))
 
 
-(define-insertion-mode before-head-insertion-mode
+(define-insertion-mode before-head
     3 "before head"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-before-head-insertion-mode"
   (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
@@ -259,11 +259,11 @@
     (parse-error))
 
   (A-start-tag-whose-tag-name-is ("html")
-    (process-token-using-rules-for 'in-body-insertion-mode))
+    (process-token-using-rules-for 'in-body))
 
   (A-start-tag-whose-tag-name-is ("head")
     (setf head-element-pointer (insert-an-html-element token))
-    (switch-insertion-mode 'in-head-insertion-mode))
+    (switch-insertion-mode 'in-head))
 
   (An-end-tag-whose-tag-name-is-one-of ("head" "body" "html" "br")
     (act-as-anything-else))
@@ -273,26 +273,26 @@
 
   (Anything-else
    (setf head-element-pointer (insert-an-html-element (make-start-tag-token :name "head")))
-   (switch-insertion-mode 'in-head-insertion-mode)
+   (switch-insertion-mode 'in-head)
    (reprocess-the-token)))
 
 
-(define-insertion-mode in-head-insertion-mode
+(define-insertion-mode in-head
     4 "in head"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead"
   (Anything-else
    (stack-of-open-elements-pop)
-   (switch-insertion-mode 'after-head-insertion-mode)
+   (switch-insertion-mode 'after-head)
    (reprocess-the-token)))
 
 
-(define-insertion-mode in-head-noscript-insertion-mode
+(define-insertion-mode in-head-noscript
     5 "in head noscript"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inheadnoscript"
   )
 
 
-(define-insertion-mode after-head-insertion-mode
+(define-insertion-mode after-head
     6 "after head"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-after-head-insertion-mode"
   (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
@@ -305,26 +305,26 @@
     (parse-error))
 
   (A-start-tag-whose-tag-name-is ("html")
-    (process-token-using-rules-for 'in-body-insertion-mode))
+    (process-token-using-rules-for 'in-body))
 
   (A-start-tag-whose-tag-name-is ("body")
     (insert-an-html-element token)
     (setf frameset-ok-flag :not-ok)
-    (switch-insertion-mode 'in-body-insertion-mode))
+    (switch-insertion-mode 'in-body))
 
   (A-start-tag-whose-tag-name-is ("frameset")
     (insert-an-html-element token)
-    (switch-insertion-mode 'in-frameset-insertion-mode))
+    (switch-insertion-mode 'in-frameset))
 
   (A-start-tag-whose-tag-name-is-one-of ("base" "basefont" "bgsound" "link" "meta" "noframes" "script" "style" "template" "title")
     (parse-error)
     (stack-of-open-elements-push head-element-pointer)
-    (process-token-using-rules-for 'in-head-insertion-mode)
+    (process-token-using-rules-for 'in-head)
     ;; TODO Remove the node pointed to by the head element pointer from the stack of open elements. (It might not be the current node at this point.)
     )
 
   (An-end-tag-whose-tag-name-is ("template")
-    (process-token-using-rules-for 'in-head-insertion-mode))
+    (process-token-using-rules-for 'in-head))
 
   (An-end-tag-whose-tag-name-is-one-of ("body" "html" "br")
     (act-as-anything-else))
@@ -336,11 +336,11 @@
 
   (Anything-else
    (insert-an-html-element (make-start-tag-token :name "body"))
-   (switch-insertion-mode 'in-body-insertion-mode)
+   (switch-insertion-mode 'in-body)
    (reprocess-the-token)))
 
 
-(define-insertion-mode in-body-insertion-mode
+(define-insertion-mode in-body
     7 "in body"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody"
   ;;TODO A character token that is U+0000 NULL
@@ -367,7 +367,7 @@
     ;; TODO If the Document is not set to quirks mode, and the stack of open elements has a p element in button scope, then close a p element.
     (insert-an-html-element token)
     (setf frameset-ok-flag :not-ok)
-    (switch-insertion-mode 'in-table-insertion-mode))
+    (switch-insertion-mode 'in-table))
 
   ;; ...
 
@@ -377,10 +377,10 @@
     "3." (switch-tokenization-state 'rcdata-state)
     "4." (setf original-insertion-mode insertion-mode)
     "5." (setf frameset-ok-flag :not-ok)
-    "6." (switch-insertion-mode 'text-insertion-mode)))
+    "6." (switch-insertion-mode 'text)))
 
 
-(define-insertion-mode text-insertion-mode
+(define-insertion-mode text
     8 "text"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incdata"
   (A-character-token
@@ -394,38 +394,38 @@
   )
 
 
-(define-insertion-mode in-table-insertion-mode
+(define-insertion-mode in-table
     9 "in table"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intable"
   ;; ...
   (A-start-tag-whose-tag-name-is-one-of ("td" "th" "tr")
     ;; TODO Clear the stack back to a table context. (See below.)
     (insert-an-html-element (make-start-tag-token :name "tbody"))
-    (switch-insertion-mode 'in-table-body-insertion-mode)
+    (switch-insertion-mode 'in-table-body)
     (reprocess-the-token))
   ;; ...
   )
 
 
-(define-insertion-mode in-table-text-insertion-mode
+(define-insertion-mode in-table-text
     10 "in table text"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intabletext"
   )
 
 
-(define-insertion-mode in-caption-insertion-mode
+(define-insertion-mode in-caption
     11 "in caption"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incaption"
   )
 
 
-(define-insertion-mode in-column-group-insertion-mode
+(define-insertion-mode in-column-group
     12 "in column group"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-incolgroup"
   )
 
 
-(define-insertion-mode in-table-body-insertion-mode
+(define-insertion-mode in-table-body
     13 "in table body"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intbody"
   ;; ...
@@ -433,27 +433,27 @@
     (parse-error)
     ;; TODO Clear the stack back to a table body context. (See below.)
     (insert-an-html-element (make-start-tag-token :name "tr"))
-    (switch-insertion-mode 'in-row-insertion-mode)
+    (switch-insertion-mode 'in-row)
     (reprocess-the-token))
   ;; ...
   )
 
 
-(define-insertion-mode in-row-insertion-mode
+(define-insertion-mode in-row
     14 "in row"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intr"
 
   (A-start-tag-whose-tag-name-is-one-of ("th" "td")
     ;; TODO Clear the stack back to a table body context. (See below.)
     (insert-an-html-element token)
-    (switch-insertion-mode 'in-cell-insertion-mode)
+    (switch-insertion-mode 'in-cell)
     ;; TODO Insert a marker at the end of the list of active formatting elements.
     )
   ;; ...
   )
 
 
-(define-insertion-mode in-cell-insertion-mode
+(define-insertion-mode in-cell
     15 "in cell"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intd"
   (An-end-tag-whose-tag-name-is-one-of ("td" "th")
@@ -472,53 +472,53 @@
     )
 
   (Anything-else
-   (process-token-using-rules-for 'in-body-insertion-mode))
+   (process-token-using-rules-for 'in-body))
   )
 
 
-(define-insertion-mode in-select-insertion-mode
+(define-insertion-mode in-select
     16 "in select"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inselect"
   )
 
 
-(define-insertion-mode in-select-in-table-insertion-mode
+(define-insertion-mode in-select-in-table
     17 "in select in table"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inselectintable"
   )
 
 
-(define-insertion-mode in-template-insertion-mode
+(define-insertion-mode in-template
     18 "in template"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intemplate"
   )
 
 
-(define-insertion-mode after-body-insertion-mode
+(define-insertion-mode after-body
     19 "after body"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-afterbody"
   )
 
 
-(define-insertion-mode in-frameset-insertion-mode
+(define-insertion-mode in-frameset
     20 "in frameset"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inframeset"
   )
 
 
-(define-insertion-mode after-frameset-insertion-mode
+(define-insertion-mode after-frameset
     21 "after frameset"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-afterframeset"
   )
 
 
-(define-insertion-mode after-after-body-insertion-mode
+(define-insertion-mode after-after-body
     22 "after after body"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-after-after-body-insertion-mode"
   )
 
 
-(define-insertion-mode after-after-frameset-insertion-mode
+(define-insertion-mode after-after-frameset
     23 "after after frameset"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-after-after-frameset-insertion-mode"
   )

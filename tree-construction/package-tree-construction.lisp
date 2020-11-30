@@ -24,6 +24,7 @@
    #:html5-parser-constants
    #:html5-parser-infra
    #:html5-parser-tree
+   #:html5-parser-insertion-mode
    #:html5-parser-state
    #:html5-parser-tokenization-state
    #:html5-parser-tokenization
