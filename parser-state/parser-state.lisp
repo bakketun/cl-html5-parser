@@ -101,6 +101,12 @@
   (not (null stack-of-template-insertion-modes)))
 
 
+(define-parser-op stack-of-open-elements-node-before (node)
+    (stack-of-open-elements)
+  (loop :for (after before) :on stack-of-open-elements
+        :when (eq node after)
+          :do (return before)))
+
 (define-parser-op reset-the-insertion-mode-appropriately ()
     (stack-of-open-elements
      context-element
@@ -169,13 +175,6 @@
 
 ;; 13.2.4.2 The stack of open elements
 ;; <https://html.spec.whatwg.org/multipage/parsing.html#the-stack-of-open-elements>
-
-(define-parser-op stack-of-open-elements-node-before (node)
-    (stack-of-open-elements)
-  (loop :for (after before) :on stack-of-open-elements
-        :when (eq node after)
-          :do (return before)))
-
 
 (define-parser-op stack-of-open-elements-push (node)
     (stack-of-open-elements)
