@@ -42,8 +42,10 @@
                              (:file "named-character-references-table")
                              (:file "named-character-references")))
 
-               (:file "package-tree")
-               (:file "simple-tree")
+               (:module "simple-tree"
+                :serial t
+                :components ((:file "package-simple-tree")
+                             (:file "simple-tree")))
 
                (:module "parser-state"
                 :serial t
