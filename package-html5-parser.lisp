@@ -21,8 +21,8 @@
 (defpackage #:html5-parser
   (:use
    #:common-lisp
-   #:html5-parser-tree
-   #:html5-parser-tree-construction
+   #:html5-parser/simple-tree
+   #:html5-parser/tree-construction
    )
   (:export
    #:parse-html5

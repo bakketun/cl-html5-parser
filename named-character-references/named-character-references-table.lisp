@@ -2,8 +2,7 @@
 ;;;; https://html.spec.whatwg.org/multipage/named-characters.html
 ;;;; https://html.spec.whatwg.org/entities.json
 
-
-(in-package :html5-parser-named-character-references)
+(in-package #:html5-parser/named-character-references)
 
 
 (defparameter +named-character-references-table+

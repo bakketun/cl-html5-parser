@@ -20,7 +20,7 @@
 ;;;; 13.2.4 Parse state
 ;;;; <https://html.spec.whatwg.org/multipage/parsing.html#parse-state>
 
-(in-package :html5-parser-state)
+(in-package :html5-parser/parser-state)
 
 
 (defclass html5-parser-state ()

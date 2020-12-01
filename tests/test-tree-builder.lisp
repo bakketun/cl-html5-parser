@@ -18,7 +18,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :html5-parser-tests)
+(in-package #:html5-parser/tests)
 
 (def-suite tree-builder-tests :in html5-parser-tests)
 (in-suite tree-builder-tests)

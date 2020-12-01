@@ -1,4 +1,4 @@
-(defpackage #:html5-parser-tokenization-state
+(defpackage #:html5-parser/tokenization-state
   (:export
    #:DATA-STATE
    #:RCDATA-STATE

@@ -1,13 +1,13 @@
-(defpackage #:html5-parser-tokenization
+(defpackage #:html5-parser/tokenization
   (:use
    #:common-lisp
    #:html5-parser/unicode-constants
-   #:html5-parser-infra
-   #:html5-parser-tree
-   #:html5-parser-named-character-references
-   #:html5-parser-state
-   #:html5-parser-tokenization-state
-   #:html5-parser-tokenization-dsl)
+   #:html5-parser/infra
+   #:html5-parser/simple-tree
+   #:html5-parser/named-character-references
+   #:html5-parser/parser-state
+   #:html5-parser/tokenization-state
+   #:html5-parser/tokenization-dsl)
   (:export
    #:html-tokenizer
    #:tokenizer-run

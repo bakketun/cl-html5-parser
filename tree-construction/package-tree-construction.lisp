@@ -18,16 +18,16 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser-tree-construction
+(defpackage #:html5-parser/tree-construction
   (:use
    #:common-lisp
    #:html5-parser/unicode-constants
-   #:html5-parser-infra
-   #:html5-parser-tree
-   #:html5-parser-insertion-mode
-   #:html5-parser-state
-   #:html5-parser-tokenization-state
-   #:html5-parser-tokenization
+   #:html5-parser/infra
+   #:html5-parser/simple-tree
+   #:html5-parser/insertion-mode
+   #:html5-parser/parser-state
+   #:html5-parser/tokenization-state
+   #:html5-parser/tokenization
    #:cl-ppcre)
   (:export
    #:parse-html5-from-source

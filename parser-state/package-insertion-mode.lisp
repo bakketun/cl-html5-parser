@@ -15,7 +15,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser-insertion-mode
+(defpackage #:html5-parser/insertion-mode
   (:export
    #:initial              ; 1
    #:before-html          ; 2

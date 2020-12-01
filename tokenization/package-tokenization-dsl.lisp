@@ -1,32 +1,31 @@
-(defpackage #:html5-parser-tokenization-dsl
+(defpackage #:html5-parser/tokenization-dsl
   (:use
    #:html5-parser/unicode-constants
-   #:html5-parser-infra
-   #:html5-parser-tokenization-state
+   #:html5-parser/infra
+   #:html5-parser/tokenization-state
    )
-  (:import-from #:html5-parser-state
+  (:import-from #:html5-parser/parser-state
                 #:this-is-a-parse-error)
-  (:import-from  #:common-lisp
-                 #:*
-                 #:<
-                 #:=
-                 #:and
-                 #:case
-                 #:cond
-                 #:eql
-                 #:if
-                 #:incf
-                 #:let
-                 #:not
-                 #:or
-                 #:otherwise
-                 #:progn
-                 #:setf
-                 #:t
-                 #:unless
-                 #:when
-                 )
-
+  (:import-from #:common-lisp
+                #:*
+                #:<
+                #:=
+                #:and
+                #:case
+                #:cond
+                #:eql
+                #:if
+                #:incf
+                #:let
+                #:not
+                #:or
+                #:otherwise
+                #:progn
+                #:setf
+                #:t
+                #:unless
+                #:when
+                )
   (:export
    #:adjusted-current-node-not-in-HTML-namespace-p
    #:ASCII_alpha

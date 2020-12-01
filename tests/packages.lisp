@@ -18,11 +18,11 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage :html5-parser-tests
+(defpackage #:html5-parser/tests
   (:use
-   :common-lisp
-   :html5-parser-infra
-   :html5-parser-tree
-   :html5-parser
-   :cl-ppcre
-   :it.bese.fiveam))
+   #:common-lisp
+   #:html5-parser/infra
+   #:html5-parser/simple-tree
+   #:html5-parser
+   #:cl-ppcre
+   #:it.bese.fiveam))
