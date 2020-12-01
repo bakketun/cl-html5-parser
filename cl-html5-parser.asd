@@ -29,8 +29,10 @@
   :components ((:file "package-constants")
                (:file "constants")
 
-               (:file "package-infra")
-               (:file "infra")
+               (:module "infra-standard"
+                :serial t
+                :components ((:file "package-infra")
+                             (:file "infra")))
 
                (:module "named-character-references"
                 :serial t
