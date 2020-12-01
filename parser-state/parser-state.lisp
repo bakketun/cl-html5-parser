@@ -359,7 +359,8 @@
 
 ;; Implemented in tree-construction
 (declaim (ftype (function (html5-parser-state t) t) parser-insert-an-html-element))
-
+(defmacro insert-an-html-element (token)
+  `(parser-insert-an-html-element parser ,token))
 
 (define-parser-op reconstruct-the-active-formatting-elements ()
     (list-of-active-formatting-elements
