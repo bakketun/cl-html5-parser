@@ -25,6 +25,8 @@
   :author "Thomas Bakketun <thomas.bakketun@copyleft.no>"
   :depends-on (:cl-ppcre :flexi-streams :string-case)
   :serial t
+  :in-order-to ((test-op (load-op "cl-html5-parser-tests")))
+  :perform (test-op (o c) (symbol-call :html5-parser-tests :run-html5-parser-tests))
   :components ((:file "package-constants")
                (:file "constants")
 
@@ -68,9 +70,3 @@
 
                (:file "toxml")
                (:file "xmls")))
-
-
-(defmethod perform ((o test-op) (c (eql (find-system '#:cl-html5-parser))))
-  (operate 'load-op '#:cl-html5-parser-tests)
-  (funcall (find-symbol (string :run-html5-parser-tests)
-                        :html5-parser-tests)))
