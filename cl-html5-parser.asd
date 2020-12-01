@@ -41,6 +41,7 @@
                (:file "simple-tree")
 
                (:module "parser-state"
+                :serial t
                 :components ((:file "package-insertion-mode")
                              (:file "package-parser-state")
                              (:file "parser-state")))

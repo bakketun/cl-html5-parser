@@ -28,6 +28,7 @@
                  )
 
   (:export
+   #:adjusted-current-node-not-in-HTML-namespace-p
    #:ASCII_alpha
    #:ASCII_alphanumeric
    #:ASCII_digit

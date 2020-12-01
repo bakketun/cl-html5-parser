@@ -3,6 +3,7 @@
    #:common-lisp
    #:html5-parser-constants
    #:html5-parser-infra
+   #:html5-parser-tree
    #:html5-parser-named-character-references
    #:html5-parser-state
    #:html5-parser-tokenization-state
