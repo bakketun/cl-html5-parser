@@ -23,7 +23,7 @@
   :description "A HTML5 parser for Common Lisp"
   :licence "GNU Lesser General Public License"
   :author "Thomas Bakketun <thomas.bakketun@copyleft.no>"
-  :depends-on (:cl-ppcre :flexi-streams :string-case)
+  :depends-on (:cl-ppcre :flexi-streams)
   :serial t
   :in-order-to ((test-op (test-op "cl-html5-parser-tests")))
   :components ((:file "package-constants")
