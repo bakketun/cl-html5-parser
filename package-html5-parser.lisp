@@ -21,7 +21,6 @@
 (defpackage #:html5-parser
   (:use
    #:common-lisp
-   #:html5-parser-constants
    #:html5-parser-tree
    #:html5-parser-tree-construction
    )

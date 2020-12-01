@@ -1,6 +1,6 @@
 (defpackage #:html5-parser-tokenization-dsl
   (:use
-   #:html5-parser-constants
+   #:html5-parser/unicode-constants
    #:html5-parser-infra
    #:html5-parser-tokenization-state
    )

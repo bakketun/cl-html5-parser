@@ -26,8 +26,10 @@
   :depends-on (:cl-ppcre)
   :serial t
   :in-order-to ((test-op (test-op "cl-html5-parser-tests")))
-  :components ((:file "package-constants")
-               (:file "constants")
+  :components ((:module "unicode-constants"
+                :serial t
+                :components ((:file "package-unicode-constants")
+                             (:file "unicode-constants")))
 
                (:module "infra-standard"
                 :serial t

@@ -21,7 +21,7 @@
 (defpackage #:html5-parser-tree-construction
   (:use
    #:common-lisp
-   #:html5-parser-constants
+   #:html5-parser/unicode-constants
    #:html5-parser-infra
    #:html5-parser-tree
    #:html5-parser-insertion-mode
