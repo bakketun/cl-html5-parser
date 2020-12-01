@@ -21,12 +21,14 @@
 (defsystem #:cl-html5-parser-tests
   :depends-on (:cl-html5-parser :json-streams :split-sequence :fiveam)
   :serial t
+  :perform (test-op (o c) (symbol-call :html5-parser-tests :run-html5-parser-tests))
   :components ((:file "packages")
                (:file "run-tests")
                ;;(:file "test-inputstream")
                (:file "test-tree-builder")
                ;;(:file "test-parser")
                (:module "html5lib"
+                :serial t
                 :components ((:file "support")
                              (:file "tokenizer-tests")
                              (:file "tree-construction-tests")))))
