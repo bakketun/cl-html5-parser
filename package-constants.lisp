@@ -22,38 +22,6 @@
   (:use
    #:common-lisp)
   (:export
-   #:+namespaces+
-   #:find-namespace
-   #:find-prefix
-   #:+scoping-elements+
-   #:+formatting-elements+
-   #:+special-elements+
-   #:+html-integration-point-elements+
-   #:+mathml-text-integration-point-elements+
-   #:+eof+
-   #:+token-types+
-   #:+tag-token-types+
-   #:+space-characters+
-   #:+table-insert-mode-elements+
-   #:+ascii-lowercase+
-   #:+ascii-uppercase+
-   #:+ascii-letters+
-   #:+ascii-alphanumeric+
-   #:ascii-alphanumeric-p
-   #:ascii-letter-p
-   #:+digits+
-   #:+hex-digits+
-   #:ascii-upper-2-lower
-   #:+replacement-characters+
-   #:+cdata-elements+
-   #:+rcdata-elements+
-   #:+html-integration-point-elements+
-   #:+mathml-text-integration-point-elements+
-   #:+quirks-mode-doctypes-regexp+
-   #:ascii-upper-2-lower
-   #:+replacement-characters+
-   #:+heading-elements+
-
    #:U+0000_NULL
    #:U+0009_CHARACTER_TABULATION
    #:U+000A_LINE_FEED

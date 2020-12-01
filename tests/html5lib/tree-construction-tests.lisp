@@ -37,12 +37,11 @@
      (format stream "<!-- ~A -->" (node-value node)))
     (+ELEMENT-NODE+
      (if (and (element-namespace-uri node)
-              (string/= (element-namespace-uri node)
-                        (html5-parser-constants:find-namespace "html")))
+              (string/= (element-namespace-uri node) +HTML-namespace+))
          (format stream "<~A ~A>"
-                 (html5-parser-constants:find-prefix (element-namespace-uri node))
-                 (node-name node))
-         (format stream "<~A>" (node-name node))))
+                 (element-prefix node)
+                 (element-local-name node))
+         (format stream "<~A>" (element-local-name node))))
     (+TEXT-NODE+
      (format stream "\"~A\"" (node-value node)))))
 
@@ -59,22 +58,18 @@
      (format stream "~&|~vT" indent)
      (print-node node stream)
      (incf indent 2)
-     (let ((attributes))
-       (element-map-attributes-ns (lambda (namespace name value)
-                                    (push (cons (cons name namespace) value) attributes))
-                                  node)
+     (let ((attributes (sort (loop :with attrs := (element-attributes node)
+                                   :for i :from 0 :below (named-node-map-length attrs)
+                                   :for attr := (named-node-map-item attrs i)
+                                   :collect (list (attr-prefix attr)
+                                                  (attr-local-name attr)
+                                                  (attr-value attr)))
+                             #'string< :key #'second)))
        (when attributes
-         (loop for (name . value) in (sort attributes #'string<
-                                           :key (lambda (attr)
-                                                  (if (consp (car attr))
-                                                      (caar attr)
-                                                      (car attr))))
-               do
-                  (format stream "~&|~vT" indent)
-                  (if (cdr name)
-                      (format stream "~A ~A" (html5-parser-constants:find-prefix (cdr name)) (car name))
-                      (format stream "~A" (car name)))
-                  (format stream "=\"~A\"" value)))
+         (loop :for (prefix local-name value) :in attributes :do
+           (format stream "~&|~vT" indent)
+           (when prefix (format stream "~A " prefix))
+           (format stream "~A=\"~A\"" local-name value)))
        (node-map-children (lambda (child)
                             (print-tree child
                                         :stream stream

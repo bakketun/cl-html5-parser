@@ -21,6 +21,7 @@
 (defpackage :html5-parser-tests
   (:use
    :common-lisp
+   :html5-parser-infra
    :html5-parser-tree
    :html5-parser
    :cl-ppcre

@@ -22,16 +22,46 @@
   (:use
    #:common-lisp)
   (:export
+   #:code-point
+   #:code-point-p
+   #:surrogate
+   #:surrogate-p
+   #:scalar-value
+   #:scalar-value-p
+   #:noncharacter
+   #:noncharacter-p
+   #:ascii-code-point
+   #:ascii-code-point-p
+   #:ascii-tab-or-newline
+   #:ascii-tab-or-newline-p
+   #:ascii-whitespace
+   #:ascii-whitespace-p
+   #:c0-control
+   #:c0-control-p
+   #:c0-control-or-space
+   #:c0-control-or-space-p
+   #:control
+   #:control-p
+   #:ascii-digit
+   #:ascii-digit-p
+   #:ascii-upper-hex-digit
+   #:ascii-upper-hex-digit-p
+   #:ascii-lower-hex-digit
+   #:ascii-lower-hex-digit-p
+   #:ascii-hex-digit
+   #:ascii-hex-digit-p
+   #:ascii-upper-alpha
+   #:ascii-upper-alpha-p
+   #:ascii-lower-alpha
+   #:ascii-lower-alpha-p
+   #:ascii-alpha
+   #:ascii-alpha-p
+   #:ascii-alphanumeric
+   #:ascii-alphanumeric-p
    #:+HTML-namespace+
    #:+MathML-namespace+
    #:+SVG-namespace+
    #:+XLink-namespace+
    #:+XML-namespace+
    #:+XMLNS-namespace+
-   #:ascii-whitespace-p
-   #:c0-control-or-space-p
-   #:c0-control-p
-   #:control-p
-   #:noncharacter-p
-   #:surrogate-p
    ))

@@ -66,23 +66,23 @@
   (let ((anything-else-progn `(progn ,@(cdr (assoc 'Anything_else cases)))))
     `(macrolet ((anything_else-clause ()
                   ',anything-else-progn))
-       (case current-input-character
+       (cond
          ,@(loop :for (keys . forms) :in cases
                  :collect (cons (case keys
-                                  (Anything_else 'otherwise)
-                                  (ASCII_digit (coerce "0123456789" 'list))
-                                  (ASCII_upper_hex_digit (coerce "ABCDEF" 'list))
-                                  (ASCII_lower_hex_digit (coerce "abcdef" 'list))
-                                  (ASCII_hex_digit (coerce +hex-digits+ 'list))
-                                  (ASCII_upper_alpha (coerce +ascii-uppercase+ 'list))
-                                  (ASCII_lower_alpha (coerce +ascii-lowercase+ 'list))
-                                  (ASCII_alpha (coerce +ascii-letters+ 'list))
-                                  (ASCII_alphanumeric (coerce +ascii-alphanumeric+ 'list))
+                                  (Anything_else         t)
+                                  (ASCII_digit           '(ascii-digit-p current-input-character))
+                                  (ASCII_upper_hex_digit '(ascii-upper-hex-digit-p current-input-character))
+                                  (ASCII_lower_hex_digit '(ascii-lower-hex-digit-p current-input-character))
+                                  (ASCII_hex_digit       '(ascii-hex-digit-p current-input-character))
+                                  (ASCII_upper_alpha     '(ascii-upper-alpha-p current-input-character))
+                                  (ASCII_lower_alpha     '(ascii-lower-alpha-p current-input-character))
+                                  (ASCII_alpha           '(ascii-alpha-p current-input-character))
+                                  (ASCII_alphanumeric    '(ascii-alphanumeric-p current-input-character))
                                   (otherwise
                                    ;; Verify that characters are defined
                                    (if (listp keys)
-                                       (mapcar #'eval keys)
-                                       (eval keys))))
+                                       `(member current-input-character ',(mapcar #'eval keys))
+                                       `(eql current-input-character ,(eval keys)))))
                                 (if (eql 'Anything_else keys)
                                     '((anything_else-clause))
                                     forms)))))))
