@@ -30,4 +30,5 @@
    #:token-force-quirks-flag
    #:token-attributes
    #:token-self-closing-flag
+   #:acknowledge-the-tokens-self-closing-flag-if-it-is-set
    ))

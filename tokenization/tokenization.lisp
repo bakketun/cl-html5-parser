@@ -101,7 +101,11 @@
     (when (tag-token-self-closing-flag token)
       (this-is-a-parse-error :end-tag-with-trailing-solidus)))
   (do-tokenizer-trace (format *tokenizer-trace-output* "~&emit-token: ~S~&" token))
-  (tree-construction-dispatcher parser token))
+  (tree-construction-dispatcher parser token)
+  (when (and (tag-token-p token)
+             (tag-token-self-closing-flag token)
+             (not (start-tag-token-self-closing-flag-acknowledged token)))
+    (this-is-a-parse-error :non-void-html-element-start-tag-with-trailing-solidus)))
 
 
 (define-parser-op emit-current-token ()

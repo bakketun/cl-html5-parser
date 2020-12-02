@@ -43,7 +43,8 @@
   (attributes nil)
   (self-closing-flag nil))
 
-(defstruct (start-tag-token (:include tag-token)))
+(defstruct (start-tag-token (:include tag-token))
+  (self-closing-flag-acknowledged nil))
 
 (defstruct (end-tag-token (:include tag-token)))
 
@@ -57,6 +58,9 @@
 (defun token-attributes        (token) (tag-token-attributes token))
 (defun token-self-closing-flag (token) (tag-token-self-closing-flag token))
 
+(defun acknowledge-the-tokens-self-closing-flag-if-it-is-set (token)
+  (when (tag-token-self-closing-flag token)
+    (setf (start-tag-token-self-closing-flag-acknowledged token) t)))
 
 (defun add-attribute (token)
   (let ((attr (cons (make-array 10 :adjustable t :fill-pointer 0 :element-type 'character)

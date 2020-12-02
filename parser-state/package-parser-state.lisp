@@ -18,34 +18,48 @@
 (defpackage #:html5-parser/parser-state
   (:use
    #:common-lisp
-   #:html5-parser/unicode-constants
    #:html5-parser/infra
+   #:html5-parser/insertion-mode
    #:html5-parser/simple-tree
-   #:html5-parser/insertion-mode)
+   #:html5-parser/unicode-constants
+   )
   (:export
-   #:html5-parser-state
-   #:parse-errors
-   #:insertion-mode
-   #:original-insertion-mode
-   #:stack-of-open-elements
-   #:context-element
-   #:head-element-pointer
-   #:form-element-pointer
-   #:scripting-flag
-   #:frameset-ok-flag
-
-   #:tree-construction-dispatcher
-
-   #:parser
-   #:define-parser-op
-   #:this-is-a-parse-error
-   #:parser-parse-errors
-   #:switch-insertion-mode
-
-   #:stack-of-open-elements-push
-   #:stack-of-open-elements-pop
-   #:current-node
    #:adjusted-current-node
-
+   #:context-element
+   #:current-node
+   #:define-parser-op
+   #:element-in-button-scope-p
+   #:element-in-list-item-scope-p
+   #:element-in-scope-p
+   #:element-in-select-scope-p
+   #:element-in-table-scope-p
+   #:form-element-pointer
+   #:frameset-ok-flag
+   #:head-element-pointer
+   #:html5-parser-state
+   #:insert-a-marker-at-the-end-of-the-list-of-active-formatting-elements
+   #:insertion-mode
+   #:let-the-original-insertion-mode-be-the-current-insertion-mode
+   #:original-insertion-mode
+   #:parse-errors
+   #:parser
    #:parser-insert-an-html-element
-   ))
+   #:parser-parse-errors
+   #:push-onto-the-list-of-active-formatting-elements
+   #:reconstruct-the-active-formatting-elements
+   #:reset-the-insertion-mode-appropriately
+   #:scripting-flag
+   #:scripting-flag-disabled-p
+   #:scripting-flag-enabled-p
+   #:stack-of-open-elements
+   #:stack-of-open-elements-pop
+   #:stack-of-open-elements-push
+   #:stack-of-template-insertion-modes-empty-p
+   #:stack-of-template-insertion-modes-pop
+   #:stack-of-template-insertion-modes-push
+   #:switch-insertion-mode
+   #:template-element-in-stack-of-open-elements-p
+   #:this-is-a-parse-error
+   #:tree-construction-dispatcher
+   #:element-equal
+   #:clear-the-list-of-active-formatting-elements-up-to-the-last-marker))

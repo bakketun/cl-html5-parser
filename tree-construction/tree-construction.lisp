@@ -154,7 +154,29 @@
             (node-append-child adjusted-insertion-location-parent comment-node))))))
 
 
-(define-parser-op generate-implied-end-tags ()
+;; 13.2.6.2 Parsing elements that contain only text
+;; <https://html.spec.whatwg.org/multipage/parsing.html#parsing-elements-that-contain-only-text>
+
+(define-parser-op generic-raw-text-element-parsing-algorithm (token)
+    ()
+  1. (insert-an-html-element token)
+  2. (switch-tokenization-state 'rawtext-state)
+  3. (let-the-original-insertion-mode-be-the-current-insertion-mode)
+  4. (switch-insertion-mode 'text))
+
+
+(define-parser-op generic-RCDATA-element-parsing-algorithm (token)
+    ()
+  1. (insert-an-html-element token)
+  2. (switch-tokenization-state 'rcdata-state)
+  3. (let-the-original-insertion-mode-be-the-current-insertion-mode)
+  4. (switch-insertion-mode 'text))
+
+
+;; 13.2.6.3 Closing elements that have implied end tags
+;; <https://html.spec.whatwg.org/multipage/parsing.html#closing-elements-that-have-implied-end-tags>
+
+(define-parser-op generate-implied-end-tags-thoroughly ()
     ()
   (loop :while (member (node-name (current-node)) '("dd" "dt" "li" "optgroup" "option" "p" "rb" "rp" "rt" "rtc"))
         :do (stack-of-open-elements-pop)))

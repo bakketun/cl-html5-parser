@@ -225,6 +225,11 @@
            (equal (element-local-name elt1) (element-local-name elt2)))))
 
 
+(define-parser-op template-element-in-stack-of-open-elements-p ()
+    (stack-of-open-elements)
+  (member "template" stack-of-open-elements :test #'element-equal))
+
+
 (define-parser-op element-in-specific-scope-p (target-node scope-test)
     (stack-of-open-elements)
   (prog (node
@@ -356,6 +361,11 @@
   2. (push (make-entry token element) list-of-active-formatting-elements))
 
 
+(define-parser-op clear-the-list-of-active-formatting-elements-up-to-the-last-marker ()
+    (list-of-active-formatting-elements)
+  (loop :until (entry-marker-p (pop list-of-active-formatting-elements))))
+
+
 ;; Implemented in tree-construction
 (declaim (ftype (function (html5-parser-state t) t) parser-insert-an-html-element))
 (defmacro insert-an-html-element (token)
@@ -390,3 +400,16 @@
    9. (setf (car entry-cons) (make-entry (entry-token entry) new-element))
    10. (unless (eq (car entry-cons) (car list-of-active-formatting-elements))
          (go advance))))
+
+
+;; 13.2.4.5 Other parsing state flags
+;; <https://html.spec.whatwg.org/multipage/parsing.html#other-parsing-state-flags>
+
+(define-parser-op scripting-flag-enabled-p ()
+    (scripting-flag)
+  (eq :enabled scripting-flag))
+
+
+(define-parser-op scripting-flag-disabled-p ()
+    (scripting-flag)
+  (eq :disabled scripting-flag))

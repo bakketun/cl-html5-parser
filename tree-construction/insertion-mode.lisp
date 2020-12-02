@@ -51,11 +51,19 @@
          (act-as-anything-else)))))
 
 
+(defmacro oneof ((&rest tests) &body body)
+  `(when (or ,@tests)
+     ,@body
+     (return-from token-cond)))
+
+
 (defmacro define-token-test (name (&rest args) &body test)
   (assert (null (cdr test)))
   `(defmacro ,name (,@(when args (list args)) &body body)
      (let ((test ,(car test)))
-       `(when ,test ,@body (return-from token-cond)))))
+       (if body
+           `(oneof (,test) ,@body)
+           test))))
 
 
 (define-token-test A-comment-token () `(typep token 'comment-token))
@@ -280,6 +288,74 @@
 (define-insertion-mode in-head
     4 "in head"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead"
+  (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
+    (insert-a-character (token-character token)))
+
+  (A-comment-token
+    (insert-a-comment token))
+
+  (A-start-tag-whose-tag-name-is ("html")
+    (process-token-using-rules-for 'in-body))
+
+  (A-start-tag-whose-tag-name-is-one-of ("base" "basefont" "bgsound" "link")
+    (insert-an-html-element token)
+    (stack-of-open-elements-pop)
+    (acknowledge-the-tokens-self-closing-flag-if-it-is-set token))
+
+  (A-start-tag-whose-tag-name-is ("meta")
+    (insert-an-html-element token)
+    (stack-of-open-elements-pop)
+    (acknowledge-the-tokens-self-closing-flag-if-it-is-set token)
+    ;; TODO If the element has a charset attribute, ...
+    ;; TODO Otherwise, if the element has an http-equiv ...
+    )
+
+  (A-start-tag-whose-tag-name-is ("title")
+    (generic-RCDATA-element-parsing-algorithm token))
+
+  (oneof ((and (A-start-tag-whose-tag-name-is ("noscript"))
+               (scripting-flag-enabled-p))
+          (A-start-tag-whose-tag-name-is-one-of ("noframes" "style")))
+    (generic-raw-text-element-parsing-algorithm token))
+
+  (oneof ((and (A-start-tag-whose-tag-name-is ("noscript"))
+               (scripting-flag-disabled-p)))
+    (insert-an-html-element token)
+    (switch-insertion-mode 'in-head-noscript))
+
+  (A-start-tag-whose-tag-name-is ("script")
+    ;; TODO run these steps …
+    )
+
+  (An-end-tag-whose-tag-name-is ("head")
+    (stack-of-open-elements-pop)
+    (switch-insertion-mode 'after-head))
+
+  (An-end-tag-whose-tag-name-is-one-of ("body" "html" "br")
+    (act-as-anything-else))
+
+  (A-start-tag-whose-tag-name-is ("template")
+    (insert-an-html-element token)
+    (insert-a-marker-at-the-end-of-the-list-of-active-formatting-elements)
+    (setf frameset-ok-flag :not-ok)
+    (switch-insertion-mode 'in-template)
+    (stack-of-template-insertion-modes-push 'in-template))
+
+  (An-end-tag-whose-tag-name-is ("template")
+    (if (not (template-element-in-stack-of-open-elements-p))
+        (parse-error)
+        (prog ()
+         1. (generate-implied-end-tags-thoroughly)
+         2. (when (not (element-equal (current-node) "template"))
+              (parse-error))
+         3. (loop :until (element-equal "template" (stack-of-open-elements-pop)))
+         4. (clear-the-list-of-active-formatting-elements-up-to-the-last-marker)
+         5. (reset-the-insertion-mode-appropriately))))
+
+  (oneof ((A-start-tag-whose-tag-name-is ("head"))
+          (Any-other-end-tag))
+    (parse-error))
+
   (Anything-else
    (stack-of-open-elements-pop)
    (switch-insertion-mode 'after-head)
