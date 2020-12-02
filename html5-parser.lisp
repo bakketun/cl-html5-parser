@@ -18,7 +18,14 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :html5-parser)
+(defpackage #:html5-parser//impl
+  (:use
+   #:common-lisp
+   #:html5-parser
+   #:html5-parser/simple-tree
+   #:html5-parser/tree-construction
+   ))
+(in-package :html5-parser//impl)
 
 ;; external interface
 

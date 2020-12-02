@@ -1,4 +1,8 @@
-(in-package #:html5-parser/infra)
+(defpackage #:html5-parser/infra//impl
+  (:use
+   #:common-lisp
+   #:html5-parser/infra))
+(in-package #:html5-parser/infra//impl)
 
 ;;;; <https://infra.spec.whatwg.org/>
 

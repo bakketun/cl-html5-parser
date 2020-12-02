@@ -1,6 +1,37 @@
 ;; -*- mode: lisp; eval: (goto-address-mode) -*-
 
-(cl:in-package #:html5-parser/tokenization-dsl)
+(defpackage #:html5-parser/tokenization-state//impl
+  (:use #:html5-parser/tokenization-dsl
+        #:html5-parser/infra
+        #:html5-parser/unicode-constants
+        #:html5-parser/tokenization-state
+        )
+  (:import-from #:html5-parser/parser-state
+                #:this-is-a-parse-error
+                )
+  (:import-from #:common-lisp
+                #:*
+                #:<
+                #:=
+                #:and
+                #:case
+                #:cond
+                #:defpackage
+                #:eql
+                #:if
+                #:incf
+                #:in-package
+                #:let
+                #:not
+                #:or
+                #:otherwise
+                #:progn
+                #:setf
+                #:t
+                #:unless
+                #:when
+                ))
+(in-package #:html5-parser/tokenization-state//impl)
 
 
 (define-state data-state

@@ -26,37 +26,37 @@
   :depends-on (:cl-ppcre)
   :serial t
   :in-order-to ((test-op (test-op "cl-html5-parser-tests")))
-  :components ((:module "unicode-constants"
+  :components (
+               (:file "packages")
+
+               (:module "unicode-constants"
                 :serial t
-                :components ((:file "package-unicode-constants")
-                             (:file "unicode-constants")))
+                :components ((:file "unicode-constants")))
 
                (:module "infra-standard"
                 :serial t
-                :components ((:file "package-infra")
+                :components (
                              (:file "infra")))
 
                (:module "named-character-references"
                 :serial t
-                :components ((:file "package-named-character-references")
+                :components (
                              (:file "named-character-references-table")
                              (:file "named-character-references")))
 
                (:module "simple-tree"
                 :serial t
-                :components ((:file "package-simple-tree")
+                :components (
                              (:file "simple-tree")))
 
                (:module "parser-state"
                 :serial t
-                :components ((:file "package-insertion-mode")
-                             (:file "package-parser-state")
+                :components (
                              (:file "parser-state")))
 
                (:module "tokenization"
                 :serial t
-                :components ((:file "package-tokenization-state")
-                             (:file "package-tokenization-dsl")
+                :components (
                              (:file "package-tokenization")
                              (:file "character-input-stream")
                              (:file "token")
@@ -66,13 +66,8 @@
 
                (:module "tree-construction"
                 :serial t
-                :components ((:file "package-tree-construction")
-                             (:file "tree-construction")
-                             (:file "insertion-mode")))
+                :components (
+                             (:file "tree-construction")))
 
-               (:file "package-html5-parser")
                (:file "html5-parser")
-
-               ;;(:file "toxml")
-               ;;(:file "xmls")
                ))
