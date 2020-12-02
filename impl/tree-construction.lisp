@@ -22,7 +22,7 @@
    #:common-lisp
    #:html5-parser/interface/tree-construction
    #:html5-parser/interface/insertion-mode
-   #:html5-parser/interface/unicode-constants #:html5-parser/impl/unicode-constants
+   #:html5-parser/interface/unicode-constants
    #:html5-parser/interface/infra #:html5-parser/impl/infra
    #:html5-parser/interface/simple-tree #:html5-parser/impl/simple-tree
    #:html5-parser/interface/parser-state #:html5-parser/impl/parser-state
