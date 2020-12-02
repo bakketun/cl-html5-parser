@@ -28,6 +28,7 @@
    #:html5-parser/interface/insertion-mode
    #:html5-parser/interface/simple-tree
    #:html5-parser/interface/unicode-constants
+   #:html5-parser/interface/tree-construction
    ))
 (in-package :html5-parser/impl/parser-state)
 
@@ -374,11 +375,6 @@
     (list-of-active-formatting-elements)
   (loop :until (entry-marker-p (pop list-of-active-formatting-elements))))
 
-
-;; Implemented in tree-construction
-(declaim (ftype (function (html5-parser-state t) t) parser-insert-an-html-element))
-(defmacro insert-an-html-element (token)
-  `(parser-insert-an-html-element parser ,token))
 
 (define-parser-op reconstruct-the-active-formatting-elements ()
     (list-of-active-formatting-elements

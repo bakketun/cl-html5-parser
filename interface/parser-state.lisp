@@ -39,7 +39,6 @@
    #:original-insertion-mode
    #:parse-errors
    #:parser
-   #:parser-insert-an-html-element
    #:parser-parse-errors
    #:push-onto-the-list-of-active-formatting-elements
    #:reconstruct-the-active-formatting-elements
@@ -58,4 +57,5 @@
    #:this-is-a-parse-error
    #:tree-construction-dispatcher
    #:element-equal
-   #:clear-the-list-of-active-formatting-elements-up-to-the-last-marker))
+   #:clear-the-list-of-active-formatting-elements-up-to-the-last-marker
+   ))

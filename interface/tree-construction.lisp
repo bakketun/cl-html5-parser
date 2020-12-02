@@ -21,4 +21,17 @@
 (defpackage #:html5-parser/interface/tree-construction
   (:export
    #:parse-html5-from-source
+   #:insert-an-html-element
+   #:parser-insert-an-html-element
+   )
+  (:use
+   #:common-lisp
+   #:html5-parser/interface/parser-state
    ))
+
+(in-package #:html5-parser/interface/tree-construction)
+
+
+(declaim (ftype (function (t t) t) parser-insert-an-html-element))
+(defmacro insert-an-html-element (token)
+  `(parser-insert-an-html-element parser ,token))

@@ -130,9 +130,9 @@
       element)))
 
 
-(define-parser-op insert-an-html-element (token)
-    ()
-  (insert-foreign-element token +HTML-namespace+))
+;; Macro insert-an-html-element defined in interface
+(defun parser-insert-an-html-element (parser token)
+  (insert-foreign-element token +html-namespace+))
 
 
 (define-parser-op insert-a-character (char)
