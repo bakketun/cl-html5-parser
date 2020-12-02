@@ -21,7 +21,7 @@
 (defpackage #:html5-parser/impl/html5-parser
   (:use
    #:common-lisp
-   #:html5-parser
+   #:html5-parser/interface/html5-parser
    #:html5-parser/interface/simple-tree #:html5-parser/impl/simple-tree
    #:html5-parser/interface/tree-construction #:html5-parser/impl/tree-construction
    ))

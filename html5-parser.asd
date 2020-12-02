@@ -27,7 +27,6 @@
   :serial t
   :in-order-to ((test-op (test-op "html5-parser/tests")))
   :class :package-inferred-system)
-(register-system-packages "html5-parser/interface/html5-parser" '(#:html5-parser))
 
 
 (defsystem "html5-parser/tests"

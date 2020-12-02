@@ -18,7 +18,8 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser
+(defpackage #:html5-parser/interface/html5-parser
+  (:use)
   (:export
    #:parse-html5
    #:parse-html5-fragment
@@ -27,3 +28,9 @@
    #:xml-escape-name
    #:xml-unescape-name
    ))
+
+(uiop:define-package #:html5-parser
+    (:use)
+  (:recycle #:html5-parser/interface/html5-parser)
+  (:reexport #:html5-parser/interface/html5-parser)
+  )
