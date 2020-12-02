@@ -2,7 +2,13 @@
 ;;;; https://html.spec.whatwg.org/multipage/named-characters.html
 ;;;; https://html.spec.whatwg.org/entities.json
 
-(cl:defparameter html5-parser/named-character-references:+named-character-references-table+
+(defpackage #:html5-parser/impl/named-character-references-table
+  (:use
+   #:common-lisp
+   #:html5-parser/interface/named-character-references))
+(in-package #:html5-parser/impl/named-character-references-table)
+
+(defparameter +named-character-references-table+
   '(
     ("AElig" 198)
     ("AElig;" 198)

@@ -21,8 +21,8 @@
 (defpackage #:html5-parser/tests
   (:use
    #:common-lisp
-   #:html5-parser/infra
-   #:html5-parser/simple-tree
    #:html5-parser
+   #:html5-parser/interface/infra
+   #:html5-parser/interface/simple-tree
    #:cl-ppcre
    #:it.bese.fiveam))

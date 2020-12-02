@@ -18,12 +18,12 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser/simple-tree//impl
+(defpackage #:html5-parser/impl/simple-tree
   (:use
    #:common-lisp
-   #:html5-parser/simple-tree
+   #:html5-parser/interface/simple-tree
    ))
-(in-package #:html5-parser/simple-tree//impl)
+(in-package #:html5-parser/impl/simple-tree)
 
 ;;;; https://dom.spec.whatwg.org/
 

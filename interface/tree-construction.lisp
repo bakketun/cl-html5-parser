@@ -18,10 +18,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defsystem "cl-html5-parser"
-  :name "cl-html5-parser"
-  :description "A HTML5 parser for Common Lisp"
-  :licence "GNU Lesser General Public License"
-  :author "Thomas Bakketun <thomas@bakketun.pro>"
-  :depends-on ("html5-parser")
-  :in-order-to ((test-op (test-op "html5-parser"))))
+(defpackage #:html5-parser/interface/tree-construction
+  (:export
+   #:parse-html5-from-source
+   ))

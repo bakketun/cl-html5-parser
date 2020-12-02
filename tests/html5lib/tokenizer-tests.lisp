@@ -24,35 +24,35 @@
 
 (defun run-tokenizer-test-parser (initial-state last-start-tag source)
   (multiple-value-bind (tokens errors)
-      (html5-parser/tokenization:tokenizer-test source
+      (html5-parser/interface/tokenization:tokenizer-test source
                                                  :initial-state initial-state
                                                  :last-start-tag last-start-tag)
     (let (output-tokens)
       (dolist (token tokens)
         (typecase token
-          (html5-parser/tokenization:end-of-file-token)
+          (html5-parser/interface/tokenization:end-of-file-token)
           (otherwise
            (push (etypecase token
-                   (html5-parser/tokenization:doctype-token
+                   (html5-parser/interface/tokenization:doctype-token
                     (list :type :doctype
-                          :name (html5-parser/tokenization:token-name token)
-                          :public-id (html5-parser/tokenization:token-public-id token)
-                          :system-id (html5-parser/tokenization:token-system-id token)
-                          :force-quirks (html5-parser/tokenization:token-force-quirks-flag token)))
-                   (html5-parser/tokenization:start-tag-token
+                          :name (html5-parser/interface/tokenization:token-name token)
+                          :public-id (html5-parser/interface/tokenization:token-public-id token)
+                          :system-id (html5-parser/interface/tokenization:token-system-id token)
+                          :force-quirks (html5-parser/interface/tokenization:token-force-quirks-flag token)))
+                   (html5-parser/interface/tokenization:start-tag-token
                     (list :type :start-tag
-                          :name (html5-parser/tokenization:token-name token)
-                          :data (html5-parser/tokenization:token-attributes token)
-                          :self-closing (html5-parser/tokenization:token-self-closing-flag token)))
-                   (html5-parser/tokenization:end-tag-token
+                          :name (html5-parser/interface/tokenization:token-name token)
+                          :data (html5-parser/interface/tokenization:token-attributes token)
+                          :self-closing (html5-parser/interface/tokenization:token-self-closing-flag token)))
+                   (html5-parser/interface/tokenization:end-tag-token
                     (list :type :end-tag
-                          :name (html5-parser/tokenization:token-name token)))
-                   (html5-parser/tokenization:comment-token
+                          :name (html5-parser/interface/tokenization:token-name token)))
+                   (html5-parser/interface/tokenization:comment-token
                     (list :type :comment
-                          :data (html5-parser/tokenization:token-data token)))
-                   (html5-parser/tokenization:character-token
+                          :data (html5-parser/interface/tokenization:token-data token)))
+                   (html5-parser/interface/tokenization:character-token
                     (list :type :characters
-                          :data (string (html5-parser/tokenization:token-character token)))))
+                          :data (string (html5-parser/interface/tokenization:token-character token)))))
                  output-tokens))))
       (values (nreverse output-tokens)
               errors))))
@@ -122,7 +122,7 @@
 
 
 (defun find-state-symbol (string)
-  (let ((symbol (find-symbol (substitute #\- #\Space (string-upcase string)) '#:html5-parser/tokenization-state)))
+  (let ((symbol (find-symbol (substitute #\- #\Space (string-upcase string)) '#:html5-parser/interface/tokenization-state)))
     (assert symbol () "Unkown state ~S" string)
     symbol))
 

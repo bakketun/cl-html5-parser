@@ -1,6 +1,9 @@
 ;;;;  HTML5 parser for Common Lisp
 ;;;;
 ;;;;  Copyright (C) 2020 Thomas Bakketun <thomas@bakketun.pro>
+;;;;  Copyright (C) 2012 Asgeir Bjørlykke <asgeir@copyleft.no>
+;;;;  Copyright (C) 2012 Mathias Hellevang
+;;;;  Copyright (C) 2012 Stian Sletner <stian@copyleft.no>
 ;;;;
 ;;;;  This library is free software: you can redistribute it and/or modify
 ;;;;  it under the terms of the GNU Lesser General Public License as published
@@ -15,7 +18,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser/insertion-mode
+(defpackage #:html5-parser/interface/insertion-mode
   (:export
    #:initial              ; 1
    #:before-html          ; 2

@@ -18,10 +18,10 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser/unicode-constants//impl
+(defpackage #:html5-parser/impl/unicode-constants
   (:use #:common-lisp
-        #:html5-parser/unicode-constants))
-(in-package :html5-parser/unicode-constants//impl)
+        #:html5-parser/interface/unicode-constants))
+(in-package :html5-parser/impl/unicode-constants)
 
 
 (defmacro define-unicode-constant (symbol)

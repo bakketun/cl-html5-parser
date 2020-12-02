@@ -1,6 +1,6 @@
 ;;;;  HTML5 parser for Common Lisp
 ;;;;
-;;;;  Copyright (C) 2017 Thomas Bakketun <thomas.bakketun@copyleft.no>
+;;;;  Copyright (C) 2020 Thomas Bakketun <thomas@bakketun.pro>
 ;;;;  Copyright (C) 2012 Asgeir Bjørlykke <asgeir@copyleft.no>
 ;;;;  Copyright (C) 2012 Mathias Hellevang
 ;;;;  Copyright (C) 2012 Stian Sletner <stian@copyleft.no>
@@ -18,11 +18,29 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defsystem #:cl-html5-parser-cxml
-  :name "cl-html5-parser"
-  :description "CXML integration for cl-html5-parser"
-  :licence "GNU Lesser General Public License"
-  :author "Thomas Bakketun <thomas.bakketun@copyleft.no>"
-  :depends-on (:cl-html5-parser :cxml)
-  :serial t
-  :components ((:file "cxml-dom")))
+(defpackage #:html5-parser/interface/tokenization
+  (:export
+   #:html-tokenizer
+   #:tokenizer-run
+   #:switch-tokenization-state
+   #:tokenizer-test
+   ;; Token types
+   #:end-of-file-token
+   #:character-token
+   #:comment-token
+   #:start-tag-token
+   #:end-tag-token
+   #:doctype-token
+   ;;
+   #:make-start-tag-token
+   ;; Token readers
+   #:token-character
+   #:token-data
+   #:token-name
+   #:token-public-id
+   #:token-system-id
+   #:token-force-quirks-flag
+   #:token-attributes
+   #:token-self-closing-flag
+   #:acknowledge-the-tokens-self-closing-flag-if-it-is-set
+   ))

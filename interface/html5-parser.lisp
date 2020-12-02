@@ -1,6 +1,6 @@
 ;;;;  HTML5 parser for Common Lisp
 ;;;;
-;;;;  Copyright (C) 2017 Thomas Bakketun <thomas.bakketun@copyleft.no>
+;;;;  Copyright (C) 2012 Thomas Bakketun <thomas.bakketun@copyleft.no>
 ;;;;  Copyright (C) 2012 Asgeir Bjørlykke <asgeir@copyleft.no>
 ;;;;  Copyright (C) 2012 Mathias Hellevang
 ;;;;  Copyright (C) 2012 Stian Sletner <stian@copyleft.no>
@@ -18,17 +18,12 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defsystem #:cl-html5-parser-tests
-  :depends-on (:cl-html5-parser :json-streams :split-sequence :fiveam)
-  :serial t
-  :perform (test-op (o c) (symbol-call :html5-parser/tests :run-html5-parser-tests))
-  :components ((:file "packages")
-               (:file "run-tests")
-               ;;(:file "test-inputstream")
-               (:file "test-tree-builder")
-               ;;(:file "test-parser")
-               (:module "html5lib"
-                :serial t
-                :components ((:file "support")
-                             (:file "tokenizer-tests")
-                             (:file "tree-construction-tests")))))
+(defpackage #:html5-parser
+  (:export
+   #:parse-html5
+   #:parse-html5-fragment
+   #:transform-html5-dom
+
+   #:xml-escape-name
+   #:xml-unescape-name
+   ))
