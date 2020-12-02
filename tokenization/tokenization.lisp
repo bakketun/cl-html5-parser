@@ -102,10 +102,10 @@
       (this-is-a-parse-error :end-tag-with-trailing-solidus)))
   (do-tokenizer-trace (format *tokenizer-trace-output* "~&emit-token: ~S~&" token))
   (tree-construction-dispatcher parser token)
-  (when (and (tag-token-p token)
-             (tag-token-self-closing-flag token)
-             (not (start-tag-token-self-closing-flag-acknowledged token)))
-    (this-is-a-parse-error :non-void-html-element-start-tag-with-trailing-solidus)))
+  (when (start-tag-token-p token)
+    (when (tag-token-self-closing-flag token)
+      (unless (start-tag-token-self-closing-flag-acknowledged token)
+        (this-is-a-parse-error :non-void-html-element-start-tag-with-trailing-solidus)))))
 
 
 (define-parser-op emit-current-token ()
@@ -282,6 +282,8 @@
   ((tokens :initform nil)))
 
 (defmethod tree-construction-dispatcher ((parser test-html-tokenizer) token &key &allow-other-keys)
+  (when (start-tag-token-p token)
+    (acknowledge-the-tokens-self-closing-flag-if-it-is-set token))
   (push token (slot-value parser 'tokens)))
 
 (defun tokenizer-test (data &key (initial-state 'data-state) last-start-tag (end-of-file-p t))
