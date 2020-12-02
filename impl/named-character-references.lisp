@@ -22,7 +22,8 @@
   (:use
    #:common-lisp
    #:html5-parser/interface/named-character-references
-   #:html5-parser/impl/named-character-references-table))
+   #:html5-parser/interface/named-character-references-table
+   ))
 (in-package #:html5-parser/impl/named-character-references)
 
 

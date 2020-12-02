@@ -20,6 +20,5 @@
 
 (defpackage #:html5-parser/interface/named-character-references
   (:export
-   #:+named-character-references-table+
    #:named-character-references-search
    ))
