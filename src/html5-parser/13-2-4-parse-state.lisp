@@ -23,10 +23,8 @@
 (in-package :html5-parser)
 
 
-(defclass parse-state ()
-  (;; 13.2.2 Parse errors
-   (parse-errors :initform nil)
-   ;; 13.2.4.1 The insertion mode
+(defclass html-parse-state ()
+  (;; 13.2.4.1 The insertion mode
    (insertion-mode :initform 'initial)
    (original-insertion-mode :initform nil)
    (stack-of-template-insertion-modes :initform nil)
@@ -44,25 +42,6 @@
    (frameset-ok-flag :initform :ok
                      :type (member :ok :not-ok))))
 
-
-(defmacro define-parser-op (name (&rest args) (&rest slots) &body body)
-  (let ((function-name (intern (format nil "~A-~A" 'parser name)
-                               (symbol-package name))))
-    `(progn
-       (defun ,function-name (parser ,@args)
-         (with-slots (,@slots) parser
-           ,@body))
-       (defmacro ,name (,@args)
-         (list ',function-name 'parser ,@(remove '&optional args))))))
-
-
-(define-parser-op this-is-a-parse-error (&optional code)
-    (parse-errors)
-  (push code parse-errors))
-
-
-(defun parser-parse-errors (parser)
-  (reverse (slot-value parser 'parse-errors)))
 
 
 ;; 13.2.4.1 The insertion mode

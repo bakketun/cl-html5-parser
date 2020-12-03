@@ -20,7 +20,7 @@
 (in-package #:html5-parser)
 
 
-(defclass html-tree-constructor (parse-state)
+(defclass html-tree-constructor (html-parse-state html-parse-errors)
   ((document :initform (make-document))
    (iframe-srcdoc-p :initform nil)
    (ignore-next-token-if-line-feed :initform nil)))

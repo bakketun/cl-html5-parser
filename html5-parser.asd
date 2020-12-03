@@ -45,6 +45,7 @@
                              (:file "13-2-6-4-x-insertion-mode-package")
                              (:file "13-2-0-parsing-html-documents")
                              (:file "unicode-constants")
+                             (:file "13-2-2-parse-errors")
                              (:file "13-2-4-parse-state")
                              (:file "13-5-named-character-references-table")
                              (:file "13-5-named-character-references")

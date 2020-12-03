@@ -55,8 +55,7 @@
 
 
 (defun parse-html5-from-source (source)
-  (let* ((parser (make-instance 'html5-parser :source source)))
-    (with-slots (document parse-errors) parser
-      (tokenizer-run)
-      (values document
-              parse-errors))))
+  (let ((parser (make-instance 'html-parser :source source)))
+    (tokenizer-run)
+    (values (slot-value parser 'document)
+            (html-parse-errors parser))))

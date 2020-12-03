@@ -205,7 +205,7 @@
   (make-array size :adjustable t :fill-pointer 0 :element-type 'character))
 
 
-(defclass html-tokenizer (parse-state)
+(defclass html-tokenizer (html-parse-state html-parse-errors)
   ((source :initarg :source)
    (last-start-tag :initarg :last-start-tag
                    :initform nil)
@@ -480,7 +480,7 @@
       (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
       (tokenizer-process input-stream))
     (values (reverse (slot-value parser 'tokens))
-            (parser-parse-errors parser)
+            (html-parse-errors parser)
             parser
             input-stream)))
 

@@ -38,9 +38,20 @@
 (in-package #:html5-parser)
 
 
-(defclass html5-parser (html-tree-constructor html-tokenizer)
+(defclass html-parser (html-tree-constructor html-tokenizer)
   ())
 
 
 (defgeneric tree-construction-dispatcher (html5-parser token &key using-rules-for)
   (:documentation "<https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher>"))
+
+
+(defmacro define-parser-op (name (&rest args) (&rest slots) &body body)
+  (let ((function-name (intern (format nil "~A-~A" 'parser name)
+                               (symbol-package name))))
+    `(progn
+       (defun ,function-name (parser ,@args)
+         (with-slots (,@slots) parser
+           ,@body))
+       (defmacro ,name (,@args)
+         (list ',function-name 'parser ,@(remove '&optional args))))))
