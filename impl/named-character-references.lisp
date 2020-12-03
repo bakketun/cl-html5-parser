@@ -18,13 +18,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser/impl/named-character-references
-  (:use
-   #:common-lisp
-   #:html5-parser/interface/named-character-references
-   #:html5-parser/interface/named-character-references-table
-   ))
-(in-package #:html5-parser/impl/named-character-references)
+(in-package #:html5-parser)
 
 
 (defstruct trie-node

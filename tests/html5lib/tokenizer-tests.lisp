@@ -24,35 +24,35 @@
 
 (defun run-tokenizer-test-parser (initial-state last-start-tag source)
   (multiple-value-bind (tokens errors)
-      (html5-parser/interface/tokenization:tokenizer-test source
+      (html5-parser::tokenizer-test source
                                                  :initial-state initial-state
                                                  :last-start-tag last-start-tag)
     (let (output-tokens)
       (dolist (token tokens)
         (typecase token
-          (html5-parser/interface/tokenization:end-of-file-token)
+          (html5-parser::end-of-file-token)
           (otherwise
            (push (etypecase token
-                   (html5-parser/interface/tokenization:doctype-token
+                   (html5-parser::doctype-token
                     (list :type :doctype
-                          :name (html5-parser/interface/tokenization:token-name token)
-                          :public-id (html5-parser/interface/tokenization:token-public-id token)
-                          :system-id (html5-parser/interface/tokenization:token-system-id token)
-                          :force-quirks (html5-parser/interface/tokenization:token-force-quirks-flag token)))
-                   (html5-parser/interface/tokenization:start-tag-token
+                          :name (html5-parser::token-name token)
+                          :public-id (html5-parser::token-public-id token)
+                          :system-id (html5-parser::token-system-id token)
+                          :force-quirks (html5-parser::token-force-quirks-flag token)))
+                   (html5-parser::start-tag-token
                     (list :type :start-tag
-                          :name (html5-parser/interface/tokenization:token-name token)
-                          :data (html5-parser/interface/tokenization:token-attributes token)
-                          :self-closing (html5-parser/interface/tokenization:token-self-closing-flag token)))
-                   (html5-parser/interface/tokenization:end-tag-token
+                          :name (html5-parser::token-name token)
+                          :data (html5-parser::token-attributes token)
+                          :self-closing (html5-parser::token-self-closing-flag token)))
+                   (html5-parser::end-tag-token
                     (list :type :end-tag
-                          :name (html5-parser/interface/tokenization:token-name token)))
-                   (html5-parser/interface/tokenization:comment-token
+                          :name (html5-parser::token-name token)))
+                   (html5-parser::comment-token
                     (list :type :comment
-                          :data (html5-parser/interface/tokenization:token-data token)))
-                   (html5-parser/interface/tokenization:character-token
+                          :data (html5-parser::token-data token)))
+                   (html5-parser::character-token
                     (list :type :characters
-                          :data (string (html5-parser/interface/tokenization:token-character token)))))
+                          :data (string (html5-parser::token-character token)))))
                  output-tokens))))
       (values (nreverse output-tokens)
               errors))))

@@ -18,18 +18,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser/impl/tokenization
-  (:use
-   #:common-lisp
-   #:html5-parser/interface/tokenization
-   #:html5-parser/interface/tokenization-state
-   #:html5-parser/interface/tokenization-dsl
-   #:html5-parser/interface/parser-state
-   #:html5-parser/interface/infra #:html5-parser/impl/infra
-   #:html5-parser/interface/simple-tree
-   #:html5-parser/interface/named-character-references
-   ))
-(in-package #:html5-parser/impl/tokenization)
+(in-package #:html5-parser)
 
 ;;; tokens
 

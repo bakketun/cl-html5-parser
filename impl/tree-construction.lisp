@@ -17,19 +17,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser/impl/tree-construction
-  (:use
-   #:common-lisp
-   #:html5-parser/interface/tree-construction
-   #:html5-parser/interface/insertion-mode
-   #:html5-parser/interface/unicode-constants
-   #:html5-parser/interface/infra #:html5-parser/impl/infra
-   #:html5-parser/interface/simple-tree #:html5-parser/impl/simple-tree
-   #:html5-parser/interface/parser-state #:html5-parser/impl/parser-state
-   #:html5-parser/interface/tokenization-state #:html5-parser/impl/tokenization-state
-   #:html5-parser/interface/tokenization #:html5-parser/impl/tokenization
-   ))
-(in-package #:html5-parser/impl/tree-construction)
+(in-package #:html5-parser)
 
 
 (defclass html5-parser (html-tokenizer)

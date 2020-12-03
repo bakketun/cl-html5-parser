@@ -32,27 +32,30 @@
                (:file "interface/infra")
                (:file "impl/infra")
 
+               (:file "interface/tokenization-state")
+               (:file "interface/insertion-mode")
+               (:file "impl/package")
+
                (:file "interface/unicode-constants")
 
-               (:file "interface/named-character-references")
+               ;;(:file "interface/named-character-references")
                (:file "interface/named-character-references-table")
                (:file "impl/named-character-references")
 
-               (:file "interface/insertion-mode")
-               (:file "interface/tree-construction")
 
-               (:file "interface/parser-state")
+               ;;(:file "interface/tree-construction") TODO ftype
+
+               ;;(:file "interface/parser-state")
                (:file "impl/parser-state")
 
-               (:file "interface/tokenization-state")
-               (:file "interface/tokenization")
-               (:file "interface/tokenization-dsl")
+
+               ;;(:file "interface/tokenization")
+               ;;(:file "interface/tokenization-dsl")
                (:file "impl/tokenization")
                (:file "impl/tokenization-state")
 
                (:file "impl/tree-construction")
 
-               (:file "interface/html5-parser")
                (:file "impl/html5-parser")
                ))
 

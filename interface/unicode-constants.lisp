@@ -18,23 +18,14 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(uiop:define-package #:html5-parser/interface/unicode-constants
-  (:export
-   ;; All the define-unicode-constants below
-   )
-  (:use
-   #:common-lisp
-   ))
-(in-package :html5-parser/interface/unicode-constants)
+(in-package #:html5-parser)
 
 
 (defmacro define-unicode-constant (symbol)
   (let* ((code-point (symbol-name symbol)))
     (assert (eql 0 (search "U+" code-point)))
     (let ((char (code-char (parse-integer code-point :start 2 :radix 16 :junk-allowed t))))
-      `(progn
-         (export ',symbol)
-         (defconstant ,symbol ,char)))))
+      `(defconstant ,symbol ,char))))
 
 
 (define-unicode-constant U+0000_NULL)
