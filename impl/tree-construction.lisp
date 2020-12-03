@@ -255,6 +255,7 @@
 
 (define-symbol-macro A-comment-token (typep token 'comment-token))
 (define-symbol-macro A-DOCTYPE-token (typep token 'doctype-token))
+(define-symbol-macro Any-other-start-tag (typep token 'start-tag-token))
 (define-symbol-macro Any-other-end-tag (typep token 'end-tag-token))
 (define-symbol-macro A-character-token (typep token 'character-token))
 (define-symbol-macro Any-other-character-token A-character-token)
@@ -637,6 +638,12 @@
   3. (loop :until (element-equal "p" (stack-of-open-elements-pop))))
 
 
+(define-parser-op adoption-agency-algorithm (token)
+    ()
+  ;; TODO
+  )
+
+
 (define-insertion-mode in-body
     7 "in body"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody"
@@ -736,7 +743,84 @@
      (close-a-p-element)
      (insert-an-html-element token)))
 
-  ;; ...
+  ((A-start-tag-whose-tag-name-is-one-of "h1" "h2" "h3" "h4" "h5" "h6")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is-one-of "pre" "listing")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "form")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "li")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is-one-of "dd" "dt")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "plaintext")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "button")
+   ;; TODO
+   )
+
+  ((An-end-tag-whose-tag-name-is-one-of "address" "article" "aside" "blockquote" "button" "center" "details" "dialog" "dir" "div" "dl" "fieldset" "figcaption" "figure" "footer" "header" "hgroup" "listing" "main" "menu" "nav" "ol" "pre" "section" "summary" "ul")
+   ;; TODO
+   )
+
+  ((An-end-tag-whose-tag-name-is "form")
+   ;; TODO
+   )
+
+  ((An-end-tag-whose-tag-name-is "p")
+   ;; TODO
+   )
+
+  ((An-end-tag-whose-tag-name-is "li")
+   ;; TODO
+   )
+
+  ((An-end-tag-whose-tag-name-is-one-of "dd" "dt")
+   ;; TODO
+   )
+
+  ((An-end-tag-whose-tag-name-is-one-of "h1" "h2" "h3" "h4" "h5" "h6")
+   ;; TODO
+   )
+
+  ((An-end-tag-whose-tag-name-is "sarcasm")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "a")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is-one-of "b" "big" "code" "em" "font" "i" "s" "small" "strike" "strong" "tt" "u")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "nobr")
+   ;; TODO
+   )
+
+  ((An-end-tag-whose-tag-name-is-one-of "a" "b" "big" "code" "em" "font" "i" "nobr" "s" "small" "strike" "strong" "tt" "u")
+   (adoption-agency-algorithm token))
+
+  ((A-start-tag-whose-tag-name-is-one-of "applet" "marquee" "object")
+   ;; TODO
+   )
+
+  ((An-end-tag-whose-tag-name-is-one-of "applet" "marquee" "object")
+   ;; TODO
+   )
 
   ((A-start-tag-whose-tag-name-is "table")
    ;; TODO If the Document is not set to quirks mode, and the stack of open elements has a p element in button scope, then close a p element.
@@ -744,7 +828,29 @@
    (setf frameset-ok-flag :not-ok)
    (switch-insertion-mode 'in-table))
 
-  ;; ...
+  ((A-start-tag-whose-tag-name-is "br")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is-one-of "area" "br" "embed" "img" "keygen" "wbr")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "input")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is-one-of "param" "source" "track")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "hr")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "image")
+   ;; TODO
+   )
 
   ((A-start-tag-whose-tag-name-is "textarea")
    "1." (insert-an-html-element token)
@@ -752,7 +858,54 @@
    "3." (switch-tokenization-state 'rcdata-state)
    "4." (setf original-insertion-mode insertion-mode)
    "5." (setf frameset-ok-flag :not-ok)
-   "6." (switch-insertion-mode 'text)))
+   "6." (switch-insertion-mode 'text))
+
+  ((A-start-tag-whose-tag-name-is "xmp")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "iframe")
+   (setf frameset-ok-flag :not-ok)
+   (generic-raw-text-element-parsing-algorithm token))
+
+  ((or (A-start-tag-whose-tag-name-is "noembed")
+       (and (A-start-tag-whose-tag-name-is "noscript") (scripting-flag-enabled-p)))
+   (generic-raw-text-element-parsing-algorithm token))
+
+  ((A-start-tag-whose-tag-name-is "select")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is-one-of "optgroup" "option")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is-one-of "rb" "rtc")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is-one-of "rp" "rt")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "math")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is "svg")
+   ;; TODO
+   )
+
+  ((A-start-tag-whose-tag-name-is-one-of "caption" "col" "colgroup" "frame" "head" "tbody" "td" "tfoot" "th" "thead" "tr")
+   (parse-error) (ignore-the-token))
+
+  (Any-other-start-tag
+   (reconstruct-the-active-formatting-elements)
+   (insert-an-html-element token))
+
+  (Any-other-end-tag
+    ;; TODO
+    ))
 
 
 (define-insertion-mode text

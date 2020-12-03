@@ -256,7 +256,7 @@
     (loop :for element :in stack-of-open-elements
           :thereis (not (member element node-types :test #'element-equal)))))
 (defmacro stack-of-open-elements-has-node-that-is-not-either (&rest node-types)
-  `(parser-stack-of-open-elements-has-node-that-not-either parser ,@node-types))
+  `(parser-stack-of-open-elements-has-node-that-is-not-either parser ,@node-types))
 
 
 (define-parser-op template-element-in-stack-of-open-elements-p ()
