@@ -18,7 +18,7 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser/interface/simple-tree
+(defpackage #:html5-parser/simple-tree
   (:export
    #:+ELEMENT-NODE+
    #:+ATTRIBUTE-NODE+
@@ -112,4 +112,6 @@
    #:node-map-children
    #:element-map-attributes-ns
 
-   #:document-associated-mode))
+   #:document-associated-mode
+   )
+  (:use #:common-lisp))

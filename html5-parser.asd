@@ -26,37 +26,39 @@
   :in-order-to ((test-op (test-op "html5-parser/tests")))
   :serial t
   :components (
-               (:file "interface/simple-tree")
-               (:file "impl/simple-tree")
+               (:module "src/simple-tree"
+                :serial t
+                :components (
+                             (:file "package")
+                             (:file "simple-tree")
+                             ))
+               (:module "src/infra-standard"
+                :serial t
+                :components (
+                             (:file "package")
+                             (:file "infra")
+                             ))
+               (:module "src/html5-parser"
+                :serial t
+                :components (
+                             (:file "tokenization-state-package")
+                             (:file "insertion-mode-package")
+                             (:file "package")
 
-               (:file "interface/infra")
-               (:file "impl/infra")
+                             (:file "unicode-constants")
 
-               (:file "interface/tokenization-state")
-               (:file "interface/insertion-mode")
-               (:file "impl/package")
+                             (:file "named-character-references-table")
+                             (:file "named-character-references")
 
-               (:file "interface/unicode-constants")
+                             (:file "parser-state")
 
-               ;;(:file "interface/named-character-references")
-               (:file "interface/named-character-references-table")
-               (:file "impl/named-character-references")
+                             (:file "tokenization")
+                             (:file "tokenization-state")
 
+                             (:file "tree-construction")
 
-               ;;(:file "interface/tree-construction") TODO ftype
-
-               ;;(:file "interface/parser-state")
-               (:file "impl/parser-state")
-
-
-               ;;(:file "interface/tokenization")
-               ;;(:file "interface/tokenization-dsl")
-               (:file "impl/tokenization")
-               (:file "impl/tokenization-state")
-
-               (:file "impl/tree-construction")
-
-               (:file "impl/html5-parser")
+                             (:file "html5-parser")
+                             ))
                ))
 
 

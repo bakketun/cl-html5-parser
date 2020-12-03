@@ -29,7 +29,7 @@
    )
   (:use
    #:common-lisp
-   #:html5-parser/interface/simple-tree
-   #:html5-parser/interface/infra
-   #:html5-parser/interface/tokenization-state
-   #:html5-parser/interface/insertion-mode))
+   #:html5-parser/simple-tree
+   #:html5-parser/infra
+   #:html5-parser/tokenization-state
+   #:html5-parser/insertion-mode))

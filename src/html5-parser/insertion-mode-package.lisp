@@ -18,49 +18,29 @@
 ;;;;  You should have received a copy of the GNU General Public License
 ;;;;  along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage #:html5-parser/interface/infra
-  (:use #:common-lisp)
+(defpackage #:html5-parser/insertion-mode
   (:export
-   #:code-point
-   #:code-point-p
-   #:surrogate
-   #:surrogate-p
-   #:scalar-value
-   #:scalar-value-p
-   #:noncharacter
-   #:noncharacter-p
-   #:ascii-code-point
-   #:ascii-code-point-p
-   #:ascii-tab-or-newline
-   #:ascii-tab-or-newline-p
-   #:ascii-whitespace
-   #:ascii-whitespace-p
-   #:c0-control
-   #:c0-control-p
-   #:c0-control-or-space
-   #:c0-control-or-space-p
-   #:control
-   #:control-p
-   #:ascii-digit
-   #:ascii-digit-p
-   #:ascii-upper-hex-digit
-   #:ascii-upper-hex-digit-p
-   #:ascii-lower-hex-digit
-   #:ascii-lower-hex-digit-p
-   #:ascii-hex-digit
-   #:ascii-hex-digit-p
-   #:ascii-upper-alpha
-   #:ascii-upper-alpha-p
-   #:ascii-lower-alpha
-   #:ascii-lower-alpha-p
-   #:ascii-alpha
-   #:ascii-alpha-p
-   #:ascii-alphanumeric
-   #:ascii-alphanumeric-p
-   #:+HTML-namespace+
-   #:+MathML-namespace+
-   #:+SVG-namespace+
-   #:+XLink-namespace+
-   #:+XML-namespace+
-   #:+XMLNS-namespace+
+   #:initial              ; 1
+   #:before-html          ; 2
+   #:before-head          ; 3
+   #:in-head              ; 4
+   #:in-head-noscript     ; 5
+   #:after-head           ; 6
+   #:in-body              ; 7
+   #:text                 ; 8
+   #:in-table             ; 9
+   #:in-table-text        ; 10
+   #:in-caption           ; 11
+   #:in-column-group      ; 12
+   #:in-table-body        ; 13
+   #:in-row               ; 14
+   #:in-cell              ; 15
+   #:in-select            ; 16
+   #:in-select-in-table   ; 17
+   #:in-template          ; 18
+   #:after-body           ; 19
+   #:in-frameset          ; 20
+   #:after-frameset       ; 21
+   #:after-after-body     ; 22
+   #:after-after-frameset ; 23
    ))

@@ -122,7 +122,7 @@
 
 
 (defun find-state-symbol (string)
-  (let ((symbol (find-symbol (substitute #\- #\Space (string-upcase string)) '#:html5-parser/interface/tokenization-state)))
+  (let ((symbol (find-symbol (substitute #\- #\Space (string-upcase string)) '#:html5-parser/tokenization-state)))
     (assert symbol () "Unkown state ~S" string)
     symbol))
 
