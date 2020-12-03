@@ -36,11 +36,13 @@
                          :container container
                          :dom dom))
 
+
 (defgeneric transform-html5-dom (to-type node &key)
   (:method ((to-type cons) node &key)
     (apply #'transform-html5-dom (car to-type) node (cdr to-type)))
   (:method (to-type node &key &allow-other-keys)
     (error "No TRANSFORM-HTML5-DOM method defined for dom type ~S." to-type)))
+
 
 (defun parse-html5-using-dom (source &key container encoding strictp dom)
   (declare (ignore container encoding strictp))
@@ -50,3 +52,11 @@
                 (transform-html5-dom dom document)
                 document)
             errors)))
+
+
+(defun parse-html5-from-source (source)
+  (let* ((parser (make-instance 'html5-parser :source source)))
+    (with-slots (document parse-errors) parser
+      (tokenizer-run)
+      (values document
+              parse-errors))))

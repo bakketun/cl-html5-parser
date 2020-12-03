@@ -23,7 +23,7 @@
 (in-package :html5-parser)
 
 
-(defclass html5-parser-state ()
+(defclass parse-state ()
   (;; 13.2.2 Parse errors
    (parse-errors :initform nil)
    ;; 13.2.4.1 The insertion mode
@@ -43,9 +43,6 @@
                    :type (member :enabled :disabled))
    (frameset-ok-flag :initform :ok
                      :type (member :ok :not-ok))))
-
-
-(defgeneric tree-construction-dispatcher (parser token &key using-rules-for))
 
 
 (defmacro define-parser-op (name (&rest args) (&rest slots) &body body)

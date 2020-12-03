@@ -33,3 +33,14 @@
    #:html5-parser/infra
    #:html5-parser/tokenization-state
    #:html5-parser/insertion-mode))
+
+
+(in-package #:html5-parser)
+
+
+(defclass html5-parser (html-tree-constructor html-tokenizer)
+  ())
+
+
+(defgeneric tree-construction-dispatcher (html5-parser token &key using-rules-for)
+  (:documentation "<https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher>"))

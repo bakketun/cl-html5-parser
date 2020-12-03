@@ -20,21 +20,13 @@
 (in-package #:html5-parser)
 
 
-(defclass html5-parser (html-tokenizer)
+(defclass html-tree-constructor (parse-state)
   ((document :initform (make-document))
    (iframe-srcdoc-p :initform nil)
    (ignore-next-token-if-line-feed :initform nil)))
 
 
-(defun parse-html5-from-source (source)
-  (let* ((parser (make-instance 'html5-parser :source source)))
-    (with-slots (document parse-errors) parser
-      (tokenizer-run)
-      (values document
-              parse-errors))))
-
-
-(defmethod tree-construction-dispatcher ((parser html5-parser) token &key using-rules-for)
+(defmethod tree-construction-dispatcher ((parser html-tree-constructor) token &key using-rules-for)
   "https://html.spec.whatwg.org/multipage/parsing.html#tree-construction-dispatcher"
   (with-slots (insertion-mode ignore-next-token-if-line-feed parse-errors) parser
     (cond (ignore-next-token-if-line-feed

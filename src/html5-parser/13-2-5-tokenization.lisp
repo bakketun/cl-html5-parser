@@ -205,7 +205,7 @@
   (make-array size :adjustable t :fill-pointer 0 :element-type 'character))
 
 
-(defclass html-tokenizer (html5-parser-state)
+(defclass html-tokenizer (parse-state)
   ((source :initarg :source)
    (last-start-tag :initarg :last-start-tag
                    :initform nil)

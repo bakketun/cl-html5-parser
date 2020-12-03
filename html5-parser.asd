@@ -41,22 +41,16 @@
                (:module "src/html5-parser"
                 :serial t
                 :components (
-                             (:file "tokenization-state-package")
-                             (:file "insertion-mode-package")
-                             (:file "package")
-
+                             (:file "13-2-5-x-tokenization-state-package")
+                             (:file "13-2-6-4-x-insertion-mode-package")
+                             (:file "13-2-0-parsing-html-documents")
                              (:file "unicode-constants")
-
-                             (:file "named-character-references-table")
-                             (:file "named-character-references")
-
-                             (:file "parser-state")
-
-                             (:file "tokenization")
-                             (:file "tokenization-state")
-
-                             (:file "tree-construction")
-
+                             (:file "13-2-4-parse-state")
+                             (:file "13-5-named-character-references-table")
+                             (:file "13-5-named-character-references")
+                             (:file "13-2-5-tokenization")
+                             (:file "13-2-5-x-tokenization-state")
+                             (:file "13-2-6-tree-construction")
                              (:file "html5-parser")
                              ))
                ))
