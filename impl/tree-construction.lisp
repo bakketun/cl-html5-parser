@@ -536,7 +536,33 @@
 (define-insertion-mode in-head-noscript
     5 "in head noscript"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inheadnoscript"
-  )
+  (A-DOCTYPE-token
+    (parse-error) (ignore-the-token))
+
+  ((A-start-tag-whose-tag-name-is "html")
+   (process-token-using-rules-for 'in-body))
+
+  ((An-end-tag-whose-tag-name-is "noscript")
+   (stack-of-open-elements-pop)
+   (switch-insertion-mode 'in-head))
+
+  ((or A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
+       A-comment-token
+       (A-start-tag-whose-tag-name-is-one-of "basefont" "bgsound" "link" "meta" "noframes" "style"))
+   (process-token-using-rules-for 'in-head))
+
+  ((An-end-tag-whose-tag-name-is "br")
+   (act-as-anything-else))
+
+  ((or (A-start-tag-whose-tag-name-is-one-of "head" "noscript")
+       Any-other-end-tag)
+   (parse-error) (ignore-the-token))
+
+  (Anything-else
+   (parse-error)
+   (stack-of-open-elements-pop)
+   (switch-insertion-mode 'in-head)
+   (reprocess-the-token)))
 
 
 (define-insertion-mode after-head
