@@ -23,10 +23,38 @@
   :description "A HTML5 parser for Common Lisp"
   :licence "GNU Lesser General Public License"
   :author "Thomas Bakketun <thomas@bakketun.pro"
-  :depends-on ("html5-parser/impl/html5-parser")
-  :serial t
   :in-order-to ((test-op (test-op "html5-parser/tests")))
-  :class :package-inferred-system)
+  :serial t
+  :components (
+               (:file "interface/simple-tree")
+               (:file "impl/simple-tree")
+
+               (:file "interface/infra")
+               (:file "impl/infra")
+
+               (:file "interface/unicode-constants")
+
+               (:file "interface/named-character-references")
+               (:file "interface/named-character-references-table")
+               (:file "impl/named-character-references")
+
+               (:file "interface/insertion-mode")
+               (:file "interface/tree-construction")
+
+               (:file "interface/parser-state")
+               (:file "impl/parser-state")
+
+               (:file "interface/tokenization-state")
+               (:file "interface/tokenization")
+               (:file "interface/tokenization-dsl")
+               (:file "impl/tokenization")
+               (:file "impl/tokenization-state")
+
+               (:file "impl/tree-construction")
+
+               (:file "interface/html5-parser")
+               (:file "impl/html5-parser")
+               ))
 
 
 (defsystem "html5-parser/tests"
