@@ -32,7 +32,7 @@
    #:html5-parser/simple-tree
    #:html5-parser/infra
    #:html5-parser/tokenization-state
-   #:html5-parser/insertion-mode))
+   ))
 
 
 (in-package #:html5-parser)

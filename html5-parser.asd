@@ -42,7 +42,6 @@
                 :serial t
                 :components (
                              (:file "13-2-5-x-tokenization-state-package")
-                             (:file "13-2-6-4-x-insertion-mode-package")
                              (:file "13-2-0-parsing-html-documents")
                              (:file "unicode-constants")
                              (:file "13-2-2-parse-errors")
@@ -51,7 +50,8 @@
                              (:file "13-5-named-character-references")
                              (:file "13-2-5-tokenization")
                              (:file "13-2-5-x-tokenization-state")
-                             (:file "13-2-6-tree-construction")
+                             (:file "13-2-6-0-tree-construction")
+                             (:file "13-2-6-4-the-rules-for-parsing-tokens-in-html-content")
                              (:file "html5-parser")
                              ))
                ))
