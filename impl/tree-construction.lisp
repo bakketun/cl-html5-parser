@@ -199,10 +199,22 @@
 ;; 13.2.6.3 Closing elements that have implied end tags
 ;; <https://html.spec.whatwg.org/multipage/parsing.html#closing-elements-that-have-implied-end-tags>
 
-(define-parser-op generate-implied-end-tags-thoroughly ()
+(define-parser-op generate-implied-end-tags-for (node-types)
     ()
-  (loop :while (member (node-name (current-node)) '("dd" "dt" "li" "optgroup" "option" "p" "rb" "rp" "rt" "rtc"))
+  (loop :while (member (node-name (current-node)) node-types)
         :do (stack-of-open-elements-pop)))
+
+
+(defmacro generate-implied-end-tags-except-for (except-for)
+  `(generate-implied-end-tags-for ',(remove except-for '("dd" "dt" "li" "optgroup" "option" "p" "rb" "rp" "rt" "rtc") :test #'equal)))
+
+
+(defmacro generate-implied-end-tags ()
+  '(generate-implied-end-tags-except-for nil))
+
+
+(defmacro generate-implied-end-tags-thoroughly ()
+  '(generate-implied-end-tags-for '("caption" "colgroup" "dd" "dt" "li" "optgroup" "option" "p" "rb" "rp" "rt" "rtc" "tbody" "td" "tfoot" "th" "thead" "tr")))
 
 ;;;
 
@@ -229,6 +241,10 @@
   `(return-from token-handler :reprocess))
 
 
+(defmacro stop-parsing ()
+  `(return-from token-handler :stop-parsing))
+
+
 (defmacro token-cond (&rest clauses)
   (let ((anything-else-clause (assoc 'Anything-else clauses)))
     `(flet ((act-as-anything-else ()
@@ -243,6 +259,7 @@
 (define-symbol-macro A-character-token (typep token 'character-token))
 (define-symbol-macro Any-other-character-token A-character-token)
 (define-symbol-macro An-end-of-file-token (typep token 'end-of-file-token))
+(define-symbol-macro A-character-token-that-is-U+0000_NULL (and A-character-token (eql (token-character token) U+0000_NULL)))
 (define-symbol-macro A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
     (and A-character-token
          (member (token-character token) '(U+0009_CHARACTER_TABULATION
@@ -612,18 +629,26 @@
    (reprocess-the-token)))
 
 
+(define-parser-op close-a-p-element ()
+    ()
+  1. (generate-implied-end-tags-except-for "p")
+  2. (unless (element-equal "p" (current-node))
+       (this-is-a-parse-error))
+  3. (loop :until (element-equal "p" (stack-of-open-elements-pop))))
+
+
 (define-insertion-mode in-body
     7 "in body"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inbody"
-  ;;TODO A character token that is U+0000 NULL
-  ;;Parse error. Ignore the token.
+  (A-character-token-that-is-U+0000_NULL
+   (parse-error) (ignore-the-token))
 
   (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
-    ;; TODO Reconstruct the active formatting elements, if any.
+    (reconstruct-the-active-formatting-elements)
     (insert-a-character token))
 
   (Any-other-character-token
-    ;; TODO Reconstruct the active formatting elements, if any.
+    (reconstruct-the-active-formatting-elements)
     (insert-a-character token)
     (setf frameset-ok-flag :not-ok))
 
@@ -631,7 +656,85 @@
     (insert-a-comment token))
 
   (A-DOCTYPE-token
-    (parse-error))
+    (parse-error) (ignore-the-token))
+
+  ((A-start-tag-whose-tag-name-is "html")
+   (parse-error)
+   (if (template-element-in-stack-of-open-elements-p)
+       (ignore-the-token)
+       (let ((top-element (stack-of-open-elements-top)))
+         (loop :for (name . value) :in (token-attributes token)
+               :unless (element-has-attribute top-element name)
+                 :do (element-set-attribute top-element name value)))))
+
+  ((or (A-start-tag-whose-tag-name-is-one-of "base" "basefont" "bgsound" "link" "meta" "noframes" "script" "style" "template" "title")
+       (An-end-tag-whose-tag-name-is "template"))
+   (process-token-using-rules-for 'in-head))
+
+  ((A-start-tag-whose-tag-name-is "body")
+   (parse-error)
+   (if (or (not (element-equal "body" (stack-of-open-elements-second)))
+           (= 1 (stack-of-open-elements-length))
+           (template-element-in-stack-of-open-elements-p))
+       (ignore-the-token)
+       (progn (setf frameset-ok-flag :nok-ok)
+              (let ((body (stack-of-open-elements-second)))
+                (loop :for (name . value) :in (token-attributes token)
+                      :unless (element-has-attribute body name)
+                        :do (element-set-attribute body name value))))))
+
+
+  ((A-start-tag-whose-tag-name-is "frameset")
+   (parse-error)
+   (cond ((or (= 1 (stack-of-open-elements-length))
+              (not (element-equal "body" (stack-of-open-elements-second))))
+          (ignore-the-token))
+         ((eql frameset-ok-flag :not-ok)
+          (ignore-the-token))
+         (t
+          (prog ()
+           1. (let ((elt (stack-of-open-elements-second)))
+                (when (node-parent-node elt)
+                  (node-remove-child (node-parent-node elt) elt)))
+           2. (loop :until (element-equal "html" (current-node))
+                    :do (stack-of-open-elements-pop))
+           3. (insert-an-html-element token)
+           4. (switch-insertion-mode 'in-frameset)))))
+
+  (An-end-of-file-token
+    (if (not (stack-of-template-insertion-modes-empty-p))
+        (process-token-using-rules-for 'in-template)
+        (prog ()
+         1. (when (stack-of-open-elements-has-node-that-is-not-either
+                   "dd" "dt" "li" "optgroup" "option" "p" "rb" "rp" "rt" "rtc" "tbody" "td" "tfoot" "th" "thead" "tr" "body" "html")
+              (parse-error))
+         2. (stop-parsing))))
+
+  ((An-end-tag-whose-tag-name-is "body")
+   (cond ((not (element-in-scope-p "body"))
+          (parse-error)
+          (ignore-the-token))
+         (t
+          (when (stack-of-open-elements-has-node-that-is-not-either
+                 "dd" "dt" "li" "optgroup" "option" "p" "rb" "rp" "rt" "rtc" "tbody" "td" "tfoot" "th" "thead" "tr" "body" "html")
+            (parse-error))
+          (switch-insertion-mode 'after-body))))
+
+  ((An-end-tag-whose-tag-name-is "html")
+   (cond ((not (element-in-scope-p "body"))
+          (parse-error)
+          (ignore-the-token))
+         (t
+          (when (stack-of-open-elements-has-node-that-is-not-either
+                 "dd" "dt" "li" "optgroup" "option" "p" "rb" "rp" "rt" "rtc" "tbody" "td" "tfoot" "th" "thead" "tr" "body" "html")
+            (parse-error))
+          (switch-insertion-mode 'after-body)
+          (reprocess-the-token))))
+
+  ((A-start-tag-whose-tag-name-is-one-of "address" "article" "aside" "blockquote" "center" "details" "dialog" "dir" "div" "dl" "fieldset" "figcaption" "figure" "footer" "header" "hgroup" "main" "menu" "nav" "ol" "p" "section" "summary" "ul")
+   (when (element-in-button-scope-p "p")
+     (close-a-p-element)
+     (insert-an-html-element token)))
 
   ;; ...
 

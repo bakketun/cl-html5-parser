@@ -69,7 +69,7 @@
          (list ',function-name 'parser ,@(remove '&optional args))))))
 
 
-(define-parser-op this-is-a-parse-error (code)
+(define-parser-op this-is-a-parse-error (&optional code)
     (parse-errors)
   (push code parse-errors))
 
@@ -201,6 +201,21 @@
   (car stack-of-open-elements))
 
 
+(define-parser-op stack-of-open-elements-length ()
+    (stack-of-open-elements)
+  (length stack-of-open-elements))
+
+
+(define-parser-op stack-of-open-elements-top ()
+    (stack-of-open-elements)
+  (car (last stack-of-open-elements)))
+
+
+(define-parser-op stack-of-open-elements-second ()
+    (stack-of-open-elements)
+  (car (last stack-of-open-elements 2)))
+
+
 (define-parser-op adjusted-current-node ()
     (context-element stack-of-open-elements)
   (if (and context-element
@@ -233,6 +248,15 @@
   (or (eq elt1 elt2)
       (and (equal (element-namespace-uri elt1) (element-namespace-uri elt2))
            (equal (element-local-name elt1) (element-local-name elt2)))))
+
+
+(defun parser-stack-of-open-elements-has-node-that-is-not-either (parser &rest node-types)
+  (with-slots (stack-of-open-elements)
+      parser
+    (loop :for element :in stack-of-open-elements
+          :thereis (not (member element node-types :test #'element-equal)))))
+(defmacro stack-of-open-elements-has-node-that-is-not-either (&rest node-types)
+  `(parser-stack-of-open-elements-has-node-that-not-either parser ,@node-types))
 
 
 (define-parser-op template-element-in-stack-of-open-elements-p ()

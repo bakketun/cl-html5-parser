@@ -47,8 +47,12 @@
    #:scripting-flag-disabled-p
    #:scripting-flag-enabled-p
    #:stack-of-open-elements
+   #:stack-of-open-elements-has-node-that-is-not-either
+   #:stack-of-open-elements-length
    #:stack-of-open-elements-pop
    #:stack-of-open-elements-push
+   #:stack-of-open-elements-top
+   #:stack-of-open-elements-second
    #:stack-of-template-insertion-modes-empty-p
    #:stack-of-template-insertion-modes-pop
    #:stack-of-template-insertion-modes-push
