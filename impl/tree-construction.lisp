@@ -64,31 +64,50 @@
 ;; 13.2.6.1 Creating and inserting nodes
 ;; https://html.spec.whatwg.org/multipage/parsing.html#insert-a-foreign-element
 
+
+(defun as-the-last-child-of (node)
+  `(as-the-last-child-of ,node))
+
+
+(defun adjusted-insertion-location-parent (adjusted-insertion-location)
+  (ecase (car adjusted-insertion-location)
+    (as-the-last-child-of (cadr adjusted-insertion-location))))
+
+
+(defun adjusted-insertion-location-document (adjusted-insertion-location)
+  (node-owner-document (adjusted-insertion-location-parent adjusted-insertion-location)))
+
+
+(defun adjusted-insertion-location-before (adjusted-insertion-location)
+  (ecase (car adjusted-insertion-location)
+    (as-the-last-child-of
+     (node-last-child (adjusted-insertion-location-parent adjusted-insertion-location)))))
+
+
+(defun insert-node-at (adjusted-insertion-location node)
+  (ecase (car adjusted-insertion-location)
+    (as-the-last-child-of
+     (node-append-child (adjusted-insertion-location-parent adjusted-insertion-location) node))))
+
+
 (define-parser-op appropriate-place-for-inserting-a-node (&optional override-target)
     ()
   "<https://html.spec.whatwg.org/multipage/parsing.html#appropriate-place-for-inserting-a-node>"
-  (let (target
-        adjusted-insertion-location-parent
-        adjusted-insertion-location-next-sibling
-        adjusted-insertion-location-previous-sibling)
-    ;; 1
-    (setf target (or override-target
-                     (current-node)))
-    ;; 2
-    ;; TODO forster parenting
-    ;; Otherwise
-    ;; Inside target, after it's last child
-    (setf adjusted-insertion-location-parent target
-          adjusted-insertion-location-next-sibling nil
-          adjusted-insertion-location-previous-sibling (node-last-child target))
+  (prog (target
+         adjusted-insertion-location)
+   1. (setf target (or override-target
+                       (current-node)))
+   2.
+     ;; TODO forster parenting
 
-    ;; 3
-    ;; TODO template
+     ;; Otherwise
+     ;; Inside target, after it's last child
+     (setf adjusted-insertion-location (as-the-last-child-of target))
 
-    ;; 4
-    (values adjusted-insertion-location-parent
-            adjusted-insertion-location-next-sibling
-            adjusted-insertion-location-previous-sibling)))
+   3.
+     ;; TODO template
+
+   4. (return adjusted-insertion-location)))
 
 
 (define-parser-op create-element-for-token (token given-namespace intended-parent)
@@ -111,23 +130,17 @@
 (define-parser-op insert-foreign-element (token namespace)
     ()
   "https://html.spec.whatwg.org/multipage/parsing.html#insert-a-foreign-element"
-  ;; 1
-  (multiple-value-bind (adjusted-insertion-location-parent adjusted-insertion-location-before-node)
-      (appropriate-place-for-inserting-a-node)
-    ;; 2
-    (let ((element (create-element-for-token token namespace adjusted-insertion-location-parent)))
-      ;; 3
-      (when t ;; TODO If it is possible to insert element at the adjusted insertion location, then:
-        ;; 3.1 Not implemented: custom element reactions stack
-        ;; 3.2
-        (node-insert-before adjusted-insertion-location-parent
-                            element
-                            adjusted-insertion-location-before-node))
-      ;; 3.3 Not implemented: custom element reactions stack
-      ;; 4
-      (stack-of-open-elements-push element)
-      ;; 5
-      element)))
+  (prog (adjusted-insertion-location element)
+   1. (setf adjusted-insertion-location (appropriate-place-for-inserting-a-node))
+   2. (setf element (create-element-for-token token namespace (adjusted-insertion-location-parent adjusted-insertion-location)))
+   3. (when t ;; TODO If it is possible to insert element at the adjusted insertion location, then:
+        (prog ()
+         1. ; Not implemented: custom element reactions stack
+         2. (insert-node-at adjusted-insertion-location element)
+         3. ; Not implemented: custom element reactions stack
+           ))
+   4. (stack-of-open-elements-push element)
+   5. (return element)))
 
 
 ;; Macro insert-an-html-element defined in interface
@@ -138,32 +151,30 @@
 (define-parser-op insert-a-character (char)
     ()
   "https://html.spec.whatwg.org/multipage/parsing.html#insert-a-character"
-  (let ((data (string char)))
-    (multiple-value-bind (adjusted-insertion-location-parent adjusted-insertion-location-next-sibling adjusted-insertion-location-previous-sibling)
-        (appropriate-place-for-inserting-a-node)
-      (if (text-node-p adjusted-insertion-location-previous-sibling)
-          (character-data-append-data adjusted-insertion-location-previous-sibling data)
-          (node-insert-before adjusted-insertion-location-parent
-                              (document-create-text-node (node-owner-document adjusted-insertion-location-parent) data)
-                              adjusted-insertion-location-next-sibling)))))
+  (prog (data adjusted-insertion-location)
+   1. (setf data (etypecase char
+                   (character-token (string (token-character char)))
+                   (character (string char))
+                   (string char)))
+   2. (setf adjusted-insertion-location (appropriate-place-for-inserting-a-node))
+   3. (when (document-node-p (adjusted-insertion-location-parent adjusted-insertion-location))
+        (return))
+   4. (if (text-node-p (adjusted-insertion-location-before adjusted-insertion-location))
+          (character-data-append-data (adjusted-insertion-location-before adjusted-insertion-location) data)
+          (insert-node-at adjusted-insertion-location
+                          (document-create-text-node (adjusted-insertion-location-document adjusted-insertion-location)
+                                                     data)))))
 
 
-(define-parser-op insert-a-comment (token &optional parent-node before-node)
+(define-parser-op insert-a-comment (token &optional position)
     (document)
   "https://html.spec.whatwg.org/multipage/parsing.html#insert-a-comment"
-  ;; 1
-  (let ((data (token-data token)))
-    ;; 2
-    (multiple-value-bind (adjusted-insertion-location-parent adjusted-insertion-location-before-node)
-        (if parent-node
-            (values parent-node before-node)
-            (appropriate-place-for-inserting-a-node))
-      ;; 3
-      (let ((comment-node (document-create-comment document data)))
-        ;; 4
-        (if adjusted-insertion-location-before-node
-            (node-insert-before adjusted-insertion-location-parent comment-node adjusted-insertion-location-before-node)
-            (node-append-child adjusted-insertion-location-parent comment-node))))))
+  (prog (data adjusted-insertion-location comment-node)
+   1. (setf data (token-data token))
+   2. (setf adjusted-insertion-location (or position
+                                            (appropriate-place-for-inserting-a-node)))
+   3. (setf comment-node (document-create-comment (adjusted-insertion-location-document adjusted-insertion-location) data))
+   4. (insert-node-at adjusted-insertion-location comment-node)))
 
 
 ;; 13.2.6.2 Parsing elements that contain only text
@@ -261,15 +272,17 @@
                     :collect `(equal ,name (token-name token))))))
 
 
+(defmacro ignore-the-token ())
+
+
 (define-insertion-mode initial
     1 "initial"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-initial-insertion-mode"
   (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
-    ;; Ignore the token.
-    )
+    (ignore-the-token))
 
   (A-comment-token
-    (insert-a-comment token document))
+    (insert-a-comment token (as-the-last-child-of document)))
 
   (A-DOCTYPE-token
     (flet ((the-name-is-not                    (what)  (not (equal (token-name token) what)))
@@ -447,7 +460,7 @@
     4 "in head"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead"
   (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
-    (insert-a-character (token-character token)))
+    (insert-a-character token))
 
   (A-comment-token
     (insert-a-comment token))
@@ -530,7 +543,7 @@
     6 "after head"
     "https://html.spec.whatwg.org/multipage/parsing.html#the-after-head-insertion-mode"
   (A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
-    (insert-a-character (token-character token)))
+    (insert-a-character token))
 
   (A-comment-token
     (insert-a-comment token))
@@ -585,7 +598,7 @@
 
   (Any-other-character-token
     ;; TODO Reconstruct the active formatting elements, if any.
-    (insert-a-character (token-character token))
+    (insert-a-character token)
     (setf frameset-ok-flag :not-ok))
 
   (A-comment-token
