@@ -193,7 +193,7 @@
   (loop :while (member (node-name (current-node)) '("dd" "dt" "li" "optgroup" "option" "p" "rb" "rp" "rt" "rtc"))
         :do (stack-of-open-elements-pop)))
 
-;;; 
+;;;
 
 (defmacro define-insertion-mode (name number title url &body body)
   `(defun ,name (parser token)
@@ -205,8 +205,9 @@
                 (format *trace-output* "~&parse-error in ~A: token = ~S" insertion-mode token)
                 (push (cons insertion-mode token) parse-errors)))
          (declare (ignorable (function parse-error)))
-         (token-cond
-          ,@body)))))
+         (block token-handler
+           (token-cond
+            ,@body))))))
 
 
 (defmacro process-token-using-rules-for (mode)
@@ -214,65 +215,47 @@
 
 
 (defmacro reprocess-the-token ()
-  `(return-from token-cond :reprocess))
+  `(return-from token-handler :reprocess))
 
 
 (defmacro token-cond (&rest clauses)
   (let ((anything-else-clause (assoc 'Anything-else clauses)))
-    `(block token-cond
-       (flet ((act-as-anything-else ()
-                ,@(cdr anything-else-clause)))
-         ,@(remove anything-else-clause clauses)
-         (act-as-anything-else)))))
+    `(flet ((act-as-anything-else ()
+              ,@(cdr anything-else-clause)))
+       (cond ,@(remove anything-else-clause clauses)
+             (t (act-as-anything-else))))))
 
 
-(defmacro oneof ((&rest tests) &body body)
-  `(when (or ,@tests)
-     ,@body
-     (return-from token-cond)))
+(define-symbol-macro A-comment-token (typep token 'comment-token))
+(define-symbol-macro A-DOCTYPE-token (typep token 'doctype-token))
+(define-symbol-macro Any-other-end-tag (typep token 'end-tag-token))
+(define-symbol-macro A-character-token (typep token 'character-token))
+(define-symbol-macro Any-other-character-token A-character-token)
+(define-symbol-macro An-end-of-file-token (typep token 'end-of-file-token))
+(define-symbol-macro A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE
+    (and A-character-token
+         (member (token-character token) '(U+0009_CHARACTER_TABULATION
+                                           U+000A_LINE_FEED
+                                           U+000C_FORM_FEED
+                                           U+000D_CARRIAGE_RETURN
+                                           U+0020_SPACE))))
 
 
-(defmacro define-token-test (name (&rest args) &body test)
-  (assert (null (cdr test)))
-  `(defmacro ,name (,@(when args (list args)) &body body)
-     (let ((test ,(car test)))
-       (if body
-           `(oneof (,test) ,@body)
-           test))))
+(defmacro A-start-tag-whose-tag-name-is (name)
+  `(A-start-tag-whose-tag-name-is-one-of ,name))
 
 
-(define-token-test A-comment-token () `(typep token 'comment-token))
-(define-token-test A-DOCTYPE-token () `(typep token 'doctype-token))
-(define-token-test Any-other-end-tag () `(typep token 'end-tag-token))
-(define-token-test A-character-token () `(typep token 'character-token))
-(define-token-test Any-other-character-token () `(typep token 'character-token))
-(define-token-test An-end-of-file-token () `(typep token 'end-of-file-token))
-(define-token-test A-character-token-that-is-one-of-U+0009-CHARACTER-TABULATION-U+000A-LINE-FEED-U+000C-FORM-FEED-FF-U+000D-CARRIAGE-RETURN-CR-or-U+0020-SPACE ()
-  `(and (typep token 'character-token)
-        (member (token-character token) '(U+0009_CHARACTER_TABULATION
-                                          U+000A_LINE_FEED
-                                          U+000C_FORM_FEED
-                                          U+000D_CARRIAGE_RETURN
-                                          U+0020_SPACE))))
-
-
-(define-token-test A-start-tag-whose-tag-name-is (name)
-  `(and (typep token 'start-tag-token)
-        (equal ,name (token-name token))))
-
-
-(define-token-test An-end-tag-whose-tag-name-is (name)
-  `(and (typep token 'end-tag-token)
-        (equal ,name (token-name token))))
-
-
-(define-token-test A-start-tag-whose-tag-name-is-one-of (&rest names)
+(defmacro A-start-tag-whose-tag-name-is-one-of (&rest names)
   `(and (typep token 'start-tag-token)
         (or ,@(loop :for name :in names
                     :collect `(equal ,name (token-name token))))))
 
 
-(define-token-test An-end-tag-whose-tag-name-is-one-of (&rest names)
+(defmacro An-end-tag-whose-tag-name-is (name)
+  `(An-end-tag-whose-tag-name-is-one-of ,name))
+
+
+(defmacro An-end-tag-whose-tag-name-is-one-of (&rest names)
   `(and (typep token 'end-tag-token)
         (or ,@(loop :for name :in names
                     :collect `(equal ,name (token-name token))))))
@@ -406,15 +389,15 @@
     ;; Ignore the token.
     )
 
-  (A-start-tag-whose-tag-name-is ("html")
-    (let ((element (create-element-for-token token +HTML-namespace+ document)))
-      (node-append-child document element)
-      (stack-of-open-elements-push element))
-    ;; Not implemented: secure context
-    (switch-insertion-mode 'before-head))
+  ((A-start-tag-whose-tag-name-is "html")
+   (let ((element (create-element-for-token token +HTML-namespace+ document)))
+     (node-append-child document element)
+     (stack-of-open-elements-push element))
+   ;; Not implemented: secure context
+   (switch-insertion-mode 'before-head))
 
-  (An-end-tag-whose-tag-name-is-one-of ("head" "body" "html" "br")
-    (act-as-anything-else))
+  ((An-end-tag-whose-tag-name-is-one-of "head" "body" "html" "br")
+   (act-as-anything-else))
 
   (Any-other-end-tag
     (parse-error))
@@ -441,15 +424,15 @@
   (A-DOCTYPE-token
     (parse-error))
 
-  (A-start-tag-whose-tag-name-is ("html")
-    (process-token-using-rules-for 'in-body))
+  ((A-start-tag-whose-tag-name-is "html")
+   (process-token-using-rules-for 'in-body))
 
-  (A-start-tag-whose-tag-name-is ("head")
-    (setf head-element-pointer (insert-an-html-element token))
-    (switch-insertion-mode 'in-head))
+  ((A-start-tag-whose-tag-name-is "head")
+   (setf head-element-pointer (insert-an-html-element token))
+   (switch-insertion-mode 'in-head))
 
-  (An-end-tag-whose-tag-name-is-one-of ("head" "body" "html" "br")
-    (act-as-anything-else))
+  ((An-end-tag-whose-tag-name-is-one-of "head" "body" "html" "br")
+   (act-as-anything-else))
 
   (Any-other-end-tag
     (parse-error))
@@ -469,67 +452,67 @@
   (A-comment-token
     (insert-a-comment token))
 
-  (A-start-tag-whose-tag-name-is ("html")
-    (process-token-using-rules-for 'in-body))
+  ((A-start-tag-whose-tag-name-is "html")
+   (process-token-using-rules-for 'in-body))
 
-  (A-start-tag-whose-tag-name-is-one-of ("base" "basefont" "bgsound" "link")
-    (insert-an-html-element token)
-    (stack-of-open-elements-pop)
-    (acknowledge-the-tokens-self-closing-flag-if-it-is-set token))
+  ((A-start-tag-whose-tag-name-is-one-of "base" "basefont" "bgsound" "link")
+   (insert-an-html-element token)
+   (stack-of-open-elements-pop)
+   (acknowledge-the-tokens-self-closing-flag-if-it-is-set token))
 
-  (A-start-tag-whose-tag-name-is ("meta")
-    (insert-an-html-element token)
-    (stack-of-open-elements-pop)
-    (acknowledge-the-tokens-self-closing-flag-if-it-is-set token)
-    ;; TODO If the element has a charset attribute, ...
-    ;; TODO Otherwise, if the element has an http-equiv ...
-    )
+  ((A-start-tag-whose-tag-name-is "meta")
+   (insert-an-html-element token)
+   (stack-of-open-elements-pop)
+   (acknowledge-the-tokens-self-closing-flag-if-it-is-set token)
+   ;; TODO If the element has a charset attribute, ...
+   ;; TODO Otherwise, if the element has an http-equiv ...
+   )
 
-  (A-start-tag-whose-tag-name-is ("title")
-    (generic-RCDATA-element-parsing-algorithm token))
+  ((A-start-tag-whose-tag-name-is "title")
+   (generic-RCDATA-element-parsing-algorithm token))
 
-  (oneof ((and (A-start-tag-whose-tag-name-is ("noscript"))
-               (scripting-flag-enabled-p))
-          (A-start-tag-whose-tag-name-is-one-of ("noframes" "style")))
-    (generic-raw-text-element-parsing-algorithm token))
+  ((or (and (A-start-tag-whose-tag-name-is "noscript")
+            (scripting-flag-enabled-p))
+       (A-start-tag-whose-tag-name-is-one-of "noframes" "style"))
+   (generic-raw-text-element-parsing-algorithm token))
 
-  (oneof ((and (A-start-tag-whose-tag-name-is ("noscript"))
-               (scripting-flag-disabled-p)))
-    (insert-an-html-element token)
-    (switch-insertion-mode 'in-head-noscript))
+  ((or (and (A-start-tag-whose-tag-name-is "noscript")
+            (scripting-flag-disabled-p)))
+   (insert-an-html-element token)
+   (switch-insertion-mode 'in-head-noscript))
 
-  (A-start-tag-whose-tag-name-is ("script")
-    ;; TODO run these steps …
-    )
+  ((A-start-tag-whose-tag-name-is "script")
+   ;; TODO run these steps …
+   )
 
-  (An-end-tag-whose-tag-name-is ("head")
-    (stack-of-open-elements-pop)
-    (switch-insertion-mode 'after-head))
+  ((An-end-tag-whose-tag-name-is "head")
+   (stack-of-open-elements-pop)
+   (switch-insertion-mode 'after-head))
 
-  (An-end-tag-whose-tag-name-is-one-of ("body" "html" "br")
-    (act-as-anything-else))
+  ((An-end-tag-whose-tag-name-is-one-of "body" "html" "br")
+   (act-as-anything-else))
 
-  (A-start-tag-whose-tag-name-is ("template")
-    (insert-an-html-element token)
-    (insert-a-marker-at-the-end-of-the-list-of-active-formatting-elements)
-    (setf frameset-ok-flag :not-ok)
-    (switch-insertion-mode 'in-template)
-    (stack-of-template-insertion-modes-push 'in-template))
+  ((A-start-tag-whose-tag-name-is "template")
+   (insert-an-html-element token)
+   (insert-a-marker-at-the-end-of-the-list-of-active-formatting-elements)
+   (setf frameset-ok-flag :not-ok)
+   (switch-insertion-mode 'in-template)
+   (stack-of-template-insertion-modes-push 'in-template))
 
-  (An-end-tag-whose-tag-name-is ("template")
-    (if (not (template-element-in-stack-of-open-elements-p))
-        (parse-error)
-        (prog ()
-         1. (generate-implied-end-tags-thoroughly)
-         2. (when (not (element-equal (current-node) "template"))
-              (parse-error))
-         3. (loop :until (element-equal "template" (stack-of-open-elements-pop)))
-         4. (clear-the-list-of-active-formatting-elements-up-to-the-last-marker)
-         5. (reset-the-insertion-mode-appropriately))))
+  ((An-end-tag-whose-tag-name-is "template")
+   (if (not (template-element-in-stack-of-open-elements-p))
+       (parse-error)
+       (prog ()
+        1. (generate-implied-end-tags-thoroughly)
+        2. (when (not (element-equal (current-node) "template"))
+             (parse-error))
+        3. (loop :until (element-equal "template" (stack-of-open-elements-pop)))
+        4. (clear-the-list-of-active-formatting-elements-up-to-the-last-marker)
+        5. (reset-the-insertion-mode-appropriately))))
 
-  (oneof ((A-start-tag-whose-tag-name-is ("head"))
-          (Any-other-end-tag))
-    (parse-error))
+  ((or (A-start-tag-whose-tag-name-is "head")
+       Any-other-end-tag)
+   (parse-error))
 
   (Anything-else
    (stack-of-open-elements-pop)
@@ -555,35 +538,34 @@
   (A-DOCTYPE-token
     (parse-error))
 
-  (A-start-tag-whose-tag-name-is ("html")
+  ((A-start-tag-whose-tag-name-is "html")
     (process-token-using-rules-for 'in-body))
 
-  (A-start-tag-whose-tag-name-is ("body")
+  ((A-start-tag-whose-tag-name-is "body")
     (insert-an-html-element token)
     (setf frameset-ok-flag :not-ok)
     (switch-insertion-mode 'in-body))
 
-  (A-start-tag-whose-tag-name-is ("frameset")
+  ((A-start-tag-whose-tag-name-is "frameset")
     (insert-an-html-element token)
     (switch-insertion-mode 'in-frameset))
 
-  (A-start-tag-whose-tag-name-is-one-of ("base" "basefont" "bgsound" "link" "meta" "noframes" "script" "style" "template" "title")
+  ((A-start-tag-whose-tag-name-is-one-of "base" "basefont" "bgsound" "link" "meta" "noframes" "script" "style" "template" "title")
     (parse-error)
     (stack-of-open-elements-push head-element-pointer)
     (process-token-using-rules-for 'in-head)
     ;; TODO Remove the node pointed to by the head element pointer from the stack of open elements. (It might not be the current node at this point.)
     )
 
-  (An-end-tag-whose-tag-name-is ("template")
+  ((An-end-tag-whose-tag-name-is "template")
     (process-token-using-rules-for 'in-head))
 
-  (An-end-tag-whose-tag-name-is-one-of ("body" "html" "br")
+  ((An-end-tag-whose-tag-name-is-one-of "body" "html" "br")
     (act-as-anything-else))
 
-  (A-start-tag-whose-tag-name-is ("head")
-    (parse-error))
-  (Any-other-end-tag
-    (parse-error))
+  ((or (A-start-tag-whose-tag-name-is "head")
+       Any-other-end-tag)
+   (parse-error))
 
   (Anything-else
    (insert-an-html-element (make-start-tag-token :name "body"))
@@ -602,8 +584,8 @@
     (insert-a-character token))
 
   (Any-other-character-token
-   ;; TODO Reconstruct the active formatting elements, if any.
-   (insert-a-character (token-character token))
+    ;; TODO Reconstruct the active formatting elements, if any.
+    (insert-a-character (token-character token))
     (setf frameset-ok-flag :not-ok))
 
   (A-comment-token
@@ -614,21 +596,21 @@
 
   ;; ...
 
-  (A-start-tag-whose-tag-name-is ("table")
-    ;; TODO If the Document is not set to quirks mode, and the stack of open elements has a p element in button scope, then close a p element.
-    (insert-an-html-element token)
-    (setf frameset-ok-flag :not-ok)
-    (switch-insertion-mode 'in-table))
+  ((A-start-tag-whose-tag-name-is "table")
+   ;; TODO If the Document is not set to quirks mode, and the stack of open elements has a p element in button scope, then close a p element.
+   (insert-an-html-element token)
+   (setf frameset-ok-flag :not-ok)
+   (switch-insertion-mode 'in-table))
 
   ;; ...
 
-  (A-start-tag-whose-tag-name-is  ("textarea")
-    "1." (insert-an-html-element token)
-    "2." (setf ignore-next-token-if-line-feed t)
-    "3." (switch-tokenization-state 'rcdata-state)
-    "4." (setf original-insertion-mode insertion-mode)
-    "5." (setf frameset-ok-flag :not-ok)
-    "6." (switch-insertion-mode 'text)))
+  ((A-start-tag-whose-tag-name-is "textarea")
+   "1." (insert-an-html-element token)
+   "2." (setf ignore-next-token-if-line-feed t)
+   "3." (switch-tokenization-state 'rcdata-state)
+   "4." (setf original-insertion-mode insertion-mode)
+   "5." (setf frameset-ok-flag :not-ok)
+   "6." (switch-insertion-mode 'text)))
 
 
 (define-insertion-mode text
@@ -649,7 +631,7 @@
     9 "in table"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intable"
   ;; ...
-  (A-start-tag-whose-tag-name-is-one-of ("td" "th" "tr")
+  ((A-start-tag-whose-tag-name-is-one-of "td" "th" "tr")
     ;; TODO Clear the stack back to a table context. (See below.)
     (insert-an-html-element (make-start-tag-token :name "tbody"))
     (switch-insertion-mode 'in-table-body)
@@ -680,7 +662,7 @@
     13 "in table body"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intbody"
   ;; ...
-  (A-start-tag-whose-tag-name-is-one-of ("th" "td")
+  ((A-start-tag-whose-tag-name-is-one-of "th" "td")
     (parse-error)
     ;; TODO Clear the stack back to a table body context. (See below.)
     (insert-an-html-element (make-start-tag-token :name "tr"))
@@ -694,7 +676,7 @@
     14 "in row"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intr"
 
-  (A-start-tag-whose-tag-name-is-one-of ("th" "td")
+  ((A-start-tag-whose-tag-name-is-one-of "th" "td")
     ;; TODO Clear the stack back to a table body context. (See below.)
     (insert-an-html-element token)
     (switch-insertion-mode 'in-cell)
@@ -707,18 +689,18 @@
 (define-insertion-mode in-cell
     15 "in cell"
     "https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-intd"
-  (An-end-tag-whose-tag-name-is-one-of ("td" "th")
+  ((An-end-tag-whose-tag-name-is-one-of "td" "th")
     ;; TODO
     )
 
-  (A-start-tag-whose-tag-name-is-one-of ("caption" "col" "colgroup" "tbody" "td" "tfoot" "th" "thead" "tr")
+  ((A-start-tag-whose-tag-name-is-one-of "caption" "col" "colgroup" "tbody" "td" "tfoot" "th" "thead" "tr")
     ;; TODO
     )
 
-  (An-end-tag-whose-tag-name-is-one-of ("body" "caption" "col" "colgroup" "html")
+  ((An-end-tag-whose-tag-name-is-one-of "body" "caption" "col" "colgroup" "html")
     (parse-error))
 
-  (An-end-tag-whose-tag-name-is-one-of ("table" "tbody" "tfoot" "thead" "tr")
+  ((An-end-tag-whose-tag-name-is-one-of "table" "tbody" "tfoot" "thead" "tr")
     ;; TODO
     )
 
