@@ -6,42 +6,13 @@
 ;;; 4.5. Code points
 
 (defmacro define-code-point-type (name type)
-  `(progn
-     (deftype ,name () ',type)
-     (defun ,(intern (format nil "~A-P" name)) (code-point)
-       (when (characterp code-point)
-         (setf code-point (char-code code-point)))
-       (typep code-point ',name))))
-
-
-(define-code-point-type code-point
-  (integer #x0000 #x10FFFF))
-
-(define-code-point-type surrogate
-  (integer #xD800 #xDFFF))
-
-(define-code-point-type scalar-value
-  (and code-point (not surrogate)))
-
-(define-code-point-type noncharacter
-  (or (integer #xFDD0 #xFDEF)
-      (member #xFFFE #xFFFF
-              #x1FFFE #x1FFFF
-              #x2FFFE #x2FFFF
-              #x3FFFE #x3FFFF
-              #x4FFFE #x4FFFF
-              #x5FFFE #x5FFFF
-              #x6FFFE #x6FFFF
-              #x7FFFE #x7FFFF
-              #x8FFFE #x8FFFF
-              #x9FFFE #x9FFFF
-              #xAFFFE #xAFFFF
-              #xBFFFE #xBFFFF
-              #xCFFFE #xCFFFF
-              #xDFFFE #xDFFFF
-              #xEFFFE #xEFFFF
-              #xFFFFE #xFFFFF
-              #x10FFFE #x10FFFF)))
+  (let ((predicate (intern (format nil "~A~A" name (if (find #\- (symbol-name name)) "-P" "P"))))
+        (int-type (intern (format nil "~A-INT" (symbol-name name)))))
+    `(progn
+       (deftype ,int-type () ',type)
+       (defun ,predicate (code-point)
+         ,`(typep (code-point-int code-point) ',int-type))
+       (deftype ,name () '(and code-point (satisfies ,predicate))))))
 
 (define-code-point-type ascii-code-point
   (integer #x0000 #x007F))
@@ -55,23 +26,23 @@
 (define-code-point-type c0-control
   (integer #x0000 #x001F))
 
-(define-code-point-type c0-control-or-space-p
-  (or c0-control (member #x0020)))
+(define-code-point-type c0-control-or-space
+  (or c0-control-int (member #x0020)))
 
 (define-code-point-type control
-  (or c0-control (integer #x007F #x009F)))
+  (or c0-control-int (integer #x007F #x009F)))
 
 (define-code-point-type ascii-digit
   (integer #x0030 #x0039))
 
 (define-code-point-type ascii-upper-hex-digit
-  (or ascii-digit (integer #x0041 #x0046)))
+  (or ascii-digit-int (integer #x0041 #x0046)))
 
 (define-code-point-type ascii-lower-hex-digit
-  (or ascii-digit (integer #x0061 #x0066)))
+  (or ascii-digit-int (integer #x0061 #x0066)))
 
 (define-code-point-type ascii-hex-digit
-  (or ascii-upper-hex-digit ascii-lower-hex-digit))
+  (or ascii-upper-hex-digit-int ascii-lower-hex-digit-int))
 
 (define-code-point-type ascii-upper-alpha
   (integer #x0041 #x005A))
@@ -80,10 +51,11 @@
   (integer #x0061 #x007A))
 
 (define-code-point-type ascii-alpha
-  (or ascii-upper-alpha ascii-lower-alpha))
+  (or ascii-upper-alpha-int ascii-lower-alpha-int))
 
 (define-code-point-type ascii-alphanumeric
-  (or ascii-digit ascii-alpha))
+  (or ascii-digit-int ascii-alpha-int))
+
 
 ;;; 8. Namespaces
 

@@ -24,8 +24,8 @@
 (defmacro define-unicode-constant (symbol)
   (let* ((code-point (symbol-name symbol)))
     (assert (eql 0 (search "U+" code-point)))
-    (let ((char (code-char (parse-integer code-point :start 2 :radix 16 :junk-allowed t))))
-      `(defconstant ,symbol ,char))))
+    (let ((char (code-point (parse-integer code-point :start 2 :radix 16 :junk-allowed t))))
+      `(define-symbol-macro ,symbol ,char))))
 
 
 (define-unicode-constant U+0000_NULL)

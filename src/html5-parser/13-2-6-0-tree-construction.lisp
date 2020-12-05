@@ -133,8 +133,8 @@
   "https://html.spec.whatwg.org/multipage/parsing.html#insert-a-character"
   (prog (data adjusted-insertion-location)
    1. (setf data (etypecase char
-                   (character-token (string (token-character char)))
-                   (character (string char))
+                   (character-token (code-point-string (token-character char)))
+                   (character (code-point-string char))
                    (string char)))
    2. (setf adjusted-insertion-location (appropriate-place-for-inserting-a-node))
    3. (when (document-node-p (adjusted-insertion-location-parent adjusted-insertion-location))

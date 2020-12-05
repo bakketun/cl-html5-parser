@@ -26,6 +26,11 @@
   :in-order-to ((test-op (test-op "html5-parser/tests")))
   :serial t
   :components (
+               (:module "src/unicode"
+                :serial t
+                :components (
+                             (:file "code-point")
+                             ))
                (:module "src/simple-tree"
                 :serial t
                 :components (

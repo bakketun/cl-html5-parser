@@ -29,6 +29,7 @@
    )
   (:use
    #:common-lisp
+   #:html5-parser/unicode/code-point
    #:html5-parser/simple-tree
    #:html5-parser/infra
    #:html5-parser/tokenization-state
@@ -37,9 +38,12 @@
 
 (in-package #:html5-parser)
 
+;;; 13.2.1 Overview of the parsing model
+;;; <https://html.spec.whatwg.org/multipage/parsing.html#parsing>
 
 (defclass html-parser (html-tree-constructor html-tokenizer)
-  ())
+  ((script-nesting-level :initform 0)
+   (parser-pause-flag :initform nil)))
 
 
 (defgeneric tree-construction-dispatcher (html5-parser token &key using-rules-for)

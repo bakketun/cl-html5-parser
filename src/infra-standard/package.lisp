@@ -20,14 +20,6 @@
 
 (defpackage #:html5-parser/infra
   (:export
-   #:code-point
-   #:code-point-p
-   #:surrogate
-   #:surrogate-p
-   #:scalar-value
-   #:scalar-value-p
-   #:noncharacter
-   #:noncharacter-p
    #:ascii-code-point
    #:ascii-code-point-p
    #:ascii-tab-or-newline
@@ -39,7 +31,7 @@
    #:c0-control-or-space
    #:c0-control-or-space-p
    #:control
-   #:control-p
+   #:controlp
    #:ascii-digit
    #:ascii-digit-p
    #:ascii-upper-hex-digit
@@ -62,5 +54,16 @@
    #:+XLink-namespace+
    #:+XML-namespace+
    #:+XMLNS-namespace+
+   ;; Defined in #:html5-parser/unicode
+   #:code-point
+   #:code-point-p
+   #:noncharacter
+   #:noncharacterp
+   #:scalar-value-code-point
+   #:scalar-value-code-point-p
+   #:surrogate
+   #:surrogatep
    )
-  (:use #:common-lisp))
+  (:use #:common-lisp
+        #:html5-parser/unicode/code-point
+        ))

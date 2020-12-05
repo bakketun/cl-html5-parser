@@ -108,7 +108,7 @@
 
 ;;; input stream
 
-(defconstant EOF #\Return)
+(defconstant EOF U+000D_CARRIAGE_RETURN)
 
 
 (defclass input-stream ()
@@ -146,10 +146,11 @@
     ;; Normalize newlines
     (let ((buffer (make-array (length new-characters) :fill-pointer 0)))
       (loop :for char :across new-characters
-            :for is-cr := (eql #\Return char)
-            :for is-lf := (eql #\Linefeed char)
+            :for code-point := (code-point char)
+            :for is-cr := (eql U+000D_CARRIAGE_RETURN code-point)
+            :for is-lf := (eql U+000A_LINE_FEED code-point)
             :do (unless (and last-character-was-cr is-lf)
-                  (vector-push (if is-cr #\Linefeed char) buffer))
+                  (vector-push (if is-cr U+000A_LINE_FEED code-point) buffer))
                 (setf last-character-was-cr is-cr))
       (setf characters (concatenate 'string
                                     characters
@@ -159,9 +160,7 @@
 
 (defun input-stream-close (input-stream)
   (with-slots (characters closed-p) input-stream
-    (setf characters (concatenate 'string
-                                  characters
-                                  (string EOF))
+    (setf characters (concatenate 'string characters (code-point-string EOF))
           closed-p t))
   input-stream)
 
@@ -177,14 +176,14 @@
     (let ((next-char (input-stream-next-input-character input-stream)))
       (when next-char
         (let ((parse-error (unless reconsumep
-                             (let ((code-point (char-code next-char)))
-                               (cond ((surrogate-p code-point)
+                             (let ((code-point (code-point next-char)))
+                               (cond ((surrogatep code-point)
                                       :surrogate-in-input-stream)
-                                     ((noncharacter-p code-point)
+                                     ((noncharacterp code-point)
                                       :noncharacter-in-input-stream)
                                      ((and (not (or (ascii-whitespace-p code-point)
-                                                    (eql #x0000 code-point)))
-                                           (control-p code-point))
+                                                    (eql U+0000_NULL code-point)))
+                                           (controlp code-point))
                                       :control-character-in-input-stream))))))
           (setf characters (subseq characters 1))
           (setf reconsumep nil)
@@ -193,9 +192,7 @@
 
 (defun input-stream-unconsume-character (input-stream character)
   (with-slots (reconsumep characters) input-stream
-    (setf characters (concatenate 'string
-                                  (string character)
-                                  characters)
+    (setf characters (concatenate 'string `#(,character) characters)
           reconsumep t)))
 
 
@@ -320,12 +317,7 @@
 
 (define-parser-op temporary-buffer-append (data)
     (temporary-buffer)
-  (vector-push-extend data temporary-buffer))
-
-
-(define-parser-op temporary-buffer-append-code-point (code-point)
-    (temporary-buffer)
-  (vector-push-extend (code-char code-point) temporary-buffer))
+  (vector-push-extend (code-point-char data) temporary-buffer))
 
 
 (define-parser-op temporary-buffer-equal (string)
@@ -364,14 +356,14 @@
     (current-token)
   (unless (named-token-name current-token)
     (setf (named-token-name current-token) (make-growable-string)))
-  (vector-push-extend char (named-token-name current-token)))
+  (vector-push-extend (code-point-char char) (named-token-name current-token)))
 
 
 (define-parser-op current-token-data-append (data)
     (current-token)
   (etypecase data
-    (character
-     (vector-push-extend data (comment-token-data current-token)))
+    (code-point
+     (vector-push-extend (code-point-char data) (comment-token-data current-token)))
     (string
      (loop :for char :across data :do
        (vector-push-extend char (comment-token-data current-token))))))
@@ -472,7 +464,7 @@
         (input-stream (make-input-stream)))
     (switch-tokenization-state initial-state)
     (loop :for char :across data
-          :do (input-stream-append input-stream (string char))
+          :do (input-stream-append input-stream `#(,(code-point char)))
           :do (do-tokenizer-trace (print input-stream *tokenizer-trace-output*))
           :do (tokenizer-process input-stream))
     (when end-of-file-p
@@ -486,8 +478,6 @@
 
 
 ;;; Implementiation of tokenization-dsl
-
-(defconstant EOF #\Return)
 
 
 (defvar *tokenization-states* (make-array 81 :initial-element :undefined))
@@ -510,11 +500,6 @@
 
 
 ;; Next and current input character
-
-
-(defmacro numeric-version-of-current-input-character (subtract)
-  `(- (char-code current-input-character) ,subtract))
-
 
 (defmacro next-input-character (&optional (offset 0))
   `(or (input-stream-next-input-character input-stream ,offset)
@@ -609,16 +594,17 @@
 
 
 (defmacro temporary-buffer-append-matched-named-character-reference ()
-  `(progn (temporary-buffer-append-code-point (car matched-named-character-reference))
+  `(progn (temporary-buffer-append (car matched-named-character-reference))
           (when (cdr matched-named-character-reference)
-            (temporary-buffer-append-code-point (cadr matched-named-character-reference)))))
-
-
-(defun lowercase-version-of (char)
-  (char-downcase char))
+            (temporary-buffer-append (cadr matched-named-character-reference)))))
 
 
 (defmacro adjusted-current-node-not-in-HTML-namespace-p ()
   `(let ((adjusted-current-node (adjusted-current-node)))
      (and adjusted-current-node
           (not (eql +HTML-namespace+ (element-namespace-uri adjusted-current-node))))))
+
+
+(defun lowercase-version-of (code-point)
+  ;; TODO
+  (code-point (char-downcase (code-point-char code-point))))

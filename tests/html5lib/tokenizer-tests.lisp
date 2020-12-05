@@ -52,7 +52,7 @@
                           :data (html5-parser::token-data token)))
                    (html5-parser::character-token
                     (list :type :characters
-                          :data (string (html5-parser::token-character token)))))
+                          :data (princ-to-string (html5-parser::token-character token)))))
                  output-tokens))))
       (values (nreverse output-tokens)
               errors))))

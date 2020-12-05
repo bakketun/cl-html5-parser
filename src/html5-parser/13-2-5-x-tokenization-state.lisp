@@ -150,7 +150,7 @@
      (switch-state data-state)
      (emit-current-token))
     (ASCII_upper_alpha
-     (current-token-name-append (lowercase-version-of current-input-character)))
+     (current-token-name-append (code-point+ current-input-character #x0020)))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-token-name-append U+FFFD_REPLACEMENT_CHARACTER))
@@ -210,7 +210,7 @@
                 (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
-     (current-token-name-append (lowercase-version-of current-input-character))
+     (current-token-name-append (code-point+ current-input-character #x0020))
      (temporary-buffer-append current-input-character))
     (ASCII_lower_alpha
      (current-token-name-append current-input-character)
@@ -271,7 +271,7 @@
                 (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
-     (current-token-name-append (lowercase-version-of current-input-character))
+     (current-token-name-append (code-point+ current-input-character #x0020))
      (temporary-buffer-append current-input-character))
     (ASCII_lower_alpha
      (current-token-name-append current-input-character)
@@ -336,7 +336,7 @@
                 (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
-     (current-token-name-append (lowercase-version-of current-input-character))
+     (current-token-name-append (code-point+ current-input-character #x0020))
      (temporary-buffer-append current-input-character))
     (ASCII_lower_alpha
      (current-token-name-append current-input-character)
@@ -491,7 +491,7 @@
                 (emit-current-token))
          (anything_else-clause)))
     (ASCII_upper_alpha
-     (current-token-name-append (lowercase-version-of current-input-character))
+     (current-token-name-append (code-point+ current-input-character #x0020))
      (temporary-buffer-append current-input-character))
     (ASCII_lower_alpha
      (current-token-name-append current-input-character)
@@ -519,7 +519,7 @@
          (switch-state script-data-escaped-state))
      (emit-character-token current-input-character))
     (ASCII_upper_alpha
-     (temporary-buffer-append (lowercase-version-of current-input-character))
+     (temporary-buffer-append (code-point+ current-input-character #x0020))
      (emit-character-token current-input-character))
     (ASCII_lower_alpha
      (temporary-buffer-append current-input-character)
@@ -626,7 +626,7 @@
          (switch-state script-data-double-escaped-state))
      (emit-character-token current-input-character))
     (ASCII_upper_alpha
-     (temporary-buffer-append (lowercase-version-of current-input-character))
+     (temporary-buffer-append (code-point+ current-input-character #x0020))
      (emit-character-token current-input-character))
     (ASCII_lower_alpha
      (temporary-buffer-append current-input-character)
@@ -678,7 +678,7 @@
      (check-for-duplicate-attribute)
      (switch-state before-attribute-value-state))
     (ASCII_upper_alpha
-     (current-attribute-name-append (lowercase-version-of current-input-character)))
+     (current-attribute-name-append (code-point+ current-input-character #x0020)))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-attribute-name-append U+FFFD_REPLACEMENT_CHARACTER))
@@ -1121,7 +1121,7 @@
      )
     (ASCII_upper_alpha
      (create-new-doctype-token)
-     (current-token-name-append (lowercase-version-of current-input-character))
+     (current-token-name-append (code-point+ current-input-character #x0020))
      (switch-state DOCTYPE-name-state))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
@@ -1160,7 +1160,7 @@
      (switch-state data-state)
      (emit-current-token))
     (ASCII_upper_alpha
-     (current-token-name-append (lowercase-version-of current-input-character)))
+     (current-token-name-append (code-point+ current-input-character #x0020)))
     (U+0000_NULL
      (this-is-a-parse-error :unexpected-null-character)
      (current-token-name-append U+FFFD_REPLACEMENT_CHARACTER))
@@ -1709,13 +1709,13 @@
   (current-character-case
     (ASCII_digit
      (setf character-reference-code (* 16 character-reference-code))
-     (incf character-reference-code (numeric-version-of-current-input-character #x0030)))
+     (incf character-reference-code (code-point-difference current-input-character #x0030)))
     (ASCII_upper_hex_digit
      (setf character-reference-code (* 16 character-reference-code))
-     (incf character-reference-code (numeric-version-of-current-input-character #x0037)))
+     (incf character-reference-code (code-point-difference current-input-character #x0037)))
     (ASCII_lower_hex_digit
      (setf character-reference-code (* 16 character-reference-code))
-     (incf character-reference-code (numeric-version-of-current-input-character #x0057)))
+     (incf character-reference-code (code-point-difference current-input-character #x0057)))
     (U+003B_SEMICOLON_\;
      (switch-state numeric-character-reference-end-state))
     (Anything_else
@@ -1730,7 +1730,7 @@
   (current-character-case
     (ASCII_digit
      (setf character-reference-code (* 10 character-reference-code))
-     (incf character-reference-code (numeric-version-of-current-input-character #x0030)))
+     (incf character-reference-code (code-point-difference current-input-character #x0030)))
     (U+003B_SEMICOLON_\;
      (switch-state numeric-character-reference-end-state))
     (Anything_else
@@ -1751,15 +1751,15 @@
      (this-is-a-parse-error :character-reference-outside-unicode-range)
      (setf character-reference-code #xFFFD))
 
-    ((surrogate-p character-reference-code)
+    ((surrogatep character-reference-code)
      (this-is-a-parse-error :surrogate-character-reference)
      (setf character-reference-code #xFFFD))
 
-    ((noncharacter-p character-reference-code)
+    ((noncharacterp character-reference-code)
      (this-is-a-parse-error :noncharacter-character-reference))
 
     ((or (= #x0D character-reference-code)
-         (and (control-p character-reference-code)
+         (and (controlp character-reference-code)
               (not (ascii-whitespace-p character-reference-code))))
      (this-is-a-parse-error :control-character-reference)
      (setf character-reference-code
@@ -1793,6 +1793,6 @@
              (#x9F #x0178) ;; LATIN CAPITAL LETTER Y WITH DIAERESIS (Ÿ))
              (otherwise character-reference-code)))))
   (temporary-buffer-clear)
-  (temporary-buffer-append-code-point character-reference-code)
+  (temporary-buffer-append (code-point character-reference-code))
   (flush-code-points-consumed-as-a-character-reference)
   (switch-to-the-return-state))

@@ -186,6 +186,12 @@
                  :data data))
 
 
+(defmethod document-create-comment ((this document) data)
+  (make-instance 'comment
+                 :node-document this
+                 :data data))
+
+
 ;;; 4.5.1. Interface DOMImplementation
 
 (defgeneric dom-implementation-create-document-type (dom-implementation qualifed-name public-id system-id))
@@ -384,7 +390,6 @@
 
 (defclass comment (character-data)
   ((type :initform '+COMMENT-NODE+ :allocation :class)))
-
 
 
 ;;;;
